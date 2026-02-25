@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Snapshot — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    /* ───── RESET & BASE ───── */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-0: #0a0e14;
+      --bg-1: #0d1117;
+      --bg-2: #161b22;
+      --bg-3: #1c2333;
+      --bg-hover: #1f2937;
+      --border: #21262d;
+      --border-light: #30363d;
+      --text-0: #e6edf3;
+      --text-1: #c9d1d9;
+      --text-2: #8b949e;
+      --text-3: #6e7681;
+      --accent: #58a6ff;
+      --accent-dim: rgba(88, 166, 255, .15);
+      --green: #3fb950;
+      --green-dim: rgba(63, 185, 80, .12);
+      --red: #f85149;
+      --red-dim: rgba(248, 81, 73, .12);
+      --orange: #d29922;
+      --orange-dim: rgba(210, 153, 34, .12);
+      --purple: #bc8cff;
+      --cyan: #39d2c0;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 4px 12px rgba(0, 0, 0, .3);
+      --transition: .2s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg-0);
+      color: var(--text-1);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ───── HEADER ───── */
+    .header {
+      background: var(--bg-1);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header .logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-0);
+      letter-spacing: -.02em;
+    }
+
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .85rem;
+      color: #fff;
+    }
+
+    .header .breadcrumb {
+      color: var(--text-3);
+      font-size: .8rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .breadcrumb span {
+      color: var(--text-2);
+    }
+
+    .breadcrumb .sep {
+      color: var(--text-3);
+    }
+
+    /* ───── LAYOUT ───── */
+    .main {
+      padding: 1.5rem 2rem 3rem;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* ───── SEARCH SECTION ───── */
+    .search-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 50vh;
+      animation: fadeUp .5s ease;
+    }
+
+    .search-section.compact {
+      min-height: auto;
+      flex-direction: row;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      animation: none;
+    }
+
+    .search-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-0);
+      margin-bottom: .4rem;
+      letter-spacing: -.03em;
+    }
+
+    .search-subtitle {
+      color: var(--text-2);
+      margin-bottom: 2rem;
+      font-size: .9rem;
+    }
+
+    .compact .search-title,
+    .compact .search-subtitle {
+      display: none;
+    }
+
+    .search-box {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .compact .search-box {
+      max-width: 320px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: .75rem 1rem .75rem 2.6rem;
+      background: var(--bg-2);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      color: var(--text-0);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .95rem;
+      outline: none;
+      transition: border var(--transition), box-shadow var(--transition);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-3);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: .85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+      font-size: .9rem;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--bg-2);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius);
+      max-height: 260px;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      z-index: 50;
+      display: none;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: .6rem 1rem;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .85rem;
+      color: var(--text-1);
+      transition: background var(--transition);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .dropdown-header {
+      padding: .4rem 1rem;
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text-3);
+      font-weight: 700;
+      border-top: 1px solid var(--border);
+    }
+
+    .dropdown-header:first-child {
+      border-top: none;
+    }
+
+    /* ───── FLIGHT DATE SELECTOR ───── */
+    .flight-dates {
+      margin-bottom: 1.5rem;
+      animation: fadeUp .4s ease;
+    }
+
+    .dates-label {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-3);
+      margin-bottom: .5rem;
+      font-weight: 600;
+    }
+
+    .dates-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .date-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .6rem 1rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-size: .8rem;
+    }
+
+    .date-card:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .date-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .date-card .route {
+      font-weight: 600;
+      color: var(--text-0);
+      font-size: .85rem;
+    }
+
+    .date-card .datetime {
+      color: var(--text-2);
+      margin-top: .15rem;
+    }
+
+    .date-card .tag {
+      display: inline-block;
+      background: var(--bg-3);
+      border-radius: 4px;
+      padding: .1rem .4rem;
+      font-size: .7rem;
+      color: var(--text-2);
+      margin-top: .3rem;
+    }
+
+    /* Date picker row */
+    .date-picker-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-top: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .date-label {
+      color: var(--text-2);
+      font-size: .82rem;
+      white-space: nowrap;
+    }
+
+    .date-input {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-0);
+      padding: .45rem .75rem;
+      font-size: .82rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .date-input:focus {
+      border-color: var(--accent);
+    }
+
+    .date-input::-webkit-calendar-picker-indicator {
+      filter: invert(.7);
+      cursor: pointer;
+    }
+
+    .date-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: .45rem 1.2rem;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .date-btn:hover {
+      background: var(--accent-hover, #7c4dff);
+    }
+
+    .search-section.compact .date-picker-row {
+      margin-top: .5rem;
+    }
+
+    /* ───── FORECAST UI ───── */
+    .forecast-settings-row {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .fs-group {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .fs-label {
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+
+    .range-input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .range-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+      font-weight: 600;
+      min-width: 2.5rem;
+    }
+
+    .horizon-toggle {
+      display: flex;
+      background: var(--bg-2);
+      padding: 3px;
+      border-radius: 6px;
+    }
+
+    .hz-btn {
+      padding: .35rem .8rem;
+      border-radius: 4px;
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-3);
+      transition: all .2s;
+    }
+
+    .hz-btn.active {
+      background: var(--bg-3);
+      color: var(--text-0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    }
+
+    .forecast-container {
+      background: rgba(99, 102, 241, 0.03);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .forecast-badge {
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: var(--accent);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .forecast-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .window-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .7rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .kpi-groups {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .kpi-group-box {
+      padding: .5rem;
+    }
+
+    .group-title {
+      font-size: .7rem;
+      font-weight: 700;
+      color: var(--text-3);
+      margin-bottom: .75rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .group-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .kpi-grid-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+    }
+
+    /* ───── CABIN TOGGLE ───── */
+    .cabin-toggle {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.5rem;
+      background: var(--bg-2);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      width: fit-content;
+    }
+
+    .cabin-btn {
+      padding: .5rem 1.2rem;
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text-2);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .cabin-btn:hover {
+      color: var(--text-1);
+      background: var(--bg-3);
+    }
+
+    .cabin-btn.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ───── KPI CARDS ───── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+      animation: fadeUp .4s ease;
+    }
+
+    .kpi-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.2rem;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .kpi-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+    }
+
+    .kpi-card:hover::before {
+      opacity: 1;
+    }
+
+    .kpi-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-3);
+      font-weight: 600;
+      margin-bottom: .4rem;
+    }
+
+    .kpi-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-0);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -.02em;
+    }
+
+    .kpi-sub {
+      font-size: .75rem;
+      color: var(--text-2);
+      margin-top: .2rem;
+    }
+
+    .kpi-card.green .kpi-value {
+      color: var(--green);
+    }
+
+    .kpi-card.green::before {
+      background: var(--green);
+    }
+
+    .kpi-card.red .kpi-value {
+      color: var(--red);
+    }
+
+    .kpi-card.red::before {
+      background: var(--red);
+    }
+
+    .kpi-card.orange .kpi-value {
+      color: var(--orange);
+    }
+
+    .kpi-card.orange::before {
+      background: var(--orange);
+    }
+
+    .kpi-card.purple .kpi-value {
+      color: var(--purple);
+    }
+
+    .kpi-card.purple::before {
+      background: var(--purple);
+    }
+
+    .kpi-card.blue .kpi-value {
+      color: #58a6ff;
+    }
+
+    .kpi-card.blue::before {
+      background: #58a6ff;
+    }
+
+    /* ───── CHARTS ───── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      animation: fadeUp .5s ease;
+    }
+
+    .chart-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+    }
+
+    .chart-title {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .chart-canvas-wrap {
+      position: relative;
+      height: 240px;
+    }
+
+    /* ───── DATA TABLE ───── */
+    .table-section {
+      animation: fadeUp .5s ease;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .75rem;
+    }
+
+    .table-title {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+
+    .table-count {
+      font-size: .75rem;
+      color: var(--text-3);
+    }
+
+    .table-wrap {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .78rem;
+    }
+
+    .data-table th {
+      background: var(--bg-3);
+      padding: .6rem .75rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-size: .7rem;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .data-table th:hover {
+      color: var(--accent);
+    }
+
+    .data-table td {
+      padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-1);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+    }
+
+    .data-table tr:hover td {
+      background: rgba(88, 166, 255, .04);
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table .num {
+      text-align: right;
+    }
+
+    .data-table .highlight {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .scroll-table {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* ───── FLIGHT INFO BAR ───── */
+    .flight-info-bar {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: .8rem 1.2rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      font-size: .8rem;
+      animation: fadeUp .3s ease;
+    }
+
+    .flight-info-bar .fi-main {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .fi-fn {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+
+    .fi-route {
+      color: var(--text-0);
+      font-weight: 600;
+    }
+
+    .fi-arrow {
+      color: var(--text-3);
+      margin: 0 .2rem;
+    }
+
+    .fi-detail {
+      color: var(--text-2);
+    }
+
+    .fi-tag {
+      background: var(--accent-dim);
+      color: var(--accent);
+      padding: .15rem .5rem;
+      border-radius: 4px;
+      font-size: .7rem;
+      font-weight: 500;
+    }
+
+    /* ───── LOADING ───── */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      color: var(--text-3);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-light);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin-right: .6rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-3);
+      font-size: .85rem;
+    }
+
+    /* ───── ANIMATIONS ───── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ───── TOP LOADING BAR ───── */
+    .loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .loading-bar.active {
+      opacity: 1;
+    }
+
+    .loading-bar .bar {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, transparent, var(--accent), #bc8cff, var(--accent));
+      border-radius: 0 2px 2px 0;
+      box-shadow: 0 0 12px var(--accent), 0 0 4px var(--accent);
+      animation: loadSlide 1.2s ease-in-out infinite;
+    }
+
+    @keyframes loadSlide {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(430%);
+      }
+    }
+
+    /* ───── SCROLLBAR ───── */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-3);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LOADING BAR -->
+  <div class="loading-bar" id="loadingBar">
+    <div class="bar"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">✈</div>
+      <span>Flight Snapshot</span>
+    </div>
+    <div class="breadcrumb" id="breadcrumb">
+      <span>Dashboard</span>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SEARCH -->
+    <div class="search-section" id="searchSection">
+      <div class="search-title">Flight Snapshot Explorer</div>
+      <div class="search-subtitle">Uçuş numarası girerek sefer verilerini inceleyin</div>
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" class="search-input" id="searchInput"
+          placeholder="Ucus no veya havaalani kodu (or. TK1234, IST)" autocomplete="off" spellcheck="false" />
+        <div class="dropdown" id="dropdown"></div>
+      </div>
+      <div class="date-picker-row">
+        <label for="datePicker" class="date-label">Tarihe Gore Ara:</label>
+        <input type="date" class="date-input" id="datePicker" />
+        <button class="date-btn" id="dateSearchBtn" onclick="searchByDate()">Ara</button>
+      </div>
+    </div>
+
+    <!-- DATE SEARCH RESULTS -->
+    <div class="flight-dates" id="dateFlights" style="display:none">
+      <div class="dates-label" id="dateFlightsLabel">Tarih Ucuslari</div>
+      <div class="dates-grid" id="dateFlightsGrid"></div>
+    </div>
+
+    <!-- AIRPORT FLIGHTS -->
+    <div class="flight-dates" id="airportFlights" style="display:none">
+      <div class="dates-label" id="airportLabel">Havaalani Uçuşları</div>
+      <div class="dates-grid" id="airportGrid"></div>
+    </div>
+
+    <!-- FLIGHT DATES -->
+    <div class="flight-dates" id="flightDates" style="display:none">
+      <div class="dates-label">Sefer Tarihleri</div>
+      <div class="dates-grid" id="datesGrid"></div>
+    </div>
+
+    <!-- DASHBOARD (hidden initially) -->
+    <div id="dashboard" style="display:none">
+
+      <!-- Flight Info Bar -->
+      <div class="flight-info-bar" id="flightInfoBar"></div>
+
+      <!-- Cabin Toggle -->
+      <div class="cabin-toggle" id="cabinToggle"></div>
+
+      <!-- Forecast Toggle -->
+      <div class="cabin-toggle" id="forecastToggleWrap" style="margin-top:.5rem">
+        <button class="cabin-btn active" id="btnActual" onclick="setForecastMode(false)">Actual</button>
+        <button class="cabin-btn" id="btnForecast" onclick="setForecastMode(true)">Forecast</button>
+      </div>
+
+      <!-- Forecast Settings (hidden by default) -->
+      <div id="forecastSettingsWrap" style="display:none">
+        <div class="forecast-settings-row">
+          <div class="fs-group">
+            <span class="fs-label">Şu an kaç gün kaldı? (D-x)</span>
+            <input type="range" class="range-input" id="rangeDtd" min="0" max="180" value="30"
+              oninput="updateDtdVal(this.value)" onchange="loadForecast()" />
+            <span class="range-val" id="valDtd">30</span>
+          </div>
+          <div class="fs-group">
+            <span class="fs-label">Forecast Modu:</span>
+            <div class="horizon-toggle">
+              <button class="hz-btn" id="hzFull" onclick="setHorizonMode('full')">Full Horizon</button>
+              <button class="hz-btn active" id="hzRem" onclick="setHorizonMode('remaining')">Remaining</button>
+            </div>
+          </div>
+          <div style="margin-left:auto">
+            <span
+              style="font-size:.7rem; color:var(--text-3); background:var(--bg-1); padding:4px 10px; border-radius:10px">
+              Window: <span id="windowDisplay">D-30 → D-0</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="forecast-container">
+          <div class="forecast-badge">FORECAST</div>
+          <div class="kpi-groups" id="forecastKpiGroups">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row" id="kpiRow"></div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">Koltuk Doluluk & Kalan Koltuk</div>
+          <div class="chart-canvas-wrap"><canvas id="chartOccupancy"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Günlük Satış Pace</div>
+          <div class="chart-canvas-wrap"><canvas id="chartPace"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Kümülatif Gelir (Ticket / Ancillary / Total)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRevenue"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Günlük Gelir Kırılımı</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRevenueBreakdown"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Forecast Chart (hidden by default) -->
+      <div class="chart-card" id="forecastChartCard" style="display:none;margin-bottom:1.5rem">
+        <div class="chart-title">Talep Tahmini - Actual vs Forecast (Pax/Gun)</div>
+        <div class="chart-canvas-wrap"><canvas id="chartForecast"></canvas></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-section">
+        <div class="table-header">
+          <div class="table-title">DTD Bazlı Detay Verisi</div>
+          <div class="table-count" id="tableCount"></div>
+        </div>
+        <div class="table-wrap">
+          <div class="scroll-table">
+            <table class="data-table" id="dataTable">
+              <thead>
+                <tr id="tableHead"></tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── STATE ──────────────────────────────────────────────
+    let state = {
+      flightNumber: null,
+      flightId: null,
+      cabin: null,
+      cabins: [],
+      data: [],
+      charts: {},
+      forecastMode: false,
+      forecastChart: null,
+      currentDtd: 30,
+      forecastHorizonMode: 'remaining',
+    };
+
+    // ─── SEARCH ─────────────────────────────────────────────
+    const searchInput = document.getElementById('searchInput');
+    const dropdown = document.getElementById('dropdown');
+    const searchSection = document.getElementById('searchSection');
+    let debounceTimer = null;
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const q = searchInput.value.trim();
+      if (q.length < 2) { dropdown.classList.remove('show'); return; }
+      debounceTimer = setTimeout(() => fetchFlights(q), 200);
+    });
+
+    searchInput.addEventListener('focus', () => {
+      if (searchInput.value.trim().length >= 2) fetchFlights(searchInput.value.trim());
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-box')) dropdown.classList.remove('show');
+    });
+
+    async function fetchFlights(q) {
+      const res = await fetch(`/api/flights?q=${encodeURIComponent(q)}`);
+      const results = await res.json();
+      dropdown.innerHTML = '';
+      if (results.length === 0) {
+        dropdown.innerHTML = '<div class="dropdown-item" style="color:var(--text-3)">Sonuç bulunamadı</div>';
+      } else {
+        // Group by type
+        const flights = results.filter(r => r.type === 'flight');
+        const airports = results.filter(r => r.type === 'airport');
+
+        if (flights.length > 0) {
+          const header = document.createElement('div');
+          header.className = 'dropdown-header';
+          header.textContent = 'Uçuşlar';
+          dropdown.appendChild(header);
+          flights.forEach(r => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.innerHTML = `<span style="color:var(--accent)">✈</span> ${r.label}`;
+            item.onclick = () => selectFlight(r.value);
+            dropdown.appendChild(item);
+          });
+        }
+
+        if (airports.length > 0) {
+          const header = document.createElement('div');
+          header.className = 'dropdown-header';
+          header.textContent = 'Havaalanları';
+          dropdown.appendChild(header);
+          airports.forEach(r => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.innerHTML = `<span>✈</span> <strong>${r.value}</strong> <span style="color:var(--text-3);margin-left:.3rem">Tüm Uçuşlar</span>`;
+            item.onclick = () => selectAirport(r.value);
+            dropdown.appendChild(item);
+          });
+        }
+      }
+      dropdown.classList.add('show');
+    }
+
+    // ─── LOADING BAR ────────────────────────────────────────
+    const loadingBar = document.getElementById('loadingBar');
+    function showLoading() { loadingBar.classList.add('active'); }
+    function hideLoading() { loadingBar.classList.remove('active'); }
+
+    async function selectAirport(airportCode) {
+      showLoading();
+      searchInput.value = airportCode;
+      dropdown.classList.remove('show');
+      searchSection.classList.add('compact');
+
+      document.getElementById('breadcrumb').innerHTML =
+        `<span>Dashboard</span><span class="sep">/</span><span style="color:var(--accent)">${airportCode}</span>`;
+
+      // Fetch flights for this airport
+      const res = await fetch(`/api/airport/${encodeURIComponent(airportCode)}`);
+      const flights = await res.json();
+
+      const airportDiv = document.getElementById('airportFlights');
+      const grid = document.getElementById('airportGrid');
+      document.getElementById('airportLabel').textContent = `${airportCode} — Uçuşlar (${flights.length})`;
+      grid.innerHTML = '';
+
+      flights.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'date-card';
+        card.innerHTML = `
+          <div class="route" style="font-family:'JetBrains Mono',monospace">${f.flight_number}</div>
+          <div class="datetime">${f.departure_airport} <span style="color:var(--text-3)">→</span> ${f.arrival_airport}</div>
+        `;
+        card.onclick = () => {
+          airportDiv.style.display = 'none';
+          selectFlight(f.flight_number);
+        };
+        grid.appendChild(card);
+      });
+
+      airportDiv.style.display = 'block';
+      document.getElementById('flightDates').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'none';
+      hideLoading();
+    }
+
+    // ─── DATE SEARCH ──────────────────────────────────────────
+    async function searchByDate() {
+      const dateVal = document.getElementById('datePicker').value;
+      if (!dateVal) return;
+      showLoading();
+      searchSection.classList.add('compact');
+
+      const res = await fetch(`/api/flights/date?date=${encodeURIComponent(dateVal)}`);
+      const flights = await res.json();
+
+      const dateDiv = document.getElementById('dateFlights');
+      const grid = document.getElementById('dateFlightsGrid');
+
+      // Format date for label
+      const d = new Date(dateVal + 'T00:00:00');
+      const dateLabel = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+      document.getElementById('dateFlightsLabel').textContent = `${dateLabel} — ${flights.length} ucus`;
+      grid.innerHTML = '';
+
+      if (flights.length === 0) {
+        grid.innerHTML = '<div style="color:var(--text-3);padding:1rem">Bu tarihte ucus bulunamadi.</div>';
+      }
+
+      flights.forEach(f => {
+        const card = document.createElement('div');
+        card.className = 'date-card';
+        const depTime = f.departure_datetime ? new Date(f.departure_datetime).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
+        card.innerHTML = `
+          <div class="route" style="font-family:'JetBrains Mono',monospace">${f.flight_number}</div>
+          <div class="datetime">${f.departure_airport} <span style="color:var(--text-3)">→</span> ${f.arrival_airport}  <span style="color:var(--text-3)">${depTime}</span></div>
+          ${f.region ? `<div class="tag">${f.region}</div>` : ''}
+        `;
+        card.onclick = () => {
+          dateDiv.style.display = 'none';
+          state.flightNumber = f.flight_number;
+          state.flightId = f.flight_id;
+          searchInput.value = f.flight_number;
+
+          document.getElementById('breadcrumb').innerHTML =
+            `<span>Dashboard</span><span class="sep">/</span>` +
+            `<span style="color:var(--accent);cursor:pointer" onclick="selectFlight('${f.flight_number}')">${f.flight_number}</span>` +
+            `<span class="sep">/</span><span>${dateLabel}</span>`;
+
+          loadSnapshot();
+        };
+        grid.appendChild(card);
+      });
+
+      dateDiv.style.display = 'block';
+      document.getElementById('airportFlights').style.display = 'none';
+      document.getElementById('flightDates').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'none';
+      hideLoading();
+    }
+
+    // Enter key on date input
+    document.getElementById('datePicker')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); searchByDate(); }
+    });
+
+
+    async function selectFlight(flightNumber) {
+      showLoading();
+      state.flightNumber = flightNumber;
+      searchInput.value = flightNumber;
+      dropdown.classList.remove('show');
+      searchSection.classList.add('compact');
+
+      // Update breadcrumb
+      document.getElementById('breadcrumb').innerHTML =
+        `<span>Dashboard</span><span class="sep">/</span><span style="color:var(--accent)">${flightNumber}</span>`;
+
+      // Fetch dates
+      const res = await fetch(`/api/flight/${encodeURIComponent(flightNumber)}`);
+      const dates = await res.json();
+
+      const datesDiv = document.getElementById('flightDates');
+      const grid = document.getElementById('datesGrid');
+      grid.innerHTML = '';
+
+      dates.forEach(d => {
+        const card = document.createElement('div');
+        card.className = 'date-card';
+        const depDate = d.departure_datetime ? new Date(d.departure_datetime) : null;
+        const dateStr = depDate ? depDate.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+        const timeStr = depDate ? depDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '';
+        card.innerHTML = `
+      <div class="route">${d.departure_airport || '?'} <span style="color:var(--text-3)">→</span> ${d.arrival_airport || '?'}</div>
+      <div class="datetime">${dateStr} ${timeStr}</div>
+      ${d.direction ? `<span class="tag">${d.direction}</span>` : ''}
+    `;
+        card.onclick = () => selectDate(d, card);
+        grid.appendChild(card);
+      });
+
+      datesDiv.style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+      hideLoading();
+    }
+
+    async function selectDate(dateInfo, cardEl) {
+      // Highlight selected card
+      document.querySelectorAll('.date-card').forEach(c => c.classList.remove('selected'));
+      cardEl.classList.add('selected');
+
+      state.flightId = dateInfo.flight_id;
+
+      // Update breadcrumb
+      const depDate = dateInfo.departure_datetime ? new Date(dateInfo.departure_datetime) : null;
+      const dateStr = depDate ? depDate.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' }) : '';
+      document.getElementById('breadcrumb').innerHTML =
+        `<span>Dashboard</span><span class="sep">/</span>` +
+        `<span style="color:var(--accent);cursor:pointer" onclick="selectFlight('${state.flightNumber}')">${state.flightNumber}</span>` +
+        `<span class="sep">/</span><span>${dateStr}</span>`;
+
+      await loadSnapshot();
+    }
+
+    async function loadSnapshot(cabin) {
+      showLoading();
+      const cabinParam = cabin ? `?cabin=${encodeURIComponent(cabin)}` : '';
+      const res = await fetch(`/api/snapshot/${encodeURIComponent(state.flightId)}${cabinParam}`);
+      const json = await res.json();
+
+      state.data = json.rows;
+      state.cabins = json.cabins;
+      state.cabin = cabin || (json.cabins.length > 0 ? json.cabins[0] : null);
+
+      // If no cabin filter, filter client-side
+      let filteredData = state.data;
+      if (!cabin && state.cabin) {
+        filteredData = state.data.filter(r => r.cabin_class && r.cabin_class.toLowerCase() === state.cabin.toLowerCase());
+      }
+
+      const dashboard = document.getElementById('dashboard');
+      dashboard.style.display = 'block';
+
+      renderFlightInfoBar(json.summary);
+      renderCabinToggle();
+      renderKPIs(filteredData);
+      renderCharts(filteredData);
+      renderTable(filteredData);
+
+      // If forecast mode was active, refresh forecast too
+      if (state.forecastMode) {
+        loadForecast();
+      }
+      hideLoading();
+    }
+
+    // ─── FLIGHT INFO BAR ────────────────────────────────────
+    function renderFlightInfoBar(summary) {
+      const bar = document.getElementById('flightInfoBar');
+      if (!summary || !summary.flight_number) { bar.innerHTML = ''; return; }
+      bar.innerHTML = `
+    <div class="fi-main">
+      <span class="fi-fn">${summary.flight_number}</span>
+      <span class="fi-route">${summary.departure_airport || '?'}</span>
+      <span class="fi-arrow">→</span>
+      <span class="fi-route">${summary.arrival_airport || '?'}</span>
+    </div>
+    <span class="fi-detail">${summary.departure_datetime ? new Date(summary.departure_datetime).toLocaleString('tr-TR') : '—'}</span>
+    ${summary.direction ? `<span class="fi-tag">${summary.direction}</span>` : ''}
+    ${summary.region ? `<span class="fi-tag">${summary.region}</span>` : ''}
+    ${summary.distance_km ? `<span class="fi-detail">${Math.round(summary.distance_km)} km</span>` : ''}
+    ${summary.flight_time_min ? `<span class="fi-detail">${Math.round(summary.flight_time_min)} dk</span>` : ''}
+  `;
+    }
+
+    // ─── CABIN TOGGLE ───────────────────────────────────────
+    function renderCabinToggle() {
+      const toggle = document.getElementById('cabinToggle');
+      toggle.innerHTML = '';
+
+      // "Tümü" button
+      const allBtn = document.createElement('button');
+      allBtn.className = 'cabin-btn' + (!state.cabin ? ' active' : '');
+      allBtn.textContent = 'Tümü';
+      allBtn.onclick = () => { state.cabin = null; loadSnapshot(); };
+      // toggle.appendChild(allBtn);  // optional: show all cabins
+
+      state.cabins.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'cabin-btn' + (state.cabin && state.cabin.toLowerCase() === c.toLowerCase() ? ' active' : '');
+        btn.textContent = c.charAt(0).toUpperCase() + c.slice(1).toLowerCase();
+        btn.onclick = () => loadSnapshot(c);
+        toggle.appendChild(btn);
+      });
+    }
+
+    // ─── KPIs ───────────────────────────────────────────────
+    function renderKPIs(data) {
+      const row = document.getElementById('kpiRow');
+      row.innerHTML = '';
+
+      // Get latest DTD row (DTD=0 or minimum)
+      const minDtd = data.length > 0 ? Math.min(...data.map(r => r.dtd ?? 999)) : 0;
+      const latest = data.find(r => r.dtd === minDtd);
+      const capacity = latest ? latest.capacity : (data.length > 0 ? data[0].capacity : null);
+      const totalSold = latest ? latest.pax_sold_cum : null;
+      const remaining = latest ? latest.remaining_seats : null;
+      const loadFactor = latest ? latest.load_factor : null;
+      const ticketRev = latest ? latest.ticket_rev_cum : null;
+      const ancRev = latest ? latest.anc_rev_cum : null;
+      const totalRev = latest ? latest.total_rev_cum : null;
+      const ancShare = latest ? latest.ancillary_share : null;
+
+      const kpis = [
+        // Row 1: Pax KPIs
+        { label: 'Kapasite', value: fmt(capacity), sub: state.cabin || '', cls: '' },
+        { label: 'Toplam Satılan', value: fmt(totalSold), sub: `/ ${fmt(capacity)}`, cls: 'green' },
+        { label: 'Kalan Koltuk', value: fmt(remaining), sub: remaining !== null && capacity ? `${((remaining / capacity) * 100).toFixed(0)}% boş` : '', cls: remaining > 0 ? 'orange' : 'red' },
+        { label: 'Doluluk Oranı', value: loadFactor !== null ? `%${(loadFactor * 100).toFixed(1)}` : '—', sub: '', cls: loadFactor >= 0.8 ? 'green' : loadFactor >= 0.5 ? 'orange' : 'red' },
+        // Row 2: Revenue KPIs
+        { label: 'Ticket Gelir', value: ticketRev !== null ? `$${fmtMoney(ticketRev)}` : '—', sub: 'Bilet', cls: 'blue' },
+        { label: 'Ancillary Gelir', value: ancRev !== null ? `$${fmtMoney(ancRev)}` : '—', sub: 'Pet + Bagaj', cls: 'orange' },
+        { label: 'Toplam Gelir', value: totalRev !== null ? `$${fmtMoney(totalRev)}` : '—', sub: 'Ticket + Anc', cls: 'purple' },
+        { label: 'Ancillary Pay', value: ancShare !== null ? `%${(ancShare * 100).toFixed(1)}` : '—', sub: 'anc / total', cls: ancShare > 0.1 ? 'green' : '' },
+      ];
+
+      kpis.forEach(k => {
+        const card = document.createElement('div');
+        card.className = `kpi-card ${k.cls}`;
+        card.innerHTML = `
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      ${k.sub ? `<div class="kpi-sub">${k.sub}</div>` : ''}
+    `;
+        row.appendChild(card);
+      });
+    }
+
+    // ─── CHARTS ─────────────────────────────────────────────
+    function renderCharts(data) {
+      // Sort by DTD descending (180 → 0)
+      const sorted = [...data].sort((a, b) => (b.dtd || 0) - (a.dtd || 0));
+      const labels = sorted.map(r => r.dtd);
+
+      // Destroy old charts
+      Object.values(state.charts).forEach(c => c.destroy());
+      state.charts = {};
+
+      const commonOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 600, easing: 'easeOutQuart' },
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: {
+            labels: { color: '#8b949e', font: { family: 'Inter', size: 11 }, boxWidth: 12, padding: 12 }
+          },
+          tooltip: {
+            backgroundColor: '#1c2333',
+            titleColor: '#e6edf3',
+            bodyColor: '#c9d1d9',
+            borderColor: '#30363d',
+            borderWidth: 1,
+            padding: 10,
+            titleFont: { family: 'Inter', weight: '600' },
+            bodyFont: { family: 'JetBrains Mono', size: 12 },
+            callbacks: {
+              title: (items) => `DTD: ${items[0].label} gün`
+            }
+          }
+        },
+        scales: {
+          x: {
+            reverse: true,
+            title: { display: true, text: 'Kalkışa Kalan Gün (DTD)', color: '#6e7681', font: { family: 'Inter', size: 11 } },
+            ticks: { color: '#6e7681', font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 15 },
+            grid: { color: 'rgba(33,38,45,.5)' },
+          },
+          y: {
+            ticks: { color: '#6e7681', font: { family: 'JetBrains Mono', size: 10 } },
+            grid: { color: 'rgba(33,38,45,.5)' },
+          }
+        }
+      };
+
+      // ── Chart 1: Occupancy ──
+      state.charts.occupancy = new Chart(document.getElementById('chartOccupancy'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Satılan (Kümülatif)',
+              data: sorted.map(r => r.pax_sold_cum),
+              borderColor: '#58a6ff',
+              backgroundColor: 'rgba(88,166,255,.08)',
+              fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
+            },
+            {
+              label: 'Kalan Koltuk',
+              data: sorted.map(r => r.remaining_seats),
+              borderColor: '#d29922',
+              backgroundColor: 'rgba(210,153,34,.08)',
+              fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
+            },
+            {
+              label: 'Kapasite',
+              data: sorted.map(r => r.capacity),
+              borderColor: '#30363d',
+              borderDash: [6, 3],
+              pointRadius: 0, borderWidth: 1.5, fill: false,
+            }
+          ]
+        },
+        options: { ...commonOpts }
+      });
+
+      // ── Chart 2: Daily Pace ──
+      state.charts.pace = new Chart(document.getElementById('chartPace'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Günlük Satış',
+            data: sorted.map(r => r.pax_sold_today),
+            backgroundColor: 'rgba(63,185,80,.5)',
+            borderColor: '#3fb950',
+            borderWidth: 1, borderRadius: 2,
+          }]
+        },
+        options: {
+          ...commonOpts,
+          plugins: {
+            ...commonOpts.plugins,
+            legend: { display: false },
+          }
+        }
+      });
+
+      // ── Chart 3: Cumulative Revenue (3 lines) ──
+      state.charts.revenue = new Chart(document.getElementById('chartRevenue'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Total Gelir',
+              data: sorted.map(r => r.total_rev_cum),
+              borderColor: '#bc8cff',
+              backgroundColor: 'rgba(188,140,255,.06)',
+              fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5,
+            },
+            {
+              label: 'Ticket Gelir',
+              data: sorted.map(r => r.ticket_rev_cum),
+              borderColor: '#58a6ff',
+              backgroundColor: 'rgba(88,166,255,.06)',
+              fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
+            },
+            {
+              label: 'Ancillary Gelir',
+              data: sorted.map(r => r.anc_rev_cum),
+              borderColor: '#f0883e',
+              backgroundColor: 'rgba(240,136,62,.06)',
+              fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
+            }
+          ]
+        },
+        options: {
+          ...commonOpts,
+          scales: {
+            ...commonOpts.scales,
+            y: {
+              ...commonOpts.scales.y,
+              title: { display: true, text: 'Gelir ($)', color: '#6e7681', font: { size: 11 } },
+            }
+          }
+        }
+      });
+
+      // ── Chart 4: Daily Revenue Breakdown (stacked bar) ──
+      state.charts.revenueBreakdown = new Chart(document.getElementById('chartRevenueBreakdown'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Ticket (Günlük)',
+              data: sorted.map(r => r.ticket_rev_today),
+              backgroundColor: 'rgba(88,166,255,.6)',
+              borderColor: '#58a6ff',
+              borderWidth: 1, borderRadius: 1,
+              stack: 'rev',
+            },
+            {
+              label: 'Ancillary (Günlük)',
+              data: sorted.map(r => r.anc_rev_today),
+              backgroundColor: 'rgba(240,136,62,.6)',
+              borderColor: '#f0883e',
+              borderWidth: 1, borderRadius: 1,
+              stack: 'rev',
+            }
+          ]
+        },
+        options: {
+          ...commonOpts,
+          scales: {
+            ...commonOpts.scales,
+            x: { ...commonOpts.scales.x, stacked: true },
+            y: {
+              ...commonOpts.scales.y,
+              stacked: true,
+              title: { display: true, text: 'Günlük Gelir ($)', color: '#6e7681', font: { size: 11 } },
+            }
+          }
+        }
+      });
+    }
+
+    // ─── TABLE ──────────────────────────────────────────────
+    function renderTable(data) {
+      const sorted = [...data].sort((a, b) => (b.dtd || 0) - (a.dtd || 0));
+      const cols = [
+        { key: 'dtd', label: 'DTD', cls: 'highlight' },
+        { key: 'pax_sold_today', label: 'Günlük Satış', cls: 'num' },
+        { key: 'pax_sold_cum', label: 'Küm. Satış', cls: 'num' },
+        { key: 'remaining_seats', label: 'Kalan', cls: 'num' },
+        { key: 'load_factor', label: 'Doluluk %', cls: 'num', fmt: v => v !== null ? `${(v * 100).toFixed(1)}%` : '—' },
+        { key: 'ticket_rev_today', label: 'Ticket (Gün)', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'anc_rev_today', label: 'Anc. (Gün)', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'total_rev_cum', label: 'Küm. Gelir', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'ancillary_share', label: 'Anc. Pay', cls: 'num', fmt: v => v !== null ? `${(v * 100).toFixed(1)}%` : '—' },
+        { key: 'avg_fare_today', label: 'Ort. Ücret', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'pax_last_7d', label: '7g Pace', cls: 'num' },
+      ];
+
+      // Head
+      const thead = document.getElementById('tableHead');
+      thead.innerHTML = cols.map(c => `<th>${c.label}</th>`).join('');
+
+      // Body
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = sorted.map(row => {
+        return '<tr>' + cols.map(c => {
+          let val = row[c.key];
+          if (c.fmt) val = c.fmt(val);
+          else val = val !== null && val !== undefined ? val : '—';
+          return `<td class="${c.cls || ''}">${val}</td>`;
+        }).join('') + '</tr>';
+      }).join('');
+
+      document.getElementById('tableCount').textContent = `${sorted.length} satır`;
+    }
+
+    // ─── UTILS ──────────────────────────────────────────────
+    function fmt(v) {
+      if (v === null || v === undefined) return '—';
+      return Number(v).toLocaleString('tr-TR');
+    }
+
+    function fmtK(v) {
+      if (v === null || v === undefined) return '—';
+      if (Math.abs(v) >= 1_000_000) return (v / 1_000_000).toFixed(1) + 'M';
+      if (Math.abs(v) >= 1_000) return (v / 1_000).toFixed(1) + 'K';
+      return Math.round(v).toLocaleString('tr-TR');
+    }
+
+    function fmtMoney(v) {
+      if (v === null || v === undefined) return '—';
+      return Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // ─── KEYBOARD NAV ───────────────────────────────────────
+    searchInput.addEventListener('keydown', (e) => {
+      const items = dropdown.querySelectorAll('.dropdown-item');
+      const active = dropdown.querySelector('.dropdown-item.active');
+      let idx = [...items].indexOf(active);
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (idx < items.length - 1) idx++; else idx = 0;
+        items.forEach(i => i.classList.remove('active'));
+        items[idx]?.classList.add('active');
+        items[idx]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (idx > 0) idx--; else idx = items.length - 1;
+        items.forEach(i => i.classList.remove('active'));
+        items[idx]?.classList.add('active');
+        items[idx]?.scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (active) {
+          active.click();
+        } else {
+          // No dropdown item selected — auto-search and pick first result
+          const q = searchInput.value.trim();
+          if (q.length >= 2) {
+            fetch(`/api/flights?q=${encodeURIComponent(q)}`)
+              .then(r => r.json())
+              .then(results => {
+                if (results.length > 0) {
+                  const first = results[0];
+                  if (first.type === 'airport') selectAirport(first.value);
+                  else selectFlight(first.value);
+                }
+              });
+          }
+        }
+      }
+    });
+
+    // ─── FORECAST ─────────────────────────────────────────────
+    function setForecastMode(on) {
+      state.forecastMode = on;
+      document.getElementById('btnActual').classList.toggle('active', !on);
+      document.getElementById('btnForecast').classList.toggle('active', on);
+
+      // Toggle visibility of new structured components
+      document.getElementById('forecastSettingsWrap').style.display = on ? 'block' : 'none';
+      document.getElementById('forecastChartCard').style.display = on ? 'block' : 'none';
+
+      if (on && state.flightId) {
+        loadForecast();
+      } else {
+        // Clear forecast chart
+        if (state.forecastChart) { state.forecastChart.destroy(); state.forecastChart = null; }
+        document.getElementById('forecastKpiGroups').innerHTML = '';
+      }
+    }
+
+    function updateDtdVal(v) {
+      state.currentDtd = parseInt(v);
+      document.getElementById('valDtd').textContent = v;
+      document.getElementById('windowDisplay').textContent = `D-${v} → D-0`;
+    }
+
+    function setHorizonMode(mode) {
+      state.forecastHorizonMode = mode;
+      document.getElementById('hzFull').classList.toggle('active', mode === 'full');
+      document.getElementById('hzRem').classList.toggle('active', mode === 'remaining');
+      loadForecast();
+    }
+
+    async function loadForecast() {
+      if (!state.flightId) return;
+      showLoading();
+      try {
+        const cabinParam = state.cabin ? `&cabin=${encodeURIComponent(state.cabin)}` : '';
+        const url = `/api/forecast/${encodeURIComponent(state.flightId)}?mode=${state.forecastHorizonMode}&current_dtd=${state.currentDtd}${cabinParam}`;
+
+        const res = await fetch(url);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          console.error('Forecast error:', err);
+          document.getElementById('forecastKpiGroups').innerHTML =
+            '<div style="color:#ff6b6b;padding:1rem;background:var(--bg-1);border-radius:8px">Forecast model not available or error occurred.</div>';
+          hideLoading();
+          return;
+        }
+        const json = await res.json();
+        renderForecastChart(json.rows || [], json.metadata);
+        renderForecastKPIs(json.metadata);
+      } catch (e) {
+        console.error('Forecast fetch failed:', e);
+      }
+      hideLoading();
+    }
+
+    function renderForecastChart(rows, meta) {
+      if (state.forecastChart) { state.forecastChart.destroy(); state.forecastChart = null; }
+      const canvas = document.getElementById('chartForecast');
+      if (!canvas) return;
+
+      const sorted = [...rows].sort((a, b) => b.dtd - a.dtd);
+      const labels = sorted.map(r => r.dtd);
+
+      // Chart data with fading for historical in remaining mode
+      const winStart = meta.window_start;
+      const actual = sorted.map(r => ({
+        y: r.pax_sold_today ?? 0,
+        opacity: (meta.mode === 'remaining' && r.dtd > winStart) ? 0.15 : 1.0
+      }));
+
+      const forecast = sorted.map(r => r.y_pred ?? 0);
+      const pSale = sorted.map(r => r.p_sale ?? 0);
+
+      state.forecastChart = new Chart(canvas.getContext('2d'), {
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Actual Pax',
+              data: actual.map(d => d.y),
+              backgroundColor: actual.map(d => `rgba(99, 102, 241, ${d.opacity * 0.5})`),
+              borderColor: actual.map(d => `rgba(99, 102, 241, ${d.opacity})`),
+              borderWidth: 1,
+              yAxisID: 'y',
+              order: 2,
+            },
+            {
+              type: 'line',
+              label: 'Forecast Pax',
+              data: forecast,
+              borderColor: '#f59e0b',
+              backgroundColor: 'rgba(245, 158, 11, 0.1)',
+              borderWidth: 2.5,
+              pointRadius: 1,
+              tension: 0.3,
+              fill: false,
+              yAxisID: 'y',
+              order: 1,
+            },
+            {
+              type: 'line',
+              label: 'P(sale)',
+              data: pSale,
+              borderColor: 'rgba(16, 185, 129, 0.7)',
+              backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              borderWidth: 1.5,
+              borderDash: [4, 3],
+              pointRadius: 0,
+              tension: 0.3,
+              fill: true,
+              yAxisID: 'y1',
+              order: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: true, labels: { color: '#cbd5e1', font: { size: 11 } } },
+            tooltip: {
+              callbacks: {
+                title: (ctx) => `DTD: ${ctx[0].label} ${parseInt(ctx[0].label) > winStart && meta.mode === 'remaining' ? '(Historical)' : '(Forecast Window)'}`,
+                label: (ctx) => {
+                  if (ctx.dataset.yAxisID === 'y1') return `${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(1)}%`;
+                  return `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}`;
+                }
+              }
+            },
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'DTD (kalkisa kalan gun)', color: '#94a3b8' },
+              ticks: { color: '#94a3b8', maxTicksLimit: 30 },
+              grid: { color: 'rgba(148,163,184,.08)' },
+              reverse: true,
+            },
+            y: {
+              title: { display: true, text: 'Pax / Gun', color: '#94a3b8' },
+              ticks: { color: '#94a3b8' },
+              grid: { color: 'rgba(148,163,184,.1)' },
+              beginAtZero: true,
+            },
+            y1: {
+              position: 'right',
+              title: { display: true, text: 'P(sale)', color: '#94a3b8' },
+              ticks: { color: '#94a3b8', callback: v => (v * 100).toFixed(0) + '%' },
+              grid: { drawOnChartArea: false },
+              min: 0, max: 1,
+            },
+          },
+        },
+      });
+    }
+
+    function renderForecastKPIs(meta) {
+      const container = document.getElementById('forecastKpiGroups');
+      container.innerHTML = '';
+
+      // Group 1: ACTUAL so far
+      const actualBox = document.createElement('div');
+      actualBox.className = 'kpi-group-box';
+      actualBox.innerHTML = `
+        <div class="group-title">ACTUAL (As-of D-${meta.current_dtd})</div>
+        <div class="kpi-grid-mini">
+           <div class="kpi-card">
+              <div class="kpi-label">Actual so Far</div>
+              <div class="kpi-value">${Math.round(meta.actual_so_far)}</div>
+              <div class="kpi-sub">cum pax</div>
+           </div>
+           <div class="kpi-card">
+              <div class="kpi-label">Actual Final</div>
+              <div class="kpi-value">${meta.actual_final > 0 ? Math.round(meta.actual_final) : 'N/A'}</div>
+              <div class="kpi-sub">total pax (D-0)</div>
+           </div>
+        </div>
+      `;
+      container.appendChild(actualBox);
+
+      // Group 2: FORECAST Window
+      const forecastBox = document.createElement('div');
+      forecastBox.className = 'kpi-group-box';
+      const diff = meta.forecast_total_est - meta.actual_final;
+      const diffCls = diff > 0 ? 'green' : (diff < 0 ? 'red' : 'blue');
+
+      forecastBox.innerHTML = `
+        <div class="group-title">FORECAST Window: <span class="window-label">D-${meta.window_start} → D-0</span></div>
+        <div class="kpi-grid-mini">
+           <div class="kpi-card blue">
+              <div class="kpi-label">Remaining Pax</div>
+              <div class="kpi-value">${Math.round(meta.forecast_remaining)}</div>
+              <div class="kpi-sub">est. future sales</div>
+           </div>
+           <div class="kpi-card ${diffCls}">
+              <div class="kpi-label">Estimated Total</div>
+              <div class="kpi-value">${Math.round(meta.forecast_total_est)}</div>
+              <div class="kpi-sub">actual so far + rem.</div>
+           </div>
+           <div class="kpi-card orange">
+              <div class="kpi-label">Avg P(sale)</div>
+              <div class="kpi-value">${(meta.avg_p_sale * 100).toFixed(1)}%</div>
+              <div class="kpi-sub">in window</div>
+           </div>
+           <div class="kpi-card">
+              <div class="kpi-label">Accuracy (Est vs Final)</div>
+              <div class="kpi-value">${meta.actual_final > 0 ? (100 - Math.abs((diff / meta.actual_final) * 100)).toFixed(1) + '%' : 'N/A'}</div>
+              <div class="kpi-sub">within window</div>
+           </div>
+        </div>
+      `;
+      container.appendChild(forecastBox);
+    }
+
+    // Initialize forecast toggle buttons
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnActual')?.classList.add('active');
+    });
+  </script>
+</body>
+
+</html>
