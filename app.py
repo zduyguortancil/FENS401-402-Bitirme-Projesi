@@ -521,11 +521,58 @@ def api_forecast(flight_id):
     return jsonify({"rows": results, "metadata": metadata})
 
 
+# ─── CLUSTER API ──────────────────────────────────────────
+CLUSTER_PARQUET = f"{BASE_DIR}/passenger_clusters.parquet"
+CLUSTER_REPORT  = f"{BASE_DIR}/cluster_report.json"
+
+@app.route("/api/clusters")
+def api_clusters():
+    """Return cluster summary from pre-computed report."""
+    report_path = CLUSTER_REPORT.replace("/", os.sep)
+    if not os.path.exists(report_path):
+        return jsonify({"error": "Cluster report not found"}), 404
+    with open(report_path, "r", encoding="utf-8") as f:
+        report = json.load(f)
+    return jsonify(report)
+
+
+@app.route("/api/cluster/<int:cluster_id>")
+def api_cluster_detail(cluster_id):
+    """Return flights belonging to a specific cluster."""
+    parquet_path = CLUSTER_PARQUET.replace("/", os.sep)
+    if not os.path.exists(parquet_path):
+        return jsonify({"error": "Cluster data not found"}), 404
+
+    limit = request.args.get("limit", 50, type=int)
+    con = get_con()
+    rows = con.execute(f"""
+        SELECT
+            flight_id, cabin_class, cluster, cluster_label,
+            avg_dtd_at_purchase, pct_last_minute, pct_early_bird,
+            avg_daily_pax, max_load_factor, ff_gold_avg, ff_elite_avg,
+            is_business, is_weekday, is_morning_flight, distance_km,
+            total_pax, capacity
+        FROM read_parquet('{CLUSTER_PARQUET}')
+        WHERE cluster = $1
+        ORDER BY total_pax DESC
+        LIMIT $2
+    """, [cluster_id, limit]).fetchall()
+    con.close()
+
+    cols = ["flight_id", "cabin_class", "cluster", "cluster_label",
+            "avg_dtd_at_purchase", "pct_last_minute", "pct_early_bird",
+            "avg_daily_pax", "max_load_factor", "ff_gold_avg", "ff_elite_avg",
+            "is_business", "is_weekday", "is_morning_flight", "distance_km",
+            "total_pax", "capacity"]
+    data = [dict(zip(cols, [_num(v) if isinstance(v, (int, float)) else v for v in r])) for r in rows]
+    return jsonify({"cluster_id": cluster_id, "rows": data})
+
+
 if __name__ == "__main__":
     v_label = "V2 (ticket + ancillary)" if USE_V2 else "V1 (legacy)"
     fc_label = "ON" if FORECAST_READY else "OFF"
     print(f"\nFlight Snapshot Dashboard -- {v_label} | Forecast: {fc_label}")
     print(f"   Snapshot: {PARQUET_PATH}")
     print(f"   Metadata: {METADATA_PATH}")
-    print(f"   URL: http://localhost:5000\n")
-    app.run(debug=True, port=5000)
+    print(f"   URL: http://localhost:5001\n")
+    app.run(debug=True, port=5001)
