@@ -908,6 +908,172 @@
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text-3);
     }
+
+    /* ───── SEGMENTATION ───── */
+    .seg-btn {
+      margin-left: auto;
+      padding: .45rem 1rem;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .seg-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, .4);
+    }
+
+    .seg-btn.active {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, .5);
+    }
+
+    .seg-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .seg-panel.show {
+      display: block;
+    }
+
+    .seg-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .seg-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -.02em;
+    }
+
+    .seg-header .seg-badge {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    .seg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .seg-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    .seg-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+    }
+
+    .seg-card .seg-stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .seg-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: .8rem;
+    }
+
+    .seg-card-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+
+    .seg-card-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .seg-card-count {
+      font-size: .72rem;
+      color: var(--text-3);
+      margin-bottom: .6rem;
+    }
+
+    .seg-card-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .4rem .8rem;
+    }
+
+    .seg-metric {
+      font-size: .75rem;
+      color: var(--text-2);
+    }
+
+    .seg-metric strong {
+      color: var(--text-1);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .78rem;
+    }
+
+    .seg-charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .seg-charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .seg-close-btn {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      padding: .4rem .8rem;
+      border-radius: 6px;
+      font-size: .75rem;
+      cursor: pointer;
+      margin-left: auto;
+      transition: all var(--transition);
+    }
+
+    .seg-close-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-0);
+    }
   </style>
 </head>
 
@@ -927,10 +1093,43 @@
     <div class="breadcrumb" id="breadcrumb">
       <span>Dashboard</span>
     </div>
+    <button class="seg-btn" id="segBtn" onclick="toggleSegmentation()">
+      <span>📊</span> Yolcu Segmentleri
+    </button>
   </header>
 
   <!-- MAIN -->
   <div class="main">
+
+    <!-- SEGMENTATION PANEL -->
+    <div class="seg-panel" id="segPanel">
+      <div class="seg-header">
+        <h2>Yolcu Segmentasyonu</h2>
+        <span class="seg-badge">K-MEANS CLUSTERING</span>
+        <button class="seg-close-btn" onclick="toggleSegmentation()">✕ Kapat</button>
+      </div>
+      <div class="seg-grid" id="segCards"></div>
+      <div class="seg-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Küme Dağılımı (Uçuş Sayısı)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartClusterDist"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Küme Profil Karşılaştırma</div>
+          <div class="chart-canvas-wrap"><canvas id="chartClusterRadar"></canvas></div>
+        </div>
+      </div>
+      <div class="seg-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Son Dakika vs Erken Rezervasyon (%)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartClusterTiming"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Kabin & Zamanlama Profili (%)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartClusterCabin"></canvas></div>
+        </div>
+      </div>
+    </div>
 
     <!-- SEARCH -->
     <div class="search-section" id="searchSection">
@@ -1911,6 +2110,220 @@
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('btnActual')?.classList.add('active');
     });
+
+    // ─── SEGMENTATION ────────────────────────────────────────
+    const SEG_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4', '#ec4899'];
+    let segCharts = {};
+    let segLoaded = false;
+
+    function toggleSegmentation() {
+      const panel = document.getElementById('segPanel');
+      const btn = document.getElementById('segBtn');
+      const isShowing = panel.classList.contains('show');
+      if (isShowing) {
+        panel.classList.remove('show');
+        btn.classList.remove('active');
+      } else {
+        panel.classList.add('show');
+        btn.classList.add('active');
+        if (!segLoaded) loadClusters();
+      }
+    }
+
+    async function loadClusters() {
+      showLoading();
+      try {
+        const res = await fetch('/api/clusters');
+        if (!res.ok) {
+          document.getElementById('segCards').innerHTML = '<div class="empty-state">Kümeleme verisi bulunamadı. Önce build_passenger_clusters.py çalıştırın.</div>';
+          hideLoading();
+          return;
+        }
+        const data = await res.json();
+        segLoaded = true;
+        renderSegCards(data);
+        renderSegCharts(data);
+      } catch (e) {
+        console.error('Cluster fetch error:', e);
+      }
+      hideLoading();
+    }
+
+    function renderSegCards(data) {
+      const container = document.getElementById('segCards');
+      container.innerHTML = '';
+      const clusters = data.clusters || {};
+      const emojis = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠', '⚪'];
+
+      Object.entries(clusters).forEach(([id, c], idx) => {
+        const color = SEG_COLORS[idx % SEG_COLORS.length];
+        const card = document.createElement('div');
+        card.className = 'seg-card';
+        card.innerHTML = `
+          <div class="seg-stripe" style="background:${color}"></div>
+          <div class="seg-card-header">
+            <div class="seg-card-title">${emojis[idx]} ${c.label}</div>
+            <div class="seg-card-pct" style="color:${color}">${c.pct}%</div>
+          </div>
+          <div class="seg-card-count">${c.size.toLocaleString()} uçuş profili</div>
+          <div class="seg-card-metrics">
+            <div class="seg-metric">DTD Ort: <strong>${c.avg_dtd_at_purchase}</strong></div>
+            <div class="seg-metric">Doluluk: <strong>${(c.max_load_factor * 100).toFixed(1)}%</strong></div>
+            <div class="seg-metric">Son Dakika: <strong>${c.pct_last_minute}%</strong></div>
+            <div class="seg-metric">Erken: <strong>${c.pct_early_bird}%</strong></div>
+            <div class="seg-metric">Business: <strong>${c.is_business_pct}%</strong></div>
+            <div class="seg-metric">Hafta İçi: <strong>${c.is_weekday_pct}%</strong></div>
+            <div class="seg-metric">Sabah: <strong>${c.is_morning_pct}%</strong></div>
+            <div class="seg-metric">Mesafe: <strong>${c.distance_km.toLocaleString()} km</strong></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderSegCharts(data) {
+      const clusters = data.clusters || {};
+      const labels = [];
+      const sizes = [];
+      const colors = [];
+      const pctLastMin = [];
+      const pctEarly = [];
+      const bisPct = [];
+      const wkdPct = [];
+      const mornPct = [];
+      const loadFactors = [];
+      const dtds = [];
+      const distances = [];
+
+      Object.entries(clusters).forEach(([id, c], idx) => {
+        labels.push(c.label.split('(')[0].trim());
+        sizes.push(c.size);
+        colors.push(SEG_COLORS[idx % SEG_COLORS.length]);
+        pctLastMin.push(c.pct_last_minute);
+        pctEarly.push(c.pct_early_bird);
+        bisPct.push(c.is_business_pct);
+        wkdPct.push(c.is_weekday_pct);
+        mornPct.push(c.is_morning_pct);
+        loadFactors.push((c.max_load_factor * 100).toFixed(1));
+        dtds.push(c.avg_dtd_at_purchase);
+        distances.push(c.distance_km);
+      });
+
+      const chartOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } },
+      };
+
+      // Destroy old charts
+      Object.values(segCharts).forEach(ch => ch?.destroy());
+
+      // 1. Distribution Bar Chart
+      segCharts.dist = new Chart(document.getElementById('chartClusterDist').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Uçuş Profili Sayısı',
+            data: sizes,
+            backgroundColor: colors.map(c => c + '99'),
+            borderColor: colors,
+            borderWidth: 2,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          ...chartOpts,
+          indexAxis: 'y',
+          plugins: {
+            ...chartOpts.plugins,
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: ctx => `${ctx.raw.toLocaleString()} uçuş` }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { ticks: { color: '#e6edf3', font: { size: 11 } }, grid: { display: false } },
+          }
+        }
+      });
+
+      // 2. Radar Chart
+      segCharts.radar = new Chart(document.getElementById('chartClusterRadar').getContext('2d'), {
+        type: 'radar',
+        data: {
+          labels: ['Son Dakika %', 'Erken Rez %', 'Business %', 'Hafta İçi %', 'Sabah %', 'Doluluk %'],
+          datasets: Object.entries(clusters).map(([id, c], idx) => ({
+            label: labels[idx],
+            data: [
+              c.pct_last_minute,
+              c.pct_early_bird,
+              c.is_business_pct,
+              c.is_weekday_pct,
+              c.is_morning_pct,
+              (c.max_load_factor * 100),
+            ],
+            borderColor: SEG_COLORS[idx],
+            backgroundColor: SEG_COLORS[idx] + '20',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: SEG_COLORS[idx],
+          }))
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            r: {
+              ticks: { color: '#94a3b8', backdropColor: 'transparent', font: { size: 9 } },
+              grid: { color: 'rgba(148,163,184,.15)' },
+              pointLabels: { color: '#c9d1d9', font: { size: 11 } },
+              suggestedMin: 0,
+              suggestedMax: 100,
+            }
+          },
+        }
+      });
+
+      // 3. Timing Grouped Bar
+      segCharts.timing = new Chart(document.getElementById('chartClusterTiming').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Son Dakika %', data: pctLastMin, backgroundColor: '#f43f5e99', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 },
+            { label: 'Erken Rezervasyon %', data: pctEarly, backgroundColor: '#10b98199', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
+          ]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,.08)' } },
+          }
+        }
+      });
+
+      // 4. Cabin & Schedule Bar
+      segCharts.cabin = new Chart(document.getElementById('chartClusterCabin').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Business %', data: bisPct, backgroundColor: '#8b5cf699', borderColor: '#8b5cf6', borderWidth: 1, borderRadius: 4 },
+            { label: 'Hafta İçi %', data: wkdPct, backgroundColor: '#3b82f699', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 },
+            { label: 'Sabah Uçuşu %', data: mornPct, backgroundColor: '#f59e0b99', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
+          ]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,.08)' }, suggestedMax: 100 },
+          }
+        }
+      });
+    }
   </script>
 </body>
 
