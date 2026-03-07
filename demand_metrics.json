@@ -1,0 +1,30 @@
+{
+  "config": {
+    "DTD_MAX": 180,
+    "SAMPLE_FRAC": 0.15,
+    "RANDOM_SEED": 42
+  },
+  "rows_train_2025": 2771305,
+  "rows_test_2026": 2776363,
+  "zero_rate_overall": 0.7084876023583243,
+  "baseline_A": {
+    "mae": 0.9659316292114176,
+    "rmse": 1.50005632012001
+  },
+  "baseline_B": {
+    "mae": 0.789109297718943,
+    "rmse": 1.3392455369774163
+  },
+  "two_stage_model": {
+    "mae": 0.7804729600059014,
+    "rmse": 1.3262236297502144,
+    "auc_sale_classifier": 0.8353768247403357
+  },
+  "artifacts": {
+    "classifier": "/kaggle/working/xgb_demand_classifier.pkl",
+    "regressor": "/kaggle/working/xgb_demand_regressor.pkl",
+    "features": "/kaggle/working/feature_list.json",
+    "metrics": "/kaggle/working/demand_metrics.json",
+    "pred_sample": "/kaggle/working/demand_predictions_test_sample.parquet"
+  }
+}
