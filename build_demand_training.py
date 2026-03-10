@@ -6,7 +6,7 @@ import json
 import duckdb
 from pathlib import Path
 
-BASE_DIR  = Path(r"C:\Users\ahmet\OneDrive\Desktop\ptir")
+BASE_DIR  = Path(__file__).parent
 SNAP_PATH = BASE_DIR / "flight_snapshot_v2.parquet"
 META_PATH = BASE_DIR / "flight_metadata.parquet"
 OUT_PATH  = BASE_DIR / "demand_training.parquet"

@@ -3,14 +3,32 @@ Flight Snapshot Dashboard — Sprint 4
 Flask + DuckDB backend.
 V2 parquet (ticket + ancillary revenue) + metadata lookup.
 Demand forecast via two-stage XGBoost (classifier + regressor).
+Sentiment Intelligence via HuggingFace NLP (integrated).
 """
 
 import os
 import math
 import json
+import threading
 import numpy as np
 from flask import Flask, render_template, jsonify, request
 import duckdb
+
+# ─── .env dosyasından ortam değişkenlerini oku ───────────
+def _load_dotenv():
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if os.path.exists(env_path):
+        with open(env_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, val = line.split("=", 1)
+                key, val = key.strip(), val.strip()
+                if not os.environ.get(key):
+                    os.environ[key] = val
+
+_load_dotenv()
 
 app = Flask(__name__)
 
@@ -51,6 +69,25 @@ try:
         print("[Forecast] Model files not found, forecast disabled")
 except Exception as e:
     print(f"[Forecast] Failed to load models: {e}")
+
+
+# ─── SENTIMENT INTELLIGENCE ──────────────────────────────
+SENTIMENT_READY = False
+try:
+    from sentiment.fetcher import CITIES as SENT_CITIES, fetch_city_news, get_api_status, init_cache
+    from sentiment import scorer as _sent_scorer
+    from sentiment.scorer import score_articles, aggregate_city_sentiment
+    load_sentiment_models = _sent_scorer.load_models
+    init_cache()
+    SENTIMENT_READY = True
+    print("[Sentiment] Module loaded, models will load on first request")
+
+    def _preload_sentiment():
+        load_sentiment_models()
+    threading.Thread(target=_preload_sentiment, daemon=True).start()
+except Exception as e:
+    print(f"[Sentiment] Module not available: {e}")
+    SENT_CITIES = {}
 
 
 def get_con():
@@ -568,11 +605,965 @@ def api_cluster_detail(cluster_id):
     return jsonify({"cluster_id": cluster_id, "rows": data})
 
 
+# ─── TREND ANALYSIS API ──────────────────────────────────
+TRAINING_PARQUET = f"{BASE_DIR}/demand_training.parquet"
+
+@app.route("/api/trends")
+def api_trends():
+    """Monthly demand trend analysis — time series data."""
+    year_filter = request.args.get("year", "").strip()
+    cabin_filter = request.args.get("cabin", "").strip().lower()
+    region_filter = request.args.get("region", "").strip()
+
+    con = get_con()
+    path = TRAINING_PARQUET
+
+    where_clauses = ["dep_year IS NOT NULL", "dep_month IS NOT NULL"]
+    params = []
+    param_idx = 1
+
+    if year_filter:
+        where_clauses.append(f"dep_year = ${param_idx}")
+        params.append(int(year_filter))
+        param_idx += 1
+    if cabin_filter:
+        where_clauses.append(f"LOWER(cabin_class) = ${param_idx}")
+        params.append(cabin_filter)
+        param_idx += 1
+    if region_filter:
+        where_clauses.append(f"region = ${param_idx}")
+        params.append(region_filter)
+        param_idx += 1
+
+    where_sql = " AND ".join(where_clauses)
+
+    # 1. Monthly aggregation
+    monthly = con.execute(f"""
+        SELECT
+            dep_year,
+            dep_month,
+            SUM(y_pax_sold_today)              AS total_pax,
+            AVG(y_pax_sold_today)              AS avg_daily_pax,
+            AVG(load_factor)                   AS avg_load_factor,
+            COUNT(DISTINCT flight_id)          AS flight_count,
+            SUM(CASE WHEN y_pax_sold_today > 0 THEN 1 ELSE 0 END) * 100.0
+                / COUNT(*) AS sale_rate_pct
+        FROM read_parquet('{path}')
+        WHERE {where_sql}
+        GROUP BY dep_year, dep_month
+        ORDER BY dep_year, dep_month
+    """, params).fetchall()
+
+    # 2. Cabin breakdown by month
+    cabin_monthly = con.execute(f"""
+        SELECT
+            dep_year, dep_month,
+            LOWER(cabin_class) AS cabin,
+            SUM(y_pax_sold_today) AS total_pax,
+            AVG(y_pax_sold_today) AS avg_daily_pax
+        FROM read_parquet('{path}')
+        WHERE {where_sql}
+        GROUP BY dep_year, dep_month, LOWER(cabin_class)
+        ORDER BY dep_year, dep_month, cabin
+    """, params).fetchall()
+
+    # 3. Region breakdown by month
+    region_monthly = con.execute(f"""
+        SELECT
+            dep_year, dep_month,
+            region,
+            SUM(y_pax_sold_today) AS total_pax
+        FROM read_parquet('{path}')
+        WHERE {where_sql}
+        GROUP BY dep_year, dep_month, region
+        ORDER BY dep_year, dep_month, region
+    """, params).fetchall()
+
+    # 4. Day-of-week pattern
+    dow_pattern = con.execute(f"""
+        SELECT
+            dep_dow,
+            SUM(y_pax_sold_today) AS total_pax,
+            AVG(y_pax_sold_today) AS avg_pax
+        FROM read_parquet('{path}')
+        WHERE {where_sql}
+        GROUP BY dep_dow
+        ORDER BY dep_dow
+    """, params).fetchall()
+
+    # 5. Available filters
+    years = con.execute(f"""
+        SELECT DISTINCT dep_year FROM read_parquet('{path}')
+        WHERE dep_year IS NOT NULL ORDER BY dep_year
+    """).fetchall()
+    cabins = con.execute(f"""
+        SELECT DISTINCT LOWER(cabin_class) FROM read_parquet('{path}')
+        WHERE cabin_class IS NOT NULL ORDER BY 1
+    """).fetchall()
+    regions = con.execute(f"""
+        SELECT DISTINCT region FROM read_parquet('{path}')
+        WHERE region IS NOT NULL ORDER BY region
+    """).fetchall()
+
+    con.close()
+
+    month_names = ["", "Oca", "Şub", "Mar", "Nis", "May", "Haz",
+                   "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"]
+
+    result = {
+        "monthly": [{
+            "year": r[0], "month": r[1],
+            "month_name": month_names[r[1]] if 1 <= r[1] <= 12 else f"M{r[1]}",
+            "label": f"{r[0]}-{r[1]:02d}",
+            "total_pax": int(r[2]) if r[2] else 0,
+            "avg_daily_pax": round(float(r[3]), 4) if r[3] else 0,
+            "avg_load_factor": round(float(r[4]), 4) if r[4] else 0,
+            "flight_count": int(r[5]) if r[5] else 0,
+            "sale_rate_pct": round(float(r[6]), 2) if r[6] else 0,
+        } for r in monthly],
+
+        "cabin_monthly": [{
+            "year": r[0], "month": r[1], "cabin": r[2],
+            "total_pax": int(r[3]) if r[3] else 0,
+            "avg_daily_pax": round(float(r[4]), 4) if r[4] else 0,
+        } for r in cabin_monthly],
+
+        "region_monthly": [{
+            "year": r[0], "month": r[1], "region": r[2],
+            "total_pax": int(r[3]) if r[3] else 0,
+        } for r in region_monthly],
+
+        "dow_pattern": [{
+            "dow": r[0],
+            "dow_name": ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"][r[0]] if 0 <= r[0] <= 6 else f"D{r[0]}",
+            "total_pax": int(r[1]) if r[1] else 0,
+            "avg_pax": round(float(r[2]), 4) if r[2] else 0,
+        } for r in dow_pattern],
+
+        "filters": {
+            "years": [r[0] for r in years],
+            "cabins": [r[0] for r in cabins],
+            "regions": [r[0] for r in regions],
+        }
+    }
+
+    return jsonify(result)
+
+
+# ─── TOP ROUTES API ──────────────────────────────────────
+@app.route("/api/top-routes")
+def api_top_routes():
+    """EDA: Top N routes by total pax with load-factor, revenue & DTD curves."""
+    n = request.args.get("n", 10, type=int)
+    sort_by = request.args.get("sort", "total_pax")  # total_pax | final_lf | total_rev
+    cabin_filter = request.args.get("cabin", "").strip().lower()
+
+    con = get_con()
+    tp = TRAINING_PARQUET
+    sp = PARQUET_PATH  # snapshot v2
+
+    cabin_where = f"AND LOWER(t.cabin_class) = '{cabin_filter}'" if cabin_filter else ""
+
+    # 1) Identify top routes with summary metrics
+    order_col = {
+        "total_pax": "total_pax DESC",
+        "final_lf": "final_lf DESC",
+        "total_rev": "total_rev DESC",
+    }.get(sort_by, "total_pax DESC")
+
+    top_routes = con.execute(f"""
+        WITH route_summary AS (
+            SELECT
+                t.flight_id,
+                t.cabin_class,
+                SUM(t.y_pax_sold_today) AS total_pax,
+                MAX(t.capacity) AS capacity,
+                MAX(t.load_factor) AS final_lf,
+                AVG(t.load_factor) AS avg_lf,
+                MAX(t.distance_km) AS distance_km,
+                MAX(t.region) AS region,
+                MAX(t.dep_year) AS dep_year,
+                MAX(t.dep_month) AS dep_month,
+                MAX(t.dep_dow) AS dep_dow,
+                MAX(t.dep_hour) AS dep_hour,
+                MAX(t.ff_gold_pct) AS ff_gold_pct,
+                MAX(t.ff_elite_pct) AS ff_elite_pct
+            FROM read_parquet('{tp}') t
+            WHERE 1=1 {cabin_where}
+            GROUP BY t.flight_id, t.cabin_class
+        ),
+        route_rev AS (
+            SELECT
+                s.flight_id,
+                s.cabin_class,
+                SUM(s.ticket_rev_today) AS total_ticket_rev,
+                SUM(s.anc_rev_today) AS total_anc_rev,
+                SUM(s.ticket_rev_today) + SUM(s.anc_rev_today) AS total_rev,
+                AVG(CASE WHEN s.pax_sold_today > 0
+                    THEN s.ticket_rev_today / s.pax_sold_today ELSE NULL END) AS avg_ticket_price
+            FROM read_parquet('{sp}') s
+            GROUP BY s.flight_id, s.cabin_class
+        )
+        SELECT
+            rs.flight_id, rs.cabin_class,
+            rs.total_pax, rs.capacity, rs.final_lf, rs.avg_lf,
+            rs.distance_km, rs.region, rs.dep_year, rs.dep_month,
+            rs.dep_dow, rs.dep_hour, rs.ff_gold_pct, rs.ff_elite_pct,
+            COALESCE(rr.total_ticket_rev, 0) AS total_ticket_rev,
+            COALESCE(rr.total_anc_rev, 0) AS total_anc_rev,
+            COALESCE(rr.total_rev, 0) AS total_rev,
+            COALESCE(rr.avg_ticket_price, 0) AS avg_ticket_price
+        FROM route_summary rs
+        LEFT JOIN route_rev rr ON rs.flight_id = rr.flight_id AND rs.cabin_class = rr.cabin_class
+        ORDER BY {order_col}
+        LIMIT {n}
+    """).fetchall()
+
+    routes = []
+    flight_ids = []
+    for r in top_routes:
+        fid = r[0]
+        flight_ids.append(fid)
+        routes.append({
+            "flight_id": fid,
+            "cabin_class": r[1],
+            "total_pax": _num(r[2]),
+            "capacity": int(r[3]) if r[3] else 0,
+            "final_lf": round(float(r[4]) * 100, 1) if r[4] else 0,
+            "avg_lf": round(float(r[5]) * 100, 1) if r[5] else 0,
+            "distance_km": int(r[6]) if r[6] else 0,
+            "region": r[7] or "",
+            "dep_year": r[8],
+            "dep_month": r[9],
+            "dep_dow": r[10],
+            "dep_hour": r[11],
+            "ff_gold_pct": round(float(r[12]) * 100, 1) if r[12] else 0,
+            "ff_elite_pct": round(float(r[13]) * 100, 1) if r[13] else 0,
+            "total_ticket_rev": _num(r[14]),
+            "total_anc_rev": _num(r[15]),
+            "total_rev": _num(r[16]),
+            "avg_ticket_price": round(float(r[17]), 2) if r[17] else 0,
+        })
+
+    # 2) DTD curves for top routes (load factor & revenue over DTD)
+    if flight_ids:
+        id_list = ",".join(f"'{fid}'" for fid in flight_ids)
+
+        # LF curves from training data
+        lf_curves_raw = con.execute(f"""
+            SELECT flight_id, dtd, load_factor, pax_sold_cum, remaining_seats, y_pax_sold_today
+            FROM read_parquet('{tp}')
+            WHERE flight_id IN ({id_list})
+            ORDER BY flight_id, dtd DESC
+        """).fetchall()
+
+        lf_curves = {}
+        for row in lf_curves_raw:
+            fid = row[0]
+            if fid not in lf_curves:
+                lf_curves[fid] = []
+            lf_curves[fid].append({
+                "dtd": int(row[1]),
+                "load_factor": round(float(row[2]) * 100, 2) if row[2] else 0,
+                "pax_cum": _num(row[3]),
+                "remaining": _num(row[4]),
+                "pax_today": _num(row[5]),
+            })
+
+        # Revenue curves from snapshot v2
+        rev_curves_raw = con.execute(f"""
+            SELECT flight_id, dtd,
+                   ticket_rev_cum, anc_rev_cum,
+                   ticket_rev_today, anc_rev_today,
+                   CASE WHEN pax_sold_today > 0
+                       THEN ticket_rev_today / pax_sold_today ELSE 0 END AS unit_price
+            FROM read_parquet('{sp}')
+            WHERE flight_id IN ({id_list})
+            ORDER BY flight_id, dtd DESC
+        """).fetchall()
+
+        rev_curves = {}
+        for row in rev_curves_raw:
+            fid = row[0]
+            if fid not in rev_curves:
+                rev_curves[fid] = []
+            rev_curves[fid].append({
+                "dtd": int(row[1]),
+                "ticket_rev_cum": _num(row[2]),
+                "anc_rev_cum": _num(row[3]),
+                "ticket_rev_today": _num(row[4]),
+                "anc_rev_today": _num(row[5]),
+                "unit_price": round(float(row[6]), 2) if row[6] else 0,
+            })
+    else:
+        lf_curves = {}
+        rev_curves = {}
+
+    # 3) Available cabins for filter
+    cabins = con.execute(f"""
+        SELECT DISTINCT LOWER(cabin_class) FROM read_parquet('{tp}')
+        WHERE cabin_class IS NOT NULL ORDER BY 1
+    """).fetchall()
+
+    con.close()
+
+    return jsonify({
+        "routes": routes,
+        "lf_curves": lf_curves,
+        "rev_curves": rev_curves,
+        "filters": {
+            "cabins": [c[0] for c in cabins],
+            "sort_options": ["total_pax", "final_lf", "total_rev"],
+        }
+    })
+
+
+# ─── EVENT / SENTIMENT ANALYSIS API ──────────────────────
+@app.route("/api/events")
+def api_events():
+    """EDA: Event/sentiment category analysis from tagged training data."""
+    con = get_con()
+    tp = TRAINING_PARQUET
+
+    # Check if event tags exist
+    try:
+        cols = con.execute(f"SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('{tp}'))").fetchall()
+        col_names = [c[0] for c in cols]
+        if 'primary_event' not in col_names:
+            con.close()
+            return jsonify({"error": "Event tags not found. Run add_event_tags.py first."}), 404
+    except Exception as e:
+        con.close()
+        return jsonify({"error": str(e)}), 500
+
+    tag_cols = [c for c in col_names if c.startswith('tag_')]
+
+    # 1) Per-tag summary (all 15 tags)
+    tag_stats = []
+    for tag in tag_cols:
+        name = tag.replace('tag_', '')
+        r = con.execute(f"""
+            SELECT
+                SUM(CASE WHEN {tag} THEN 1 ELSE 0 END) AS cnt,
+                AVG(CASE WHEN {tag} THEN y_pax_sold_today END) AS avg_pax,
+                AVG(CASE WHEN {tag} THEN load_factor END) AS avg_lf,
+                AVG(CASE WHEN NOT {tag} THEN y_pax_sold_today END) AS baseline_pax,
+                AVG(CASE WHEN NOT {tag} THEN load_factor END) AS baseline_lf
+            FROM read_parquet('{tp}')
+        """).fetchone()
+        total = con.execute(f"SELECT COUNT(*) FROM read_parquet('{tp}')").fetchone()[0]
+        tag_stats.append({
+            "name": name,
+            "label": name.replace('_', ' ').title(),
+            "count": int(r[0]),
+            "pct": round(r[0] / total * 100, 1),
+            "avg_pax": round(float(r[1]), 3) if r[1] else 0,
+            "avg_lf": round(float(r[2]) * 100, 1) if r[2] else 0,
+            "baseline_pax": round(float(r[3]), 3) if r[3] else 0,
+            "baseline_lf": round(float(r[4]) * 100, 1) if r[4] else 0,
+            "pax_lift": round(float(r[1]) - float(r[3]), 3) if r[1] and r[3] else 0,
+            "lf_lift": round((float(r[2]) - float(r[4])) * 100, 1) if r[2] and r[4] else 0,
+        })
+
+    # 2) Primary event distribution
+    primary_dist = con.execute(f"""
+        SELECT primary_event, COUNT(*) AS cnt,
+               AVG(y_pax_sold_today) AS avg_pax,
+               AVG(load_factor) AS avg_lf
+        FROM read_parquet('{tp}')
+        GROUP BY primary_event
+        ORDER BY cnt DESC
+    """).fetchall()
+
+    primary_events = []
+    for r in primary_dist:
+        primary_events.append({
+            "event": r[0],
+            "label": r[0].replace('_', ' ').title(),
+            "count": int(r[1]),
+            "avg_pax": round(float(r[2]), 3) if r[2] else 0,
+            "avg_lf": round(float(r[3]) * 100, 1) if r[3] else 0,
+        })
+
+    # 3) Monthly breakdown by primary event
+    monthly = con.execute(f"""
+        SELECT dep_year, dep_month, primary_event,
+               SUM(y_pax_sold_today) AS total_pax,
+               AVG(load_factor) AS avg_lf,
+               COUNT(*) AS cnt
+        FROM read_parquet('{tp}')
+        GROUP BY dep_year, dep_month, primary_event
+        ORDER BY dep_year, dep_month, primary_event
+    """).fetchall()
+
+    monthly_data = []
+    for r in monthly:
+        monthly_data.append({
+            "year": r[0], "month": r[1], "event": r[2],
+            "total_pax": _num(r[3]),
+            "avg_lf": round(float(r[4]) * 100, 1) if r[4] else 0,
+            "count": int(r[5]),
+        })
+
+    con.close()
+
+    return jsonify({
+        "tag_stats": tag_stats,
+        "primary_events": primary_events,
+        "monthly": monthly_data,
+    })
+
+
+# ─── DEMAND FUNCTIONS API ─────────────────────────────
+DEMAND_FUNCS_REPORT = f"{BASE_DIR}/demand_functions_report.json"
+
+
+@app.route("/api/demand-functions")
+def api_demand_functions():
+    """Return all segment definitions and pre-computed demand curves."""
+    report_path = DEMAND_FUNCS_REPORT.replace("/", os.sep)
+    if not os.path.exists(report_path):
+        return jsonify({"error": "Demand functions report not found. Run build_demand_functions.py first."}), 404
+    with open(report_path, "r", encoding="utf-8") as f:
+        report = json.load(f)
+    return jsonify(report)
+
+
+@app.route("/api/demand-curves")
+def api_demand_curves():
+    """Compute demand curves for a specific flight using segment models + actual price data."""
+    flight_id = request.args.get("flight_id", "").strip()
+    cabin = request.args.get("cabin", "economy").strip().lower()
+
+    # Load demand functions report
+    report_path = DEMAND_FUNCS_REPORT.replace("/", os.sep)
+    if not os.path.exists(report_path):
+        return jsonify({"error": "Demand functions report not found"}), 404
+    with open(report_path, "r", encoding="utf-8") as f:
+        report = json.load(f)
+
+    segments = report["segments"]
+    price_ref = report.get("price_reference", {})
+    base_price = price_ref.get(cabin, {}).get("avg", 500)
+
+    # If flight_id provided, get actual price data for that flight
+    flight_price = None
+    flight_info = {}
+    if flight_id:
+        con = get_con()
+        row = con.execute(f"""
+            SELECT
+                AVG(CASE WHEN s.pax_sold_today > 0
+                    THEN s.ticket_rev_today / s.pax_sold_today ELSE NULL END) AS avg_price,
+                MAX(m.capacity) AS capacity,
+                MAX(m.departure_airport) AS dep_ap,
+                MAX(m.arrival_airport) AS arr_ap,
+                MAX(m.region) AS region,
+                MAX(m.distance_km) AS distance_km
+            FROM read_parquet('{PARQUET_PATH}') s
+            LEFT JOIN read_parquet('{METADATA_PATH}') m
+                ON s.flight_id = m.flight_id AND LOWER(s.cabin_class) = LOWER(m.cabin_class)
+            WHERE s.flight_id = $1 AND LOWER(s.cabin_class) = $2
+        """, [flight_id, cabin]).fetchone()
+        con.close()
+
+        if row and row[0]:
+            flight_price = float(row[0])
+            base_price = flight_price
+            flight_info = {
+                "flight_id": flight_id,
+                "cabin": cabin,
+                "avg_price": round(flight_price, 2),
+                "capacity": int(row[1]) if row[1] else 0,
+                "departure_airport": row[2],
+                "arrival_airport": row[3],
+                "region": row[4],
+                "distance_km": _num(row[5]),
+            }
+
+    # Generate curves for each segment at this base price
+    price_ratios = [round(0.3 + i * 0.1, 1) for i in range(28)]
+    dtd_points = [0, 1, 3, 5, 7, 14, 21, 30, 45, 60, 90, 120, 150, 180]
+
+    segment_curves = {}
+    combined_demand = []
+    combined_revenue = []
+
+    for pr in price_ratios:
+        total_q = 0
+        total_rev = 0
+        for sid, seg in segments.items():
+            elast = seg["price_elasticity"]
+            peak_dtd = seg["booking_window"]["peak_dtd"]
+            dtd_decay = seg["dtd_decay_rate"]
+            share = seg["base_share_pct"] / 100
+
+            price_effect = max(pr ** elast, 0.01)
+            q = share * price_effect
+            rev = pr * base_price * q
+            total_q += q
+            total_rev += rev
+        combined_demand.append({"price_ratio": pr, "price": round(pr * base_price, 2), "demand": round(total_q, 4)})
+        combined_revenue.append({"price_ratio": pr, "price": round(pr * base_price, 2), "revenue": round(total_rev, 2)})
+
+    for sid, seg in segments.items():
+        elast = seg["price_elasticity"]
+        peak_dtd = seg["booking_window"]["peak_dtd"]
+        share = seg["base_share_pct"] / 100
+
+        # Price curve
+        seg_price_curve = []
+        for pr in price_ratios:
+            price_effect = max(pr ** elast, 0.01)
+            q = share * price_effect
+            seg_price_curve.append({
+                "price_ratio": pr,
+                "price": round(pr * base_price, 2),
+                "demand": round(q, 4),
+                "revenue": round(pr * base_price * q, 2),
+            })
+
+        # DTD curve
+        seg_dtd_curve = []
+        dtd_sigma = max(peak_dtd * 0.6, 3)
+        for dtd in dtd_points:
+            import math as _math
+            timing = _math.exp(-0.5 * ((dtd - peak_dtd) / dtd_sigma) ** 2)
+            if seg["dtd_decay_rate"] >= 0.3 and dtd <= 3:
+                timing = max(timing, 0.9)
+            seg_dtd_curve.append({
+                "dtd": dtd,
+                "demand": round(share * timing, 4),
+            })
+
+        best_rev = max(seg_price_curve, key=lambda x: x["revenue"])
+        segment_curves[sid] = {
+            "price_curve": seg_price_curve,
+            "dtd_curve": seg_dtd_curve,
+            "optimal": {
+                "price_ratio": best_rev["price_ratio"],
+                "price": best_rev["price"],
+                "revenue": best_rev["revenue"],
+                "demand": best_rev["demand"],
+            },
+        }
+
+    # Overall optimal
+    best_combined = max(combined_revenue, key=lambda x: x["revenue"])
+
+    return jsonify({
+        "base_price": round(base_price, 2),
+        "cabin": cabin,
+        "flight_info": flight_info,
+        "segments": {sid: segments[sid] for sid in segments},
+        "segment_curves": segment_curves,
+        "combined_demand": combined_demand,
+        "combined_revenue": combined_revenue,
+        "optimal_combined": {
+            "price_ratio": best_combined["price_ratio"],
+            "price": best_combined["price"],
+            "revenue": best_combined["revenue"],
+        },
+    })
+
+
+# ─── FARE CLASSES API ─────────────────────────────────
+@app.route("/api/fare-classes")
+def api_fare_classes():
+    """Return fare class structure, DTD×LF availability matrix, segment matching."""
+    import math as _math
+
+    # Fare class definitions
+    fare_classes = {
+        "V": {"name": "V — Promosyon", "name_short": "V", "multiplier": 0.5, "protection": 0.0, "open_until_lf": 0.40, "color": "#06b6d4", "description": "En düşük fiyat. Erken rezervasyon, fiyata duyarlı yolcular."},
+        "K": {"name": "K — İndirimli", "name_short": "K", "multiplier": 0.75, "protection": 0.2, "open_until_lf": 0.60, "color": "#f59e0b", "description": "Orta-düşük fiyat. Planlı seyahat, esnek tarih."},
+        "M": {"name": "M — Esnek", "name_short": "M", "multiplier": 1.0, "protection": 0.4, "open_until_lf": 0.85, "color": "#8b5cf6", "description": "Standart fiyat. İptal/değişiklik esnekliği var."},
+        "Y": {"name": "Y — Tam Fiyat", "name_short": "Y", "multiplier": 1.5, "protection": 0.6, "open_until_lf": 1.0, "color": "#ef4444", "description": "En yüksek fiyat. Tam esneklik, son dakika."},
+    }
+
+    # DTD rules
+    dtd_rules = [
+        {"dtd_min": 60, "dtd_max": 180, "open": ["V", "K", "M"], "label": "Erken Dönem"},
+        {"dtd_min": 30, "dtd_max": 59,  "open": ["K", "M"],      "label": "Orta Dönem"},
+        {"dtd_min": 14, "dtd_max": 29,  "open": ["K", "M", "Y"], "label": "Geç Dönem"},
+        {"dtd_min": 7,  "dtd_max": 13,  "open": ["M", "Y"],      "label": "Son Hafta"},
+        {"dtd_min": 0,  "dtd_max": 6,   "open": ["Y"],            "label": "Son Dakika"},
+    ]
+
+    # Build DTD × LF heatmap matrix
+    dtd_points = [0, 1, 3, 5, 7, 10, 14, 21, 30, 45, 60, 90, 120, 150, 180]
+    lf_points = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    heatmap = []
+    for dtd in dtd_points:
+        row = []
+        for lf in lf_points:
+            lf_ratio = lf / 100
+            # Find DTD rule
+            open_classes = ["Y"]
+            for rule in dtd_rules:
+                if rule["dtd_min"] <= dtd <= rule["dtd_max"]:
+                    open_classes = rule["open"]
+                    break
+            # Filter by LF protection
+            available = []
+            for fc_id in open_classes:
+                fc = fare_classes[fc_id]
+                if lf_ratio < fc["open_until_lf"] or fc_id == "Y":
+                    available.append(fc_id)
+            if not available:
+                available = ["Y"]
+            # Best fare = cheapest available
+            best = available[0]
+            row.append({"dtd": dtd, "lf": lf, "available": available, "best_fare": best, "price_mult": fare_classes[best]["multiplier"]})
+        heatmap.append(row)
+
+    # Segment → fare class matching
+    demand_path = DEMAND_FUNCS_REPORT.replace("/", os.sep)
+    segment_matching = []
+    if os.path.exists(demand_path):
+        with open(demand_path, "r", encoding="utf-8") as f:
+            dreport = json.load(f)
+        segments = dreport.get("segments", {})
+        for sid, seg in segments.items():
+            wtp_avg = (seg["wtp_multiplier"]["min"] + seg["wtp_multiplier"]["max"]) / 2
+            # Find the most expensive fare class the segment can afford (revenue max)
+            best_fc = "V"
+            for fc_id in ["V", "K", "M", "Y"]:
+                if fare_classes[fc_id]["multiplier"] <= wtp_avg:
+                    best_fc = fc_id
+            segment_matching.append({
+                "segment_id": sid,
+                "segment_name": seg["name"],
+                "icon": seg["icon"],
+                "color": seg["color"],
+                "wtp_range": f"{seg['wtp_multiplier']['min']}-{seg['wtp_multiplier']['max']}x",
+                "wtp_avg": round(wtp_avg, 2),
+                "preferred_fare": best_fc,
+                "preferred_fare_name": fare_classes[best_fc]["name"],
+                "elasticity": seg["price_elasticity"],
+                "booking_window": f"{seg['booking_window']['min_dtd']}-{seg['booking_window']['max_dtd']} gün",
+            })
+
+    # Price examples per cabin
+    price_ref = {}
+    if os.path.exists(demand_path):
+        price_ref = dreport.get("price_reference", {})
+
+    price_examples = {}
+    for cabin in ["economy", "business"]:
+        base = price_ref.get(cabin, {}).get("avg", 500 if cabin == "economy" else 1500)
+        price_examples[cabin] = {
+            fc_id: {"price": round(base * fc["multiplier"], 2), "multiplier": fc["multiplier"]}
+            for fc_id, fc in fare_classes.items()
+        }
+        price_examples[cabin]["base_price"] = round(base, 2)
+
+    return jsonify({
+        "fare_classes": fare_classes,
+        "dtd_rules": dtd_rules,
+        "heatmap": heatmap,
+        "dtd_points": dtd_points,
+        "lf_points": lf_points,
+        "segment_matching": segment_matching,
+        "price_examples": price_examples,
+    })
+
+
+# ─── SIMULATION API ───────────────────────────────────
+SIM_REPORT = f"{BASE_DIR}/simulation_report.json"
+
+
+@app.route("/api/simulation")
+def api_simulation():
+    """Return simulation results: static vs dynamic pricing comparison."""
+    report_path = SIM_REPORT.replace("/", os.sep)
+    if not os.path.exists(report_path):
+        return jsonify({"error": "Simulation report not found. Run run_simulation.py first."}), 404
+    with open(report_path, "r", encoding="utf-8") as f:
+        report = json.load(f)
+
+    # Strip daily data if summary_only requested (lighter payload)
+    summary_only = request.args.get("summary", "").strip().lower() == "true"
+    if summary_only:
+        routes = {}
+        for k, v in report.get("routes", {}).items():
+            route_copy = {key: val for key, val in v.items()}
+            route_copy["static"] = {key: val for key, val in v["static"].items() if key != "daily"}
+            route_copy["dynamic"] = {key: val for key, val in v["dynamic"].items() if key != "daily"}
+            routes[k] = route_copy
+        report_copy = {**report, "routes": routes}
+        return jsonify(report_copy)
+
+    return jsonify(report)
+
+
+# ─── RISK / OPPORTUNITY INDEX API ──────────────────────
+@app.route("/api/risk-index")
+def api_risk_index():
+    """Flight risk/opportunity index with pricing action categories."""
+    con = get_con()
+    sp = PARQUET_PATH
+    cabin_filter = request.args.get("cabin", "").strip().lower()
+    cabin_where = f"AND LOWER(s.cabin_class) = '{cabin_filter}'" if cabin_filter else ""
+
+    # Get latest snapshot per flight (DTD=0 or minimum DTD available)
+    flights = con.execute(f"""
+        WITH latest AS (
+            SELECT flight_id, cabin_class, MIN(dtd) AS min_dtd
+            FROM read_parquet('{sp}')
+            WHERE dtd IS NOT NULL
+            GROUP BY flight_id, cabin_class
+        ),
+        flight_data AS (
+            SELECT
+                s.flight_id,
+                s.cabin_class,
+                s.dtd,
+                s.pax_sold_cum,
+                m.capacity,
+                CASE WHEN m.capacity > 0
+                    THEN s.pax_sold_cum * 1.0 / m.capacity ELSE 0 END AS load_factor,
+                GREATEST(m.capacity - s.pax_sold_cum, 0) AS remaining_seats,
+                s.ticket_rev_cum,
+                s.anc_rev_cum,
+                s.ticket_rev_cum + s.anc_rev_cum AS total_rev_cum,
+                CASE WHEN s.pax_sold_cum > 0
+                    THEN (s.ticket_rev_cum + s.anc_rev_cum) / s.pax_sold_cum
+                    ELSE 0 END AS rev_per_pax,
+                m.region,
+                m.departure_airport,
+                m.arrival_airport,
+                m.distance_km,
+                s.pax_last_7d,
+                s.pax_sold_today
+            FROM read_parquet('{sp}') s
+            INNER JOIN latest l ON s.flight_id = l.flight_id
+                AND s.cabin_class = l.cabin_class AND s.dtd = l.min_dtd
+            LEFT JOIN read_parquet('{METADATA_PATH}') m
+                ON s.flight_id = m.flight_id AND s.cabin_class = m.cabin_class
+            WHERE 1=1 {cabin_where}
+        )
+        SELECT * FROM flight_data
+        ORDER BY flight_id, cabin_class
+    """).fetchall()
+
+    results = []
+    categories = {"price_increase": [], "price_decrease": [], "cancel_risk": []}
+
+    for r in flights:
+        fid, cabin, dtd, pax_cum, capacity = r[0], r[1], r[2], r[3] or 0, r[4] or 1
+        lf = float(r[5]) if r[5] else 0
+        remaining = int(r[6]) if r[6] else 0
+        total_rev = float(r[9]) if r[9] else 0
+        rev_per_pax = float(r[10]) if r[10] else 0
+        region = r[11] or ""
+        dep_ap, arr_ap = r[12] or "", r[13] or ""
+        distance = float(r[14]) if r[14] else 0
+        pax_7d = float(r[15]) if r[15] else 0
+        pax_today = float(r[16]) if r[16] else 0
+
+        # === RISK/OPPORTUNITY SCORING ===
+        # 1. DTD urgency (0-25): closer to departure = more urgent
+        if dtd is None:
+            dtd_score = 12.5
+        elif dtd <= 3:
+            dtd_score = 25
+        elif dtd <= 7:
+            dtd_score = 20
+        elif dtd <= 14:
+            dtd_score = 15
+        elif dtd <= 30:
+            dtd_score = 10
+        else:
+            dtd_score = 5
+
+        # 2. Load factor score (0-25): low LF = more risk
+        lf_score = max(0, 25 - lf * 25)  # LF=0 → 25, LF=1 → 0
+
+        # 3. Revenue momentum (0-25): recent booking activity
+        momentum = min(pax_7d / max(capacity, 1), 1.0)
+        momentum_score = (1 - momentum) * 25  # low activity = high risk
+
+        # 4. Capacity waste (0-25): empty seats cost money
+        waste = remaining / max(capacity, 1)
+        waste_score = waste * 25  # more empty = more risk
+
+        risk_score = round(dtd_score + lf_score + momentum_score + waste_score, 1)
+        opp_score = round(100 - risk_score, 1)
+
+        # Revenue potential = remaining seats × avg revenue per pax
+        rev_potential = round(remaining * rev_per_pax, 2)
+
+        # === PRICING CATEGORY ===
+        if lf >= 0.75 and (dtd is None or dtd >= 7):
+            category = "price_increase"
+            action = "Fiyat Artırım Fırsatı"
+            reason = f"Doluluk %{lf*100:.0f}, {dtd or 0} gün kala yüksek talep"
+        elif lf < 0.40 and (dtd is not None and dtd <= 14):
+            category = "cancel_risk"
+            action = "İptal Riski / Zarar Potansiyeli"
+            reason = f"Doluluk %{lf*100:.0f}, {dtd} gün kala çok düşük"
+        elif lf < 0.65 and (dtd is not None and dtd <= 30):
+            category = "price_decrease"
+            action = "Fiyat Düşürme Gerekli"
+            reason = f"Doluluk %{lf*100:.0f}, {dtd} gün kala doluluk yakalanmalı"
+        elif lf >= 0.65:
+            category = "price_increase"
+            action = "Fiyat Artırım Fırsatı"
+            reason = f"İyi doluluk (%{lf*100:.0f}), fiyat optimize edilebilir"
+        else:
+            category = "price_decrease"
+            action = "Fiyat Düşürme Gerekli"
+            reason = f"Doluluk %{lf*100:.0f}, talep çekilmeli"
+
+        flight_info = {
+            "flight_id": fid,
+            "cabin": cabin,
+            "route": f"{dep_ap}-{arr_ap}",
+            "region": region,
+            "dtd": dtd,
+            "pax_cum": int(pax_cum),
+            "capacity": int(capacity),
+            "load_factor": round(lf * 100, 1),
+            "remaining_seats": remaining,
+            "total_rev": round(total_rev, 2),
+            "rev_potential": rev_potential,
+            "rev_per_pax": round(rev_per_pax, 2),
+            "risk_score": risk_score,
+            "opp_score": opp_score,
+            "category": category,
+            "action": action,
+            "reason": reason,
+            "pax_7d": int(pax_7d),
+            "pax_today": int(pax_today),
+            "distance_km": int(distance),
+        }
+        results.append(flight_info)
+        categories[category].append(flight_info)
+
+    # Sort each category by risk score
+    for cat in categories:
+        categories[cat].sort(key=lambda x: x["risk_score"], reverse=True)
+
+    # Summary stats
+    summary = {
+        "total_flights": len(results),
+        "price_increase": {
+            "count": len(categories["price_increase"]),
+            "avg_lf": round(sum(f["load_factor"] for f in categories["price_increase"]) / max(len(categories["price_increase"]), 1), 1),
+            "total_rev_potential": round(sum(f["rev_potential"] for f in categories["price_increase"]), 0),
+        },
+        "price_decrease": {
+            "count": len(categories["price_decrease"]),
+            "avg_lf": round(sum(f["load_factor"] for f in categories["price_decrease"]) / max(len(categories["price_decrease"]), 1), 1),
+            "total_rev_potential": round(sum(f["rev_potential"] for f in categories["price_decrease"]), 0),
+        },
+        "cancel_risk": {
+            "count": len(categories["cancel_risk"]),
+            "avg_lf": round(sum(f["load_factor"] for f in categories["cancel_risk"]) / max(len(categories["cancel_risk"]), 1), 1),
+            "total_rev_potential": round(sum(f["rev_potential"] for f in categories["cancel_risk"]), 0),
+        },
+        "avg_risk_score": round(sum(f["risk_score"] for f in results) / max(len(results), 1), 1),
+    }
+
+    # Available cabins
+    cabins = con.execute(f"""
+        SELECT DISTINCT LOWER(cabin_class) FROM read_parquet('{sp}')
+        WHERE cabin_class IS NOT NULL ORDER BY 1
+    """).fetchall()
+
+    con.close()
+
+    return jsonify({
+        "flights": results[:200],  # limit response size
+        "categories": {k: v[:50] for k, v in categories.items()},
+        "summary": summary,
+        "filters": {"cabins": [c[0] for c in cabins]},
+    })
+
+
+# ─── SENTIMENT API ──────────────────────────────────────
+@app.route("/api/sentiment/status")
+def api_sentiment_status():
+    if not SENTIMENT_READY:
+        return jsonify({"models_loaded": False, "load_error": "sentiment module not available",
+                        "api_status": {"status": "unavailable"}, "cities": []})
+    return jsonify({
+        "models_loaded": _sent_scorer.MODELS_LOADED,
+        "load_error": _sent_scorer.LOAD_ERROR,
+        "api_status": get_api_status(),
+        "cities": list(SENT_CITIES.keys()),
+    })
+
+
+@app.route("/api/sentiment/all")
+def api_sentiment_all():
+    """Tum sehirlerin sentiment ozetini doner."""
+    if not SENTIMENT_READY:
+        return jsonify({"error": "sentiment module not available"}), 503
+
+    result = {}
+    for city_key, city_cfg in SENT_CITIES.items():
+        articles = fetch_city_news(city_key, max_articles=15)
+        if not articles:
+            result[city_key] = {
+                "city": city_key, "label": city_cfg["label"],
+                "flag": city_cfg["flag"], "color": city_cfg["color"],
+                "aggregate": {
+                    "composite_score": 0.0, "alert_level": "low",
+                    "article_count": 0, "positive_count": 0,
+                    "negative_count": 0, "neutral_count": 0,
+                    "dominant_event_tr": "Veri Yok",
+                    "high_impact_events": [], "event_distribution": {},
+                },
+                "articles": [], "error": "no_articles",
+            }
+            continue
+
+        scored = score_articles(articles)
+        aggregate = aggregate_city_sentiment(scored)
+        result[city_key] = {
+            "city": city_key, "label": city_cfg["label"],
+            "flag": city_cfg["flag"], "color": city_cfg["color"],
+            "aggregate": aggregate, "articles": scored[:10],
+        }
+
+    return jsonify(result)
+
+
+@app.route("/api/sentiment/<city_key>")
+def api_sentiment_city(city_key):
+    if not SENTIMENT_READY:
+        return jsonify({"error": "sentiment module not available"}), 503
+    if city_key not in SENT_CITIES:
+        return jsonify({"error": f"Unknown city: {city_key}"}), 404
+
+    city_cfg = SENT_CITIES[city_key]
+    articles = fetch_city_news(city_key, max_articles=8)
+    if not articles:
+        return jsonify({
+            "city": city_key, "label": city_cfg["label"],
+            "aggregate": {"composite_score": 0, "alert_level": "low", "article_count": 0},
+            "articles": [], "error": "no_articles_or_no_api_key",
+        })
+
+    scored = score_articles(articles)
+    aggregate = aggregate_city_sentiment(scored)
+    return jsonify({
+        "city": city_key, "label": city_cfg["label"],
+        "flag": city_cfg["flag"], "color": city_cfg["color"],
+        "aggregate": aggregate, "articles": scored,
+    })
+
+
 if __name__ == "__main__":
     v_label = "V2 (ticket + ancillary)" if USE_V2 else "V1 (legacy)"
     fc_label = "ON" if FORECAST_READY else "OFF"
-    print(f"\nFlight Snapshot Dashboard -- {v_label} | Forecast: {fc_label}")
+    sent_label = "ON" if SENTIMENT_READY else "OFF"
+    print(f"\nFlight Snapshot Dashboard -- {v_label} | Forecast: {fc_label} | Sentiment: {sent_label}")
     print(f"   Snapshot: {PARQUET_PATH}")
     print(f"   Metadata: {METADATA_PATH}")
-    print(f"   URL: http://localhost:5001\n")
-    app.run(debug=True, port=5001)
+    print(f"   URL: http://localhost:5005\n")
+    app.run(debug=True, port=5005, use_reloader=False)
+
+

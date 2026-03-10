@@ -1,23 +1,18 @@
-# Data Files (Too large for GitHub)
+# Data files
 *.parquet
-*.csv
 
-# Model Binaries
+# Models
 *.pkl
 
-# Python artifacts
+# Environment / secrets
+.env
+
+# Cache
+sentiment_cache.db
+
+# Python
 __pycache__/
-*.py[cod]
-*$py.class
-.venv/
-env/
-venv/
-ENV/
+*.pyc
 
-# IDE settings
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
+# Claude Code
+.claude/

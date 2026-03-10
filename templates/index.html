@@ -910,31 +910,33 @@
     }
 
     /* ───── SEGMENTATION ───── */
-    .seg-btn {
-      margin-left: auto;
-      padding: .45rem 1rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: #fff;
-      border: none;
+    /* ───── UNIFIED NAV BUTTONS (dark theme) ───── */
+    .nav-btn {
+      padding: .4rem .85rem;
+      background: var(--bg-3);
+      color: var(--text-2);
+      border: 1px solid var(--border);
       border-radius: 6px;
-      font-size: .78rem;
-      font-weight: 600;
+      font-size: .75rem;
+      font-weight: 500;
       cursor: pointer;
       transition: all var(--transition);
       display: flex;
       align-items: center;
-      gap: .4rem;
+      gap: .35rem;
       font-family: 'Inter', sans-serif;
+      white-space: nowrap;
     }
-
-    .seg-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(99, 102, 241, .4);
+    .nav-btn:first-of-type { margin-left: auto; }
+    .nav-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-1);
+      border-color: var(--border-light);
     }
-
-    .seg-btn.active {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, .5);
+    .nav-btn.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: rgba(88, 166, 255, .35);
     }
 
     .seg-panel {
@@ -1074,6 +1076,1186 @@
       background: var(--bg-hover);
       color: var(--text-0);
     }
+
+    /* ───── TREND ANALYSIS ───── */
+
+    .trend-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .trend-panel.show {
+      display: block;
+    }
+
+    .trend-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .trend-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -.02em;
+    }
+
+    .trend-header .trend-badge {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    .trend-filters {
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .trend-filters label {
+      font-size: .78rem;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .trend-select {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-0);
+      padding: .4rem .7rem;
+      font-size: .8rem;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+
+    .trend-select:focus {
+      border-color: var(--accent);
+    }
+
+    .trend-charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .trend-charts-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .trend-chart-wide {
+      margin-bottom: 1.5rem;
+    }
+
+    .trend-chart-wide .chart-canvas-wrap {
+      height: 300px;
+    }
+
+    /* ───── TOP ROUTES ───── */
+    .routes-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .routes-panel.show {
+      display: block;
+    }
+
+    .routes-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .routes-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -.02em;
+    }
+
+    .routes-header .routes-badge {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    .routes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: .8rem;
+      margin-bottom: 1.5rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .route-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+    }
+
+    .route-card:hover {
+      border-color: #10b981;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .3);
+    }
+
+    .route-card.selected {
+      border-color: #10b981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, .3);
+    }
+
+    .route-card .route-rank {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      font-size: .65rem;
+      font-weight: 800;
+      color: var(--text-3);
+      background: var(--bg-1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .route-card-title {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--text-0);
+      margin-bottom: .3rem;
+    }
+
+    .route-card-sub {
+      font-size: .7rem;
+      color: var(--text-3);
+      margin-bottom: .5rem;
+    }
+
+    .route-card-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .3rem;
+    }
+
+    .route-card-metric {
+      font-size: .72rem;
+      color: var(--text-2);
+    }
+
+    .route-card-metric strong {
+      color: var(--text-0);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .route-lf-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--bg-1);
+      margin-top: .5rem;
+      overflow: hidden;
+    }
+
+    .route-lf-bar .fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .5s ease;
+    }
+
+    /* ───── EVENT ANALYSIS ───── */
+    .events-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .events-panel.show {
+      display: block;
+    }
+
+    .events-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .events-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -.02em;
+    }
+
+    .events-header .events-badge {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: .5px;
+    }
+
+    .event-tags-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: .7rem;
+      margin-bottom: 1.5rem;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .event-tag-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: .8rem 1rem;
+      transition: all var(--transition);
+    }
+
+    .event-tag-card:hover {
+      border-color: #8b5cf6;
+    }
+
+    .event-tag-name {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text-0);
+      margin-bottom: .25rem;
+    }
+
+    .event-tag-pct {
+      font-size: .68rem;
+      color: var(--text-3);
+      margin-bottom: .4rem;
+    }
+
+    .event-tag-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .2rem;
+    }
+
+    .event-tag-stat {
+      font-size: .7rem;
+      color: var(--text-2);
+    }
+
+    .event-tag-stat strong {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-0);
+    }
+
+    .lift-pos {
+      color: #10b981 !important;
+    }
+
+    .lift-neg {
+      color: #f43f5e !important;
+    }
+
+    /* ───── RISK / OPPORTUNITY INDEX ───── */
+    .risk-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .risk-panel.show {
+      display: block;
+    }
+
+    /* ───── SENTIMENT BUTTON & PANEL ───── */
+    .sent-panel { display: none; animation: fadeUp .4s ease; margin-bottom: 2rem; }
+    .sent-panel.show { display: block; }
+    .sent-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .sent-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-0); letter-spacing: -.02em; }
+    .sent-badge { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: .65rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
+
+    .sent-api-warn { background: var(--orange-dim); border: 1px solid rgba(210,153,34,.35); border-radius: var(--radius); padding: .75rem 1rem; margin-bottom: 1rem; font-size: .82rem; color: var(--orange); display: none; }
+    .sent-api-warn.show { display: flex; align-items: flex-start; gap: .6rem; }
+    .sent-api-warn code { background: rgba(0,0,0,.3); padding: 1px 6px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: .78rem; }
+
+    .sent-cities { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .8rem; margin-bottom: 1.2rem; }
+    .sent-city { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; cursor: pointer; transition: all var(--transition); position: relative; overflow: hidden; }
+    .sent-city::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--sa, var(--purple)); opacity: 0; transition: opacity var(--transition); }
+    .sent-city:hover { border-color: var(--border-light); transform: translateY(-1px); }
+    .sent-city:hover::before { opacity: 1; }
+    .sent-city.sel { border-color: var(--sa, var(--purple)); background: var(--bg-3); }
+    .sent-city.sel::before { opacity: 1; }
+    .sent-city-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .6rem; }
+    .sent-city-name { display: flex; align-items: center; gap: .4rem; }
+    .sent-city-name .flag { font-size: 1.1rem; }
+    .sent-city-name .name { font-size: .92rem; font-weight: 700; color: var(--text-0); }
+    .sent-alert { font-size: .6rem; font-weight: 700; padding: 2px 7px; border-radius: 20px; letter-spacing: .5px; text-transform: uppercase; }
+    .sent-alert.low { background: var(--green-dim); color: var(--green); }
+    .sent-alert.medium { background: var(--orange-dim); color: var(--orange); }
+    .sent-alert.high { background: var(--red-dim); color: var(--red); animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .sent-score { font-family: 'JetBrains Mono', monospace; font-size: 1.6rem; font-weight: 700; line-height: 1; margin-bottom: .4rem; }
+    .sent-score-lbl { font-size: .68rem; color: var(--text-3); margin-bottom: .5rem; }
+    .sent-bar-track { height: 4px; background: var(--bg-3); border-radius: 3px; border: 1px solid var(--border); position: relative; overflow: visible; margin-bottom: .5rem; }
+    .sent-bar-fill { height: 100%; border-radius: 3px; position: absolute; top: 0; transition: all .8s cubic-bezier(.4,0,.2,1); }
+    .sent-bar-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--border-light); }
+    .sent-pills { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .4rem; }
+    .sent-pill { font-size: .62rem; padding: 1px 6px; border-radius: 20px; font-weight: 500; }
+    .sent-pill.pos { background: var(--green-dim); color: var(--green); }
+    .sent-pill.neg { background: var(--red-dim); color: var(--red); }
+    .sent-pill.cnt { background: var(--bg-3); color: var(--text-2); border: 1px solid var(--border); }
+    .sent-event-lbl { font-size: .72rem; color: var(--text-2); padding: .35rem .5rem; background: var(--bg-3); border-radius: 6px; border-left: 2px solid var(--sa, var(--purple)); }
+
+    .sent-kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .6rem; margin-bottom: 1.2rem; }
+    .sent-kpi { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: .8rem 1rem; }
+    .sent-kpi-label { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); font-weight: 600; margin-bottom: .3rem; }
+    .sent-kpi-val { font-size: 1.3rem; font-weight: 700; color: var(--text-0); font-family: 'JetBrains Mono', monospace; }
+    .sent-kpi-sub { font-size: .68rem; color: var(--text-2); margin-top: .15rem; }
+    .sent-kpi.green .sent-kpi-val { color: var(--green); }
+    .sent-kpi.red .sent-kpi-val { color: var(--red); }
+    .sent-kpi.orange .sent-kpi-val { color: var(--orange); }
+    .sent-kpi.blue .sent-kpi-val { color: var(--accent); }
+
+    .sent-impact-title { font-size: .78rem; font-weight: 600; color: var(--text-0); margin-bottom: .6rem; }
+    .sent-impact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .8rem; margin-bottom: 1.2rem; }
+    .sent-impact-col-title { font-size: .68rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem; display: flex; align-items: center; gap: .3rem; }
+    .sent-impact-col-title .dot { width: 5px; height: 5px; border-radius: 50%; }
+    .sent-impact-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius); border-left: 3px solid var(--sa, var(--purple)); padding: .6rem .8rem; margin-bottom: .4rem; }
+    .sent-impact-card-title { font-size: .74rem; color: var(--text-0); line-height: 1.35; margin-bottom: .3rem; font-weight: 500; }
+    .sent-impact-card-meta { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+
+    .sent-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+    .sent-tab { padding: .45rem 1rem; font-size: .75rem; font-weight: 500; color: var(--text-2); background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all var(--transition); font-family: 'Inter', sans-serif; margin-bottom: -1px; }
+    .sent-tab:hover { color: var(--text-1); }
+    .sent-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+    .sent-tab-panel { display: none; }
+    .sent-tab-panel.active { display: block; animation: fadeUp .3s ease; }
+
+    .sent-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; margin-bottom: 1rem; }
+    .sent-chart-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+    .sent-chart-title { font-size: .72rem; font-weight: 600; color: var(--text-2); margin-bottom: .6rem; text-transform: uppercase; letter-spacing: .05em; }
+    .sent-chart-wrap { position: relative; height: 200px; }
+
+    .sent-tbl-wrap { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .sent-tbl-scroll { max-height: 380px; overflow-y: auto; }
+    .sent-tbl { width: 100%; border-collapse: collapse; font-size: .75rem; }
+    .sent-tbl th { background: var(--bg-3); padding: .5rem .65rem; text-align: left; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .05em; font-size: .65rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .sent-tbl td { padding: .45rem .65rem; border-bottom: 1px solid var(--border); color: var(--text-1); vertical-align: top; }
+    .sent-tbl tr:hover td { background: rgba(139,92,246,.04); }
+    .sent-chip { font-size: .6rem; font-weight: 700; padding: 1px 6px; border-radius: 20px; letter-spacing: .3px; white-space: nowrap; display: inline-block; }
+    .sent-chip.positive { background: var(--green-dim); color: var(--green); }
+    .sent-chip.negative { background: var(--red-dim); color: var(--red); }
+    .sent-chip.neutral { background: var(--bg-3); color: var(--text-3); border: 1px solid var(--border); }
+    .sent-evt-tag { display: inline-block; background: var(--bg-3); color: var(--text-2); font-size: .63rem; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); }
+    .sent-src { font-size: .64rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; }
+    .sent-time { font-size: .64rem; color: var(--text-3); font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+    .sent-empty { text-align: center; padding: 1.5rem; color: var(--text-3); font-size: .82rem; }
+    .sent-empty-icon { font-size: 1.5rem; margin-bottom: .4rem; }
+
+    .risk-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .risk-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -.02em;
+    }
+
+    .risk-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: .8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .risk-summary-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .risk-summary-card.price-up {
+      border-left: 4px solid #10b981;
+    }
+
+    .risk-summary-card.price-down {
+      border-left: 4px solid #f59e0b;
+    }
+
+    .risk-summary-card.cancel {
+      border-left: 4px solid #ef4444;
+    }
+
+    .risk-summary-card .card-label {
+      font-size: .7rem;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: .3rem;
+    }
+
+    .risk-summary-card .card-value {
+      font-size: 1.6rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .risk-summary-card .card-sub {
+      font-size: .68rem;
+      color: var(--text-3);
+      margin-top: .2rem;
+    }
+
+    .risk-summary-card.price-up .card-value {
+      color: #10b981;
+    }
+
+    .risk-summary-card.price-down .card-value {
+      color: #f59e0b;
+    }
+
+    .risk-summary-card.cancel .card-value {
+      color: #ef4444;
+    }
+
+    .risk-tabs {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .risk-tab {
+      padding: .5rem 1.2rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--bg-2);
+      color: var(--text-2);
+      transition: all var(--transition);
+    }
+
+    .risk-tab:hover {
+      border-color: var(--accent);
+    }
+
+    .risk-tab.active-up {
+      background: rgba(16, 185, 129, .15);
+      border-color: #10b981;
+      color: #10b981;
+    }
+
+    .risk-tab.active-down {
+      background: rgba(245, 158, 11, .15);
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+
+    .risk-tab.active-cancel {
+      background: rgba(239, 68, 68, .15);
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .risk-flights-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      font-size: .72rem;
+    }
+
+    .risk-flights-table th {
+      text-align: left;
+      padding: .5rem .6rem;
+      color: var(--text-3);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .risk-flights-table td {
+      padding: .45rem .6rem;
+      border-bottom: 1px solid rgba(148, 163, 184, .06);
+      color: var(--text-1);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .risk-flights-table tr:hover {
+      background: rgba(148, 163, 184, .04);
+    }
+
+    .risk-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: .62rem;
+      font-weight: 700;
+    }
+
+    .risk-badge.up {
+      background: rgba(16, 185, 129, .15);
+      color: #10b981;
+    }
+
+    .risk-badge.down {
+      background: rgba(245, 158, 11, .15);
+      color: #f59e0b;
+    }
+
+    .risk-badge.cancel {
+      background: rgba(239, 68, 68, .15);
+      color: #ef4444;
+    }
+
+    .risk-score-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--bg-3);
+      border-radius: 3px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    .risk-score-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .5s ease;
+    }
+
+    /* ───── DEMAND FUNCTIONS ───── */
+    .demfn-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .demfn-panel.show {
+      display: block;
+    }
+
+    .demfn-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .demfn-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+
+    .demfn-badge {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 10px;
+      letter-spacing: .5px;
+    }
+
+    .demfn-seg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .demfn-seg-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+
+    .demfn-seg-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+    }
+
+    .demfn-seg-stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .demfn-seg-icon {
+      font-size: 1.5rem;
+      margin-bottom: .3rem;
+    }
+
+    .demfn-seg-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-0);
+      margin-bottom: .2rem;
+    }
+
+    .demfn-seg-desc {
+      font-size: .75rem;
+      color: var(--text-2);
+      margin-bottom: .6rem;
+      line-height: 1.4;
+    }
+
+    .demfn-seg-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .4rem;
+    }
+
+    .demfn-metric {
+      font-size: .72rem;
+      color: var(--text-2);
+    }
+
+    .demfn-metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-0);
+      font-weight: 600;
+    }
+
+    .demfn-seg-chars {
+      margin-top: .5rem;
+    }
+
+    .demfn-seg-chars li {
+      font-size: .7rem;
+      color: var(--text-3);
+      margin-bottom: .15rem;
+      list-style: none;
+    }
+
+    .demfn-seg-chars li::before {
+      content: '→ ';
+      color: var(--text-3);
+    }
+
+    .demfn-charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .demfn-chart-wide {
+      margin-bottom: 1.5rem;
+    }
+
+    .demfn-cabin-toggle {
+      display: flex;
+      gap: 0;
+      background: var(--bg-2);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      width: fit-content;
+      margin-bottom: 1rem;
+    }
+
+    .demfn-cabin-btn {
+      padding: .4rem 1rem;
+      font-size: .78rem;
+      font-weight: 500;
+      color: var(--text-2);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .demfn-cabin-btn:hover {
+      color: var(--text-1);
+      background: var(--bg-3);
+    }
+
+    .demfn-cabin-btn.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .demfn-optimal-card {
+      background: linear-gradient(135deg, rgba(6, 182, 212, .08), rgba(59, 130, 246, .08));
+      border: 1px solid rgba(6, 182, 212, .3);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .demfn-opt-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-3);
+      font-weight: 600;
+    }
+
+    .demfn-opt-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .demfn-opt-sub {
+      font-size: .75rem;
+      color: var(--text-2);
+      margin-top: .1rem;
+    }
+
+    /* ───── SIMULATION ───── */
+    .sim-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .sim-panel.show {
+      display: block;
+    }
+
+    .sim-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sim-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+
+    .sim-badge {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 10px;
+      letter-spacing: .5px;
+    }
+
+    .sim-roi-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sim-roi-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+      text-align: center;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sim-roi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .sim-roi-card.green::before {
+      background: var(--green);
+    }
+
+    .sim-roi-card.blue::before {
+      background: var(--accent);
+    }
+
+    .sim-roi-card.purple::before {
+      background: var(--purple);
+    }
+
+    .sim-roi-card.cyan::before {
+      background: var(--cyan);
+    }
+
+    .sim-roi-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text-3);
+      font-weight: 600;
+      margin-bottom: .4rem;
+    }
+
+    .sim-roi-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .sim-roi-sub {
+      font-size: .72rem;
+      color: var(--text-2);
+      margin-top: .2rem;
+    }
+
+    .sim-roi-card.green .sim-roi-value {
+      color: var(--green);
+    }
+
+    .sim-roi-card.blue .sim-roi-value {
+      color: var(--accent);
+    }
+
+    .sim-roi-card.purple .sim-roi-value {
+      color: var(--purple);
+    }
+
+    .sim-roi-card.cyan .sim-roi-value {
+      color: var(--cyan);
+    }
+
+    .sim-interpretation {
+      background: linear-gradient(135deg, rgba(16, 185, 129, .08), rgba(5, 150, 105, .08));
+      border: 1px solid rgba(16, 185, 129, .3);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: .85rem;
+      color: var(--text-1);
+      line-height: 1.6;
+    }
+
+    .sim-interpretation strong {
+      color: var(--green);
+    }
+
+    .sim-route-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .78rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .sim-route-table th {
+      background: var(--bg-3);
+      padding: .6rem .75rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-size: .7rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sim-route-table td {
+      padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-1);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .75rem;
+    }
+
+    .sim-route-table tr:hover td {
+      background: rgba(16, 185, 129, .04);
+    }
+
+    .sim-route-table .positive {
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .sim-route-table .negative {
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    .sim-charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ───── FARE CLASSES ───── */
+    .fc-panel {
+      display: none;
+      animation: fadeUp .4s ease;
+      margin-bottom: 2rem;
+    }
+
+    .fc-panel.show {
+      display: block;
+    }
+
+    .fc-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .fc-header h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+
+    .fc-badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 10px;
+      letter-spacing: .5px;
+    }
+
+    .fc-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .fc-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      transition: all var(--transition);
+    }
+
+    .fc-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-light);
+    }
+
+    .fc-card-stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+
+    .fc-card-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-0);
+      margin: .5rem 0 .2rem;
+    }
+
+    .fc-card-mult {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: .3rem 0;
+    }
+
+    .fc-card-desc {
+      font-size: .72rem;
+      color: var(--text-2);
+      line-height: 1.4;
+    }
+
+    .fc-card-detail {
+      font-size: .7rem;
+      color: var(--text-3);
+      margin-top: .4rem;
+    }
+
+    .fc-heatmap-wrap {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .fc-heatmap-title {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .fc-heatmap {
+      display: grid;
+      gap: 2px;
+    }
+
+    .fc-hm-cell {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .55rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: default;
+      transition: transform .15s;
+    }
+
+    .fc-hm-cell:hover {
+      transform: scale(1.2);
+      z-index: 1;
+    }
+
+    .fc-hm-label {
+      font-size: .65rem;
+      color: var(--text-3);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .fc-seg-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .78rem;
+    }
+
+    .fc-seg-table th {
+      background: var(--bg-3);
+      padding: .6rem .75rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-size: .7rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fc-seg-table td {
+      padding: .5rem .75rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-1);
+      font-size: .75rem;
+    }
+
+    .fc-seg-table tr:hover td {
+      background: rgba(245, 158, 11, .04);
+    }
+
+    .fc-fare-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: .7rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .fc-prices-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .fc-price-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+    }
+
+    .fc-price-title {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-2);
+      margin-bottom: .6rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .fc-price-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .5rem;
+    }
+
+    .fc-price-item {
+      text-align: center;
+      padding: .5rem;
+      background: var(--bg-3);
+      border-radius: 6px;
+    }
+
+    .fc-price-fc {
+      font-size: .7rem;
+      font-weight: 700;
+      margin-bottom: .2rem;
+    }
+
+    .fc-price-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text-0);
+    }
   </style>
 </head>
 
@@ -1093,9 +2275,15 @@
     <div class="breadcrumb" id="breadcrumb">
       <span>Dashboard</span>
     </div>
-    <button class="seg-btn" id="segBtn" onclick="toggleSegmentation()">
-      <span>📊</span> Yolcu Segmentleri
-    </button>
+    <button class="nav-btn" id="segBtn" onclick="toggleSegmentation()">Segmentler</button>
+    <button class="nav-btn" id="trendBtn" onclick="toggleTrends()">Trend</button>
+    <button class="nav-btn" id="routesBtn" onclick="toggleRoutes()">Rotalar</button>
+    <button class="nav-btn" id="eventsBtn" onclick="toggleEvents()">Olaylar</button>
+    <button class="nav-btn" id="fcBtn" onclick="toggleFareClasses()">Fare Class</button>
+    <button class="nav-btn" id="simBtn" onclick="toggleSimulation()">Simülasyon</button>
+    <button class="nav-btn" id="demfnBtn" onclick="toggleDemandFunctions()">Talep Fonk.</button>
+    <button class="nav-btn" id="riskBtn" onclick="toggleRisk()">Risk</button>
+    <button class="nav-btn" id="sentBtn" onclick="toggleSentiment()">Sentiment</button>
   </header>
 
   <!-- MAIN -->
@@ -1129,6 +2317,355 @@
           <div class="chart-canvas-wrap"><canvas id="chartClusterCabin"></canvas></div>
         </div>
       </div>
+    </div>
+
+    <!-- FARE CLASSES PANEL -->
+    <div class="fc-panel" id="fcPanel">
+      <div class="fc-header">
+        <h2>Fare Class Yönetimi</h2>
+        <span class="fc-badge">BOOKING CLASSES</span>
+        <button class="seg-close-btn" onclick="toggleFareClasses()">✕ Kapat</button>
+      </div>
+
+      <!-- Fare Class Cards -->
+      <div class="fc-cards" id="fcCards"></div>
+
+      <!-- Price Examples -->
+      <div class="fc-prices-row" id="fcPricesRow"></div>
+
+      <!-- DTD×LF Heatmap -->
+      <div class="fc-heatmap-wrap">
+        <div class="fc-heatmap-title">DTD × Doluluk Matrisi — En Ucuz Açık Fare Class</div>
+        <div id="fcHeatmap"></div>
+      </div>
+
+      <!-- Segment Matching Table -->
+      <div class="table-wrap">
+        <div class="scroll-table">
+          <table class="fc-seg-table" id="fcSegTable">
+            <thead>
+              <tr>
+                <th>Segment</th>
+                <th>Elastikiyet</th>
+                <th>WTP Aralığı</th>
+                <th>Booking Window</th>
+                <th>Tercih Ettiği Fare</th>
+              </tr>
+            </thead>
+            <tbody id="fcSegBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULATION PANEL -->
+    <div class="sim-panel" id="simPanel">
+      <div class="sim-header">
+        <h2>Simülasyon: Sabit vs Dinamik Fiyatlama</h2>
+        <span class="sim-badge">ROI ANALYSIS</span>
+        <button class="seg-close-btn" onclick="toggleSimulation()">✕ Kapat</button>
+      </div>
+
+      <!-- ROI Summary Cards -->
+      <div class="sim-roi-cards" id="simRoiCards"></div>
+
+      <!-- Interpretation -->
+      <div class="sim-interpretation" id="simInterpretation"></div>
+
+      <!-- Route Comparison Table -->
+      <div class="table-wrap" style="margin-bottom:1.5rem">
+        <div class="scroll-table">
+          <table class="sim-route-table" id="simRouteTable">
+            <thead>
+              <tr>
+                <th>Rota</th>
+                <th>Kabin</th>
+                <th>Kapasite</th>
+                <th>Sabit Gelir</th>
+                <th>Dinamik Gelir</th>
+                <th>Fark</th>
+                <th>ROI %</th>
+                <th>Sabit LF</th>
+                <th>Dinamik LF</th>
+              </tr>
+            </thead>
+            <tbody id="simRouteBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="sim-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Kümülatif Gelir Eğrisi (Sabit vs Dinamik)</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimRevenue"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Fare Class Gelir Dağılımı</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimFareClass"></canvas></div>
+        </div>
+      </div>
+      <div class="sim-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Doluluk Oranı Karşılaştırması (LF %)</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimLF"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Rota Bazlı ROI Karşılaştırması</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimROI"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEMAND FUNCTIONS PANEL -->
+    <div class="demfn-panel" id="demfnPanel">
+      <div class="demfn-header">
+        <h2>Talep Fonksiyonları</h2>
+        <span class="demfn-badge">DEMAND FUNCTIONS</span>
+        <button class="seg-close-btn" onclick="toggleDemandFunctions()">✕ Kapat</button>
+      </div>
+
+      <div class="demfn-cabin-toggle">
+        <button class="demfn-cabin-btn active" onclick="switchDemfnCabin('economy')">Economy</button>
+        <button class="demfn-cabin-btn" onclick="switchDemfnCabin('business')">Business</button>
+      </div>
+
+      <!-- Segment Cards -->
+      <div class="demfn-seg-grid" id="demfnSegCards"></div>
+
+      <!-- Optimal Price Card -->
+      <div class="demfn-optimal-card" id="demfnOptimalCard"></div>
+
+      <!-- Charts -->
+      <div class="demfn-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Fiyat–Talep Eğrisi (Segment Bazlı)</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnPrice"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Fiyat–Gelir Eğrisi (Toplam)</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnRevenue"></canvas></div>
+        </div>
+      </div>
+      <div class="demfn-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">DTD Bazlı Segment Talep Dağılımı</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnDTD"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Segment Payları (%)</div>
+          <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnShares"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TREND ANALYSIS PANEL -->
+    <div class="trend-panel" id="trendPanel">
+      <div class="trend-header">
+        <h2>Talep Trend Analizi</h2>
+        <span class="trend-badge">TIME SERIES</span>
+        <button class="seg-close-btn" onclick="toggleTrends()">✕ Kapat</button>
+      </div>
+      <div class="trend-filters">
+        <label>Yıl:</label>
+        <select class="trend-select" id="trendYear" onchange="loadTrends()">
+          <option value="">Tümü</option>
+        </select>
+        <label>Kabin:</label>
+        <select class="trend-select" id="trendCabin" onchange="loadTrends()">
+          <option value="">Tümü</option>
+        </select>
+        <label>Bölge:</label>
+        <select class="trend-select" id="trendRegion" onchange="loadTrends()">
+          <option value="">Tümü</option>
+        </select>
+      </div>
+
+      <div class="trend-chart-wide">
+        <div class="chart-card">
+          <div class="chart-title">Aylık Toplam Yolcu Talebi (Time Series)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartTrendMain"></canvas></div>
+        </div>
+      </div>
+
+      <div class="trend-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Kabin Bazlı Aylık Talep</div>
+          <div class="chart-canvas-wrap"><canvas id="chartTrendCabin"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Bölge Bazlı Aylık Talep</div>
+          <div class="chart-canvas-wrap"><canvas id="chartTrendRegion"></canvas></div>
+        </div>
+      </div>
+
+      <div class="trend-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Aylık Doluluk Oranı & Satış Oranı</div>
+          <div class="chart-canvas-wrap"><canvas id="chartTrendLF"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Haftanın Gününe Göre Talep Dağılımı</div>
+          <div class="chart-canvas-wrap"><canvas id="chartTrendDow"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP ROUTES PANEL -->
+    <div class="routes-panel" id="routesPanel">
+      <div class="routes-header">
+        <h2>Top Rotalar Analizi</h2>
+        <span class="routes-badge">EDA</span>
+        <button class="seg-close-btn" onclick="toggleRoutes()">✕ Kapat</button>
+      </div>
+      <div class="trend-filters">
+        <label>Göster:</label>
+        <select class="trend-select" id="routesN" onchange="loadRoutes()">
+          <option value="5">Top 5</option>
+          <option value="10" selected>Top 10</option>
+          <option value="20">Top 20</option>
+        </select>
+        <label>Sırala:</label>
+        <select class="trend-select" id="routesSort" onchange="loadRoutes()">
+          <option value="total_pax">Toplam Yolcu</option>
+          <option value="final_lf">Doluluk Oranı</option>
+          <option value="total_rev">Toplam Gelir</option>
+        </select>
+        <label>Kabin:</label>
+        <select class="trend-select" id="routesCabin" onchange="loadRoutes()">
+          <option value="">Tümü</option>
+        </select>
+      </div>
+
+      <div class="routes-grid" id="routesGrid"></div>
+
+      <div class="trend-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Rota Karşılaştırma (Pax & Doluluk)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRoutesBar"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Doluluk vs DTD (Seçili Rotalar)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRoutesLF"></canvas></div>
+        </div>
+      </div>
+      <div class="trend-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Birim Fiyat vs DTD (Dinamik Fiyatlama)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRoutesPrice"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Gelir Kırılımı (Ticket vs Ancillary)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRoutesRev"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT ANALYSIS PANEL -->
+    <div class="events-panel" id="eventsPanel">
+      <div class="events-header">
+        <h2>Olay / Sezon Analizi</h2>
+        <span class="events-badge">SENTIMENT</span>
+        <button class="seg-close-btn" onclick="toggleEvents()">✕ Kapat</button>
+      </div>
+
+      <div class="event-tags-grid" id="eventTagsGrid"></div>
+
+      <div class="trend-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Kategoriye Göre Talep Etkisi (Lift)</div>
+          <div class="chart-canvas-wrap"><canvas id="chartEventLift"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Birincil Olay Dağılımı</div>
+          <div class="chart-canvas-wrap"><canvas id="chartEventDist"></canvas></div>
+        </div>
+      </div>
+      <div class="trend-chart-wide">
+        <div class="chart-card">
+          <div class="chart-title">Aylık Talep — Olaylara Göre Kırılım</div>
+          <div class="chart-canvas-wrap"><canvas id="chartEventMonthly"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RISK / OPPORTUNITY INDEX PANEL -->
+    <div class="risk-panel" id="riskPanel">
+      <div class="risk-header">
+        <h2>Risk / Fırsat İndeksi</h2>
+        <span class="events-badge" style="background:linear-gradient(135deg,#ef4444,#dc2626)">PRICİNG</span>
+        <button class="seg-close-btn" onclick="toggleRisk()">✕ Kapat</button>
+      </div>
+
+      <div class="risk-summary" id="riskSummary"></div>
+
+      <div class="risk-tabs" id="riskTabs">
+        <button class="risk-tab active-up" data-cat="price_increase" onclick="switchRiskTab('price_increase')">📈 Fiyat
+          Artırım Fırsatı</button>
+        <button class="risk-tab" data-cat="price_decrease" onclick="switchRiskTab('price_decrease')">📉 Fiyat Düşürme
+          Gerekli</button>
+        <button class="risk-tab" data-cat="cancel_risk" onclick="switchRiskTab('cancel_risk')">🚨 İptal Riski</button>
+      </div>
+
+      <div style="max-height:400px;overflow-y:auto;margin-bottom:1.5rem">
+        <table class="risk-flights-table" id="riskTable">
+          <thead>
+            <tr>
+              <th>Uçuş</th>
+              <th>Rota</th>
+              <th>Kabin</th>
+              <th>DTD</th>
+              <th>Doluluk</th>
+              <th>Kalan</th>
+              <th>Gelir</th>
+              <th>Risk</th>
+              <th>Aksiyon</th>
+            </tr>
+          </thead>
+          <tbody id="riskTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="trend-charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Kategori Dağılımı</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRiskDist"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Doluluk vs Risk Skoru</div>
+          <div class="chart-canvas-wrap"><canvas id="chartRiskScatter"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SENTIMENT PANEL -->
+    <div class="sent-panel" id="sentPanel">
+      <div class="sent-header">
+        <h2>Sentiment Intelligence</h2>
+        <span class="sent-badge">LIVE NLP</span>
+        <button class="seg-close-btn" onclick="toggleSentiment()">✕ Kapat</button>
+      </div>
+
+      <div class="sent-api-warn" id="sentApiWarn">
+        <span>⚠️</span>
+        <div><strong>NEWSAPI_KEY bulunamadi.</strong> Gercek haberleri gormek icin <code>NEWSAPI_KEY=your_key python app.py</code> ile baslatin.</div>
+      </div>
+
+      <!-- City Cards -->
+      <div class="sent-cities" id="sentCities"></div>
+
+      <!-- KPIs -->
+      <div class="sent-kpi-row" id="sentKpis"></div>
+
+      <!-- High Impact Events -->
+      <div class="sent-impact-title">⚡ Yuksek Etkili Olaylar</div>
+      <div class="sent-impact-grid" id="sentImpact"></div>
+
+      <!-- City Tabs -->
+      <div class="sent-tabs" id="sentTabs"></div>
+
+      <!-- Tab Panels (per city) -->
+      <div id="sentTabPanels"></div>
     </div>
 
     <!-- SEARCH -->
@@ -2111,6 +3648,28 @@
       document.getElementById('btnActual')?.classList.add('active');
     });
 
+    // ─── PANEL SWITCHING (radio-button logic) ────────────────
+    const ALL_PANELS = [
+      { panel: 'segPanel',   btn: 'segBtn' },
+      { panel: 'trendPanel', btn: 'trendBtn' },
+      { panel: 'routesPanel',btn: 'routesBtn' },
+      { panel: 'eventsPanel',btn: 'eventsBtn' },
+      { panel: 'fcPanel',    btn: 'fcBtn' },
+      { panel: 'simPanel',   btn: 'simBtn' },
+      { panel: 'demfnPanel', btn: 'demfnBtn' },
+      { panel: 'riskPanel',  btn: 'riskBtn' },
+      { panel: 'sentPanel',  btn: 'sentBtn' },
+    ];
+    function closeAllPanels(exceptPanelId) {
+      ALL_PANELS.forEach(({panel, btn}) => {
+        if (panel === exceptPanelId) return;
+        const p = document.getElementById(panel);
+        const b = document.getElementById(btn);
+        if (p) p.classList.remove('show');
+        if (b) b.classList.remove('active');
+      });
+    }
+
     // ─── SEGMENTATION ────────────────────────────────────────
     const SEG_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4', '#ec4899'];
     let segCharts = {};
@@ -2120,6 +3679,7 @@
       const panel = document.getElementById('segPanel');
       const btn = document.getElementById('segBtn');
       const isShowing = panel.classList.contains('show');
+      closeAllPanels('segPanel');
       if (isShowing) {
         panel.classList.remove('show');
         btn.classList.remove('active');
@@ -2323,6 +3883,1417 @@
           }
         }
       });
+    }
+
+    // ─── TREND ANALYSIS ───────────────────────────────────────
+    let trendCharts = {};
+    let trendFiltersLoaded = false;
+
+    function toggleTrends() {
+      const panel = document.getElementById('trendPanel');
+      const btn = document.getElementById('trendBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('trendPanel');
+      if (isShowing) {
+        panel.classList.remove('show');
+        btn.classList.remove('active');
+      } else {
+        panel.classList.add('show');
+        btn.classList.add('active');
+        loadTrends();
+      }
+    }
+
+    async function loadTrends() {
+      showLoading();
+      const year = document.getElementById('trendYear').value;
+      const cabin = document.getElementById('trendCabin').value;
+      const region = document.getElementById('trendRegion').value;
+      let url = '/api/trends?';
+      if (year) url += `year=${year}&`;
+      if (cabin) url += `cabin=${cabin}&`;
+      if (region) url += `region=${region}&`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) { hideLoading(); return; }
+        const data = await res.json();
+        if (!trendFiltersLoaded) {
+          populateTrendFilters(data.filters);
+          trendFiltersLoaded = true;
+        }
+        renderTrendCharts(data);
+      } catch (e) {
+        console.error('Trend fetch error:', e);
+      }
+      hideLoading();
+    }
+
+    function populateTrendFilters(filters) {
+      const ys = document.getElementById('trendYear');
+      filters.years.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; ys.appendChild(o); });
+      const cs = document.getElementById('trendCabin');
+      filters.cabins.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c.charAt(0).toUpperCase() + c.slice(1); cs.appendChild(o); });
+      const rs = document.getElementById('trendRegion');
+      filters.regions.forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = r; rs.appendChild(o); });
+    }
+
+    function renderTrendCharts(data) {
+      Object.values(trendCharts).forEach(ch => ch?.destroy());
+
+      const monthly = data.monthly || [];
+      const labels = monthly.map(m => m.month_name + ' ' + m.year);
+
+      const chartOpts = {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#cbd5e1', font: { size: 11 } } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#e2e8f0', bodyColor: '#cbd5e1', borderColor: '#334155', borderWidth: 1 }
+        },
+      };
+
+      // 1. Main time series — total pax with gradient fill
+      const mainCtx = document.getElementById('chartTrendMain').getContext('2d');
+      const gradient = mainCtx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+      gradient.addColorStop(1, 'rgba(99, 102, 241, 0.02)');
+
+      trendCharts.main = new Chart(mainCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Toplam Yolcu',
+            data: monthly.map(m => m.total_pax),
+            borderColor: '#6366f1', backgroundColor: gradient,
+            borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 7,
+            pointBackgroundColor: '#6366f1', tension: 0.3, fill: true,
+          }]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: {
+              ticks: { color: '#94a3b8', callback: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v },
+              grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true,
+            },
+          },
+          plugins: {
+            ...chartOpts.plugins,
+            tooltip: {
+              ...chartOpts.plugins.tooltip,
+              callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toLocaleString()} yolcu` }
+            }
+          }
+        }
+      });
+
+      // 2. Cabin monthly comparison
+      const cabinData = data.cabin_monthly || [];
+      const cabinTypes = [...new Set(cabinData.map(c => c.cabin))];
+      const cabinColors = { business: '#8b5cf6', economy: '#10b981' };
+
+      trendCharts.cabin = new Chart(document.getElementById('chartTrendCabin').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: cabinTypes.map(cab => ({
+            label: cab.charAt(0).toUpperCase() + cab.slice(1),
+            data: monthly.map(m => {
+              const match = cabinData.find(c => c.year === m.year && c.month === m.month && c.cabin === cab);
+              return match ? match.total_pax : 0;
+            }),
+            borderColor: cabinColors[cab] || '#94a3b8',
+            backgroundColor: (cabinColors[cab] || '#94a3b8') + '15',
+            borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true,
+          }))
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { ticks: { color: '#94a3b8', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true },
+          }
+        }
+      });
+
+      // 3. Region stacked bars
+      const regionData = data.region_monthly || [];
+      const regionTypes = [...new Set(regionData.map(r => r.region))];
+      const regionColors = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#06b6d4', '#8b5cf6', '#ec4899'];
+
+      trendCharts.region = new Chart(document.getElementById('chartTrendRegion').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: regionTypes.map((reg, i) => ({
+            label: reg,
+            data: monthly.map(m => {
+              const match = regionData.find(r => r.year === m.year && r.month === m.month && r.region === reg);
+              return match ? match.total_pax : 0;
+            }),
+            backgroundColor: regionColors[i % regionColors.length] + '99',
+            borderColor: regionColors[i % regionColors.length],
+            borderWidth: 1, borderRadius: 2,
+          }))
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { stacked: true, ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { display: false } },
+            y: { stacked: true, ticks: { color: '#94a3b8', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }, grid: { color: 'rgba(148,163,184,.1)' } },
+          }
+        }
+      });
+
+      // 4. Load Factor & Sale Rate dual axis
+      trendCharts.lf = new Chart(document.getElementById('chartTrendLF').getContext('2d'), {
+        data: {
+          labels,
+          datasets: [
+            {
+              type: 'line', label: 'Doluluk Oranı',
+              data: monthly.map(m => (m.avg_load_factor * 100)),
+              borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.1)',
+              borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true, yAxisID: 'y',
+            },
+            {
+              type: 'line', label: 'Satış Oranı',
+              data: monthly.map(m => m.sale_rate_pct),
+              borderColor: '#10b981', borderDash: [5, 3],
+              borderWidth: 2, pointRadius: 2, tension: 0.3, fill: false, yAxisID: 'y',
+            },
+          ]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxRotation: 45 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { ticks: { color: '#94a3b8', callback: v => v.toFixed(0) + '%' }, grid: { color: 'rgba(148,163,184,.1)' }, suggestedMin: 0, suggestedMax: 100 },
+          }
+        }
+      });
+
+      // 5. Day of week pattern
+      const dowData = data.dow_pattern || [];
+      const dowLabels = dowData.map(d => d.dow_name);
+      const dowColors = dowData.map(d => d.dow >= 5 ? '#f59e0b' : '#6366f1');
+
+      trendCharts.dow = new Chart(document.getElementById('chartTrendDow').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: dowLabels,
+          datasets: [{
+            label: 'Toplam Yolcu',
+            data: dowData.map(d => d.total_pax),
+            backgroundColor: dowColors.map(c => c + '80'),
+            borderColor: dowColors,
+            borderWidth: 2, borderRadius: 6,
+          }]
+        },
+        options: {
+          ...chartOpts,
+          plugins: {
+            ...chartOpts.plugins, legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `${ctx.raw.toLocaleString()} yolcu` } }
+          },
+          scales: {
+            x: { ticks: { color: '#e6edf3', font: { weight: 'bold' } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', callback: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }, grid: { color: 'rgba(148,163,184,.08)' }, beginAtZero: true },
+          }
+        }
+      });
+    }
+
+    // ─── TOP ROUTES ─────────────────────────────────────────
+    const RT_COLORS = ['#10b981', '#6366f1', '#f59e0b', '#f43f5e', '#8b5cf6', '#06b6d4', '#ec4899', '#3b82f6', '#84cc16', '#ef4444'];
+    let routeCharts = {};
+    let routeData = null;
+    let routeFiltersLoaded = false;
+    let selectedRoutes = new Set();
+
+    function toggleRoutes() {
+      const panel = document.getElementById('routesPanel');
+      const btn = document.getElementById('routesBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('routesPanel');
+      if (isShowing) { panel.classList.remove('show'); btn.classList.remove('active'); }
+      else { panel.classList.add('show'); btn.classList.add('active'); loadRoutes(); }
+    }
+
+    async function loadRoutes() {
+      showLoading();
+      const n = document.getElementById('routesN').value;
+      const sort = document.getElementById('routesSort').value;
+      const cabin = document.getElementById('routesCabin').value;
+      let url = `/api/top-routes?n=${n}&sort=${sort}`;
+      if (cabin) url += `&cabin=${cabin}`;
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) { hideLoading(); return; }
+        routeData = await res.json();
+        if (!routeFiltersLoaded && routeData.filters) {
+          const cs = document.getElementById('routesCabin');
+          routeData.filters.cabins.forEach(c => {
+            const o = document.createElement('option'); o.value = c;
+            o.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+            cs.appendChild(o);
+          });
+          routeFiltersLoaded = true;
+        }
+        selectedRoutes = new Set(routeData.routes.slice(0, 3).map(r => r.flight_id));
+        renderRouteCards();
+        renderRouteCharts();
+      } catch (e) { console.error('Routes error:', e); }
+      hideLoading();
+    }
+
+    function toggleRouteSelect(fid) {
+      if (selectedRoutes.has(fid)) selectedRoutes.delete(fid);
+      else if (selectedRoutes.size < 5) selectedRoutes.add(fid);
+      renderRouteCards();
+      renderRouteCharts();
+    }
+
+    function renderRouteCards() {
+      const grid = document.getElementById('routesGrid');
+      grid.innerHTML = '';
+      routeData.routes.forEach((r, i) => {
+        const sel = selectedRoutes.has(r.flight_id);
+        const color = RT_COLORS[i % RT_COLORS.length];
+        const lfColor = r.final_lf >= 85 ? '#10b981' : r.final_lf >= 60 ? '#f59e0b' : '#f43f5e';
+        const card = document.createElement('div');
+        card.className = `route-card${sel ? ' selected' : ''}`;
+        card.onclick = () => toggleRouteSelect(r.flight_id);
+        card.innerHTML = `
+          <span class="route-rank">#${i + 1}</span>
+          <div class="route-card-title">${r.flight_id.split('_')[0]}</div>
+          <div class="route-card-sub">${r.cabin_class} • ${r.region} • ${r.distance_km.toLocaleString()} km</div>
+          <div class="route-card-metrics">
+            <div class="route-card-metric">Pax: <strong>${r.total_pax}</strong></div>
+            <div class="route-card-metric">Doluluk: <strong style="color:${lfColor}">${r.final_lf}%</strong></div>
+            <div class="route-card-metric">Gelir: <strong>₺${Math.round(r.total_rev).toLocaleString()}</strong></div>
+            <div class="route-card-metric">Fiyat: <strong>₺${r.avg_ticket_price.toLocaleString()}</strong></div>
+          </div>
+          <div class="route-lf-bar"><div class="fill" style="width:${Math.min(r.final_lf, 100)}%;background:${lfColor}"></div></div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderRouteCharts() {
+      Object.values(routeCharts).forEach(ch => ch?.destroy());
+      const routes = routeData.routes;
+      const selArr = routes.filter(r => selectedRoutes.has(r.flight_id));
+
+      const chartOpts = {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#cbd5e1', font: { size: 10 } } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#e2e8f0', bodyColor: '#cbd5e1' }
+        },
+      };
+
+      // 1. Comparison bar (all routes)
+      const rLabels = routes.map((r, i) => `#${i + 1} ${r.flight_id.split('_')[0]}`);
+      routeCharts.bar = new Chart(document.getElementById('chartRoutesBar').getContext('2d'), {
+        data: {
+          labels: rLabels,
+          datasets: [
+            { type: 'bar', label: 'Toplam Pax', data: routes.map(r => r.total_pax), backgroundColor: '#6366f180', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+            { type: 'line', label: 'Doluluk %', data: routes.map(r => r.final_lf), borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#10b981', yAxisID: 'y1' },
+          ]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxRotation: 45, font: { size: 9 } }, grid: { display: false } },
+            y: { position: 'left', ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' }, beginAtZero: true },
+            y1: { position: 'right', ticks: { color: '#10b981', callback: v => v + '%' }, grid: { drawOnChartArea: false }, suggestedMin: 0, suggestedMax: 120 },
+          }
+        }
+      });
+
+      // 2. LF vs DTD curves (selected routes)
+      const lfDatasets = selArr.map((r, i) => {
+        const curve = (routeData.lf_curves[r.flight_id] || []).sort((a, b) => b.dtd - a.dtd);
+        return {
+          label: `${r.flight_id.split('_')[0]} (${r.cabin_class})`,
+          data: curve.map(p => ({ x: p.dtd, y: p.load_factor })),
+          borderColor: RT_COLORS[routes.indexOf(r) % RT_COLORS.length],
+          borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false,
+        };
+      });
+
+      routeCharts.lf = new Chart(document.getElementById('chartRoutesLF').getContext('2d'), {
+        type: 'line',
+        data: { datasets: lfDatasets },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { type: 'linear', reverse: true, title: { display: true, text: 'DTD (kalkışa kalan gün)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Doluluk %', color: '#94a3b8' }, ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,.1)' }, suggestedMin: 0, suggestedMax: 110 },
+          }
+        }
+      });
+
+      // 3. Unit Price vs DTD
+      const priceDatasets = selArr.map((r, i) => {
+        const curve = (routeData.rev_curves[r.flight_id] || []).filter(p => p.unit_price > 0).sort((a, b) => b.dtd - a.dtd);
+        return {
+          label: `${r.flight_id.split('_')[0]}`,
+          data: curve.map(p => ({ x: p.dtd, y: p.unit_price })),
+          borderColor: RT_COLORS[routes.indexOf(r) % RT_COLORS.length],
+          borderWidth: 2, pointRadius: 1, tension: 0.3, fill: false,
+        };
+      });
+
+      routeCharts.price = new Chart(document.getElementById('chartRoutesPrice').getContext('2d'), {
+        type: 'line',
+        data: { datasets: priceDatasets },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { type: 'linear', reverse: true, title: { display: true, text: 'DTD', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Birim Fiyat (₺)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true },
+          }
+        }
+      });
+
+      // 4. Revenue breakdown
+      routeCharts.rev = new Chart(document.getElementById('chartRoutesRev').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: rLabels,
+          datasets: [
+            { label: 'Ticket Gelir', data: routes.map(r => r.total_ticket_rev), backgroundColor: '#6366f180', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4 },
+            { label: 'Ancillary Gelir', data: routes.map(r => r.total_anc_rev), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
+          ]
+        },
+        options: {
+          ...chartOpts,
+          plugins: { ...chartOpts.plugins, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ₺${Math.round(ctx.raw).toLocaleString()}` } } },
+          scales: {
+            x: { stacked: true, ticks: { color: '#94a3b8', maxRotation: 45, font: { size: 9 } }, grid: { display: false } },
+            y: { stacked: true, ticks: { color: '#94a3b8', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }, grid: { color: 'rgba(148,163,184,.08)' } },
+          }
+        }
+      });
+    }
+
+    // ─── EVENT / SENTIMENT ANALYSIS ─────────────────────────
+    const EV_COLORS = ['#8b5cf6', '#f59e0b', '#10b981', '#f43f5e', '#6366f1', '#ec4899', '#06b6d4', '#84cc16', '#3b82f6', '#ef4444', '#14b8a6', '#a855f7', '#d97706', '#059669', '#dc2626'];
+    let eventCharts = {};
+    let eventData = null;
+
+    function toggleEvents() {
+      const panel = document.getElementById('eventsPanel');
+      const btn = document.getElementById('eventsBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('eventsPanel');
+      if (isShowing) { panel.classList.remove('show'); btn.classList.remove('active'); }
+      else { panel.classList.add('show'); btn.classList.add('active'); loadEvents(); }
+    }
+
+    async function loadEvents() {
+      showLoading();
+      try {
+        const res = await fetch('/api/events');
+        if (!res.ok) { hideLoading(); return; }
+        eventData = await res.json();
+        renderEventCards();
+        renderEventCharts();
+      } catch (e) { console.error('Events error:', e); }
+      hideLoading();
+    }
+
+    function renderEventCards() {
+      const grid = document.getElementById('eventTagsGrid');
+      grid.innerHTML = '';
+      eventData.tag_stats.forEach((t, i) => {
+        const card = document.createElement('div');
+        card.className = 'event-tag-card';
+        const liftClass = t.pax_lift > 0 ? 'lift-pos' : t.pax_lift < 0 ? 'lift-neg' : '';
+        const arrow = t.pax_lift > 0 ? '▲' : t.pax_lift < 0 ? '▼' : '●';
+        card.innerHTML = `
+          <div class="event-tag-name">${t.label}</div>
+          <div class="event-tag-pct">${t.pct}% veri kapsamı</div>
+          <div class="event-tag-stats">
+            <div class="event-tag-stat">Pax: <strong>${t.avg_pax.toFixed(2)}</strong></div>
+            <div class="event-tag-stat">LF: <strong>${t.avg_lf}%</strong></div>
+            <div class="event-tag-stat">Lift: <strong class="${liftClass}">${arrow} ${t.pax_lift > 0 ? '+' : ''}${t.pax_lift.toFixed(3)}</strong></div>
+            <div class="event-tag-stat">LFΔ: <strong class="${t.lf_lift > 0 ? 'lift-pos' : t.lf_lift < 0 ? 'lift-neg' : ''}">${t.lf_lift > 0 ? '+' : ''}${t.lf_lift}%</strong></div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderEventCharts() {
+      Object.values(eventCharts).forEach(ch => ch?.destroy());
+      const tags = eventData.tag_stats;
+      const primary = eventData.primary_events;
+
+      const chartOpts = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#cbd5e1', font: { size: 10 } } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#e2e8f0', bodyColor: '#cbd5e1' }
+        },
+      };
+
+      // 1. Demand Lift bar (horizontal)
+      const sorted = [...tags].sort((a, b) => b.pax_lift - a.pax_lift);
+      eventCharts.lift = new Chart(document.getElementById('chartEventLift').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: sorted.map(t => t.label),
+          datasets: [{
+            label: 'Talep Lift (pax/gün farkı)',
+            data: sorted.map(t => t.pax_lift),
+            backgroundColor: sorted.map(t => t.pax_lift >= 0 ? '#10b98180' : '#f43f5e80'),
+            borderColor: sorted.map(t => t.pax_lift >= 0 ? '#10b981' : '#f43f5e'),
+            borderWidth: 1, borderRadius: 4,
+          }]
+        },
+        options: {
+          ...chartOpts, indexAxis: 'y',
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { display: false } },
+          }
+        }
+      });
+
+      // 2. Primary event donut
+      eventCharts.dist = new Chart(document.getElementById('chartEventDist').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: primary.map(p => p.label),
+          datasets: [{
+            data: primary.map(p => p.count),
+            backgroundColor: primary.map((_, i) => EV_COLORS[i % EV_COLORS.length]),
+            borderColor: '#0f172a', borderWidth: 2,
+          }]
+        },
+        options: {
+          ...chartOpts,
+          cutout: '55%',
+          plugins: {
+            ...chartOpts.plugins,
+            tooltip: { callbacks: { label: ctx => { const total = primary.reduce((s, p) => s + p.count, 0); return `${ctx.label}: ${(ctx.raw / 1000).toFixed(0)}K (${(ctx.raw / total * 100).toFixed(1)}%)`; } } },
+            datalabels: { color: '#fff', font: { size: 9, weight: '700' }, formatter: (val) => { const total = primary.reduce((s, p) => s + p.count, 0); const pct = (val / total * 100).toFixed(1); return pct > 4 ? pct + '%' : ''; } }
+          }
+        }
+      });
+
+      // 3. Monthly stacked bar by primary event
+      const monthly = eventData.monthly;
+      const events = [...new Set(monthly.map(m => m.event))];
+      const months = [...new Set(monthly.map(m => `${m.year}-${String(m.month).padStart(2, '0')}`))];
+      months.sort();
+
+      const monthLabels = months.map(m => {
+        const [y, mo] = m.split('-');
+        const mNames = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        return `${mNames[parseInt(mo)]} ${y}`;
+      });
+
+      const monthlyDatasets = events.map((ev, i) => {
+        const data = months.map(m => {
+          const [y, mo] = m.split('-');
+          const row = monthly.find(r => r.year == y && r.month == mo && r.event === ev);
+          return row ? row.total_pax : 0;
+        });
+        return {
+          label: ev.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          data, backgroundColor: EV_COLORS[i % EV_COLORS.length] + '90',
+          borderColor: EV_COLORS[i % EV_COLORS.length], borderWidth: 1, borderRadius: 2,
+        };
+      });
+
+      eventCharts.monthly = new Chart(document.getElementById('chartEventMonthly').getContext('2d'), {
+        type: 'bar',
+        data: { labels: monthLabels, datasets: monthlyDatasets },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { stacked: true, ticks: { color: '#94a3b8', maxRotation: 45, font: { size: 9 } }, grid: { display: false } },
+            y: { stacked: true, ticks: { color: '#94a3b8', callback: v => v >= 1000000 ? (v / 1000000).toFixed(1) + 'M' : v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v }, grid: { color: 'rgba(148,163,184,.08)' } },
+          }
+        }
+      });
+    }
+
+    // ─── RISK / OPPORTUNITY INDEX ──────────────────────────
+    let riskCharts = {};
+    let riskData = null;
+    let activeRiskTab = 'price_increase';
+
+    function toggleRisk() {
+      const panel = document.getElementById('riskPanel');
+      const btn = document.getElementById('riskBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('riskPanel');
+      if (isShowing) { panel.classList.remove('show'); btn.classList.remove('active'); }
+      else { panel.classList.add('show'); btn.classList.add('active'); loadRisk(); }
+    }
+
+    async function loadRisk() {
+      showLoading();
+      try {
+        const res = await fetch('/api/risk-index');
+        if (!res.ok) { hideLoading(); return; }
+        riskData = await res.json();
+        renderRiskSummary();
+        renderRiskTable();
+        renderRiskCharts();
+      } catch (e) { console.error('Risk error:', e); }
+      hideLoading();
+    }
+
+    function renderRiskSummary() {
+      const s = riskData.summary;
+      document.getElementById('riskSummary').innerHTML = `
+        <div class="risk-summary-card">
+          <div class="card-label">Toplam Uçuş</div>
+          <div class="card-value" style="color:var(--accent)">${s.total_flights.toLocaleString()}</div>
+          <div class="card-sub">Ort. Risk: ${s.avg_risk_score}</div>
+        </div>
+        <div class="risk-summary-card price-up">
+          <div class="card-label">📈 Fiyat Artırım</div>
+          <div class="card-value">${s.price_increase.count}</div>
+          <div class="card-sub">Ort. Doluluk: %${s.price_increase.avg_lf}</div>
+        </div>
+        <div class="risk-summary-card price-down">
+          <div class="card-label">📉 Fiyat Düşürme</div>
+          <div class="card-value">${s.price_decrease.count}</div>
+          <div class="card-sub">Ort. Doluluk: %${s.price_decrease.avg_lf}</div>
+        </div>
+        <div class="risk-summary-card cancel">
+          <div class="card-label">🚨 İptal Riski</div>
+          <div class="card-value">${s.cancel_risk.count}</div>
+          <div class="card-sub">Ort. Doluluk: %${s.cancel_risk.avg_lf}</div>
+        </div>
+      `;
+    }
+
+    function switchRiskTab(cat) {
+      activeRiskTab = cat;
+      document.querySelectorAll('.risk-tab').forEach(t => {
+        t.className = 'risk-tab';
+        if (t.dataset.cat === cat) {
+          if (cat === 'price_increase') t.classList.add('active-up');
+          else if (cat === 'price_decrease') t.classList.add('active-down');
+          else t.classList.add('active-cancel');
+        }
+      });
+      renderRiskTable();
+    }
+
+    function renderRiskTable() {
+      const tbody = document.getElementById('riskTableBody');
+      const flights = riskData.categories[activeRiskTab] || [];
+      const badgeClass = activeRiskTab === 'price_increase' ? 'up' : activeRiskTab === 'price_decrease' ? 'down' : 'cancel';
+      tbody.innerHTML = flights.slice(0, 30).map(f => {
+        const riskColor = f.risk_score > 70 ? '#ef4444' : f.risk_score > 45 ? '#f59e0b' : '#10b981';
+        return `<tr>
+          <td>${f.flight_id.split('_')[0] || f.flight_id}</td>
+          <td>${f.route}</td>
+          <td>${f.cabin}</td>
+          <td>${f.dtd != null ? f.dtd + 'g' : '-'}</td>
+          <td>%${f.load_factor}</td>
+          <td>${f.remaining_seats}</td>
+          <td>${f.total_rev >= 1000 ? (f.total_rev / 1000).toFixed(0) + 'K' : f.total_rev.toFixed(0)}</td>
+          <td>${f.risk_score}<span class="risk-score-bar"><span class="risk-score-fill" style="width:${f.risk_score}%;background:${riskColor}"></span></span></td>
+          <td><span class="risk-badge ${badgeClass}">${f.action}</span></td>
+        </tr>`;
+      }).join('');
+      if (flights.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#64748b;padding:2rem">Bu kategoride uçuş bulunamadı</td></tr>';
+      }
+    }
+
+    function renderRiskCharts() {
+      Object.values(riskCharts).forEach(ch => ch?.destroy());
+      const s = riskData.summary;
+      const chartOpts = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#cbd5e1', font: { size: 10 } } },
+          tooltip: { backgroundColor: '#1e293b', titleColor: '#e2e8f0', bodyColor: '#cbd5e1' }
+        },
+      };
+
+      // Category distribution donut
+      riskCharts.dist = new Chart(document.getElementById('chartRiskDist').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Fiyat Artırım', 'Fiyat Düşürme', 'İptal Riski'],
+          datasets: [{
+            data: [s.price_increase.count, s.price_decrease.count, s.cancel_risk.count],
+            backgroundColor: ['#10b98190', '#f59e0b90', '#ef444490'],
+            borderColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 2,
+          }]
+        },
+        options: { ...chartOpts, cutout: '55%' }
+      });
+
+      // LF vs Risk scatter
+      const allFlights = riskData.flights || [];
+      const scatterData = allFlights.map(f => ({
+        x: f.load_factor, y: f.risk_score,
+        cat: f.category, label: f.flight_id.split('_')[0],
+      }));
+
+      riskCharts.scatter = new Chart(document.getElementById('chartRiskScatter').getContext('2d'), {
+        type: 'scatter',
+        data: {
+          datasets: [
+            { label: 'Fiyat Artırım', data: scatterData.filter(d => d.cat === 'price_increase'), backgroundColor: '#10b98180', borderColor: '#10b981', pointRadius: 3 },
+            { label: 'Fiyat Düşürme', data: scatterData.filter(d => d.cat === 'price_decrease'), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', pointRadius: 3 },
+            { label: 'İptal Riski', data: scatterData.filter(d => d.cat === 'cancel_risk'), backgroundColor: '#ef444480', borderColor: '#ef4444', pointRadius: 3 },
+          ]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { title: { display: true, text: 'Doluluk (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Risk Skoru', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+          },
+          plugins: {
+            ...chartOpts.plugins,
+            tooltip: { callbacks: { label: ctx => `${ctx.raw.label}: LF=${ctx.raw.x}%, Risk=${ctx.raw.y}` } }
+          }
+        }
+      });
+    }
+
+    // ─── DEMAND FUNCTIONS ─────────────────────────────────────
+    let demfnCharts = {};
+    let demfnLoaded = false;
+    let demfnCabin = 'economy';
+
+    function toggleDemandFunctions() {
+      const panel = document.getElementById('demfnPanel');
+      const btn = document.getElementById('demfnBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('demfnPanel');
+      if (isShowing) {
+        panel.classList.remove('show');
+        btn.classList.remove('active');
+      } else {
+        panel.classList.add('show');
+        btn.classList.add('active');
+        loadDemandFunctions();
+      }
+    }
+
+    function switchDemfnCabin(cabin) {
+      demfnCabin = cabin;
+      document.querySelectorAll('.demfn-cabin-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.trim().toLowerCase() === cabin);
+      });
+      loadDemandFunctions();
+    }
+
+    async function loadDemandFunctions() {
+      showLoading();
+      try {
+        const res = await fetch(`/api/demand-curves?cabin=${demfnCabin}`);
+        if (!res.ok) {
+          document.getElementById('demfnSegCards').innerHTML = '<div class="empty-state">Talep fonksiyonları bulunamadı. Önce build_demand_functions.py çalıştırın.</div>';
+          hideLoading(); return;
+        }
+        const data = await res.json();
+        demfnLoaded = true;
+        renderDemfnSegCards(data);
+        renderDemfnOptimal(data);
+        renderDemfnCharts(data);
+      } catch (e) {
+        console.error('Demand functions fetch error:', e);
+      }
+      hideLoading();
+    }
+
+    function renderDemfnSegCards(data) {
+      const container = document.getElementById('demfnSegCards');
+      container.innerHTML = '';
+      const segs = data.segments || {};
+      Object.entries(segs).forEach(([id, s]) => {
+        const card = document.createElement('div');
+        card.className = 'demfn-seg-card';
+        const opt = data.segment_curves?.[id]?.optimal || {};
+        card.innerHTML = `
+          <div class="demfn-seg-stripe" style="background:${s.color}"></div>
+          <div class="demfn-seg-icon">${s.icon}</div>
+          <div class="demfn-seg-name">${s.id} — ${s.name}</div>
+          <div class="demfn-seg-desc">${s.description}</div>
+          <div class="demfn-seg-metrics">
+            <div class="demfn-metric">Elastikiyet: <span class="demfn-metric-val">${s.price_elasticity}</span></div>
+            <div class="demfn-metric">WTP: <span class="demfn-metric-val">${s.wtp_multiplier.min}-${s.wtp_multiplier.max}x</span></div>
+            <div class="demfn-metric">Booking: <span class="demfn-metric-val">${s.booking_window.min_dtd}-${s.booking_window.max_dtd} gün</span></div>
+            <div class="demfn-metric">Pay: <span class="demfn-metric-val">%${s.base_share_pct}</span></div>
+            <div class="demfn-metric">Optimal Fiyat: <span class="demfn-metric-val">${opt.price_ratio || '-'}x</span></div>
+            <div class="demfn-metric">Optimal Gelir: <span class="demfn-metric-val">$${(opt.revenue || 0).toLocaleString()}</span></div>
+          </div>
+          <ul class="demfn-seg-chars">
+            ${s.characteristics.map(c => `<li>${c}</li>`).join('')}
+          </ul>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderDemfnOptimal(data) {
+      const card = document.getElementById('demfnOptimalCard');
+      const opt = data.optimal_combined || {};
+      const bp = data.base_price || 0;
+      card.innerHTML = `
+        <div>
+          <div class="demfn-opt-label">Base Fiyat (${demfnCabin})</div>
+          <div class="demfn-opt-value">$${bp.toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="demfn-opt-label">Optimal Fiyat Oranı</div>
+          <div class="demfn-opt-value">${opt.price_ratio || '-'}x</div>
+          <div class="demfn-opt-sub">$${(opt.price || 0).toLocaleString()}</div>
+        </div>
+        <div>
+          <div class="demfn-opt-label">Maksimum Gelir İndeksi</div>
+          <div class="demfn-opt-value">$${(opt.revenue || 0).toLocaleString()}</div>
+          <div class="demfn-opt-sub">Tüm segmentler toplam</div>
+        </div>
+      `;
+    }
+
+    function renderDemfnCharts(data) {
+      const segs = data.segments || {};
+      const segCurves = data.segment_curves || {};
+      const combined = data.combined_demand || [];
+      const combinedRev = data.combined_revenue || [];
+      const segIds = Object.keys(segs);
+
+      // Destroy old charts
+      Object.values(demfnCharts).forEach(c => c.destroy());
+      demfnCharts = {};
+
+      // 1) Price-Demand Curve per segment
+      const priceLabels = combined.map(d => `${d.price_ratio}x`);
+      const priceDemandDatasets = segIds.map(sid => ({
+        label: `${segs[sid].icon} ${segs[sid].name}`,
+        data: (segCurves[sid]?.price_curve || []).map(p => p.demand),
+        borderColor: segs[sid].color,
+        backgroundColor: segs[sid].color + '20',
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.3,
+      }));
+      demfnCharts.price = new Chart(document.getElementById('chartDemfnPrice'), {
+        type: 'line',
+        data: { labels: priceLabels, datasets: priceDemandDatasets },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { title: { display: true, text: 'Fiyat Oranı (Base×)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 10 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Talep İndeksi', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+          },
+        },
+      });
+
+      // 2) Combined Revenue Curve
+      demfnCharts.revenue = new Chart(document.getElementById('chartDemfnRevenue'), {
+        type: 'line',
+        data: {
+          labels: combinedRev.map(d => `$${d.price.toLocaleString()}`),
+          datasets: [{
+            label: 'Toplam Gelir',
+            data: combinedRev.map(d => d.revenue),
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6,182,212,.1)',
+            fill: true,
+            borderWidth: 2,
+            pointRadius: 1,
+            tension: 0.3,
+          }]
+        },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { title: { display: true, text: 'Bilet Fiyatı', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Gelir İndeksi', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+          },
+        },
+      });
+
+      // 3) DTD Demand per segment (stacked area)
+      const dtdLabels = (segCurves[segIds[0]]?.dtd_curve || []).map(d => `D-${d.dtd}`);
+      const dtdDatasets = segIds.map(sid => ({
+        label: `${segs[sid].icon} ${segs[sid].name}`,
+        data: (segCurves[sid]?.dtd_curve || []).map(d => d.demand),
+        borderColor: segs[sid].color,
+        backgroundColor: segs[sid].color + '30',
+        fill: true,
+        borderWidth: 1.5,
+        pointRadius: 2,
+        tension: 0.3,
+      }));
+      demfnCharts.dtd = new Chart(document.getElementById('chartDemfnDTD'), {
+        type: 'line',
+        data: { labels: dtdLabels, datasets: dtdDatasets },
+        options: {
+          ...chartOpts,
+          scales: {
+            x: { title: { display: true, text: 'Kalkışa Gün (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Talep Yoğunluğu', color: '#94a3b8' }, stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+          },
+        },
+      });
+
+      // 4) Segment Shares Doughnut
+      demfnCharts.shares = new Chart(document.getElementById('chartDemfnShares'), {
+        type: 'doughnut',
+        data: {
+          labels: segIds.map(sid => `${segs[sid].icon} ${segs[sid].name}`),
+          datasets: [{
+            data: segIds.map(sid => segs[sid].base_share_pct),
+            backgroundColor: segIds.map(sid => segs[sid].color),
+            borderColor: '#0d1117',
+            borderWidth: 2,
+          }],
+        },
+        options: {
+          ...chartOpts,
+          cutout: '55%',
+          plugins: {
+            ...chartOpts.plugins,
+            legend: { display: true, position: 'right', labels: { color: '#c9d1d9', font: { size: 11 }, padding: 10, usePointStyle: true } },
+          },
+        },
+      });
+    }
+
+    // ─── FARE CLASSES ────────────────────────────────────────
+    let fcLoaded = false;
+
+    function toggleFareClasses() {
+      const panel = document.getElementById('fcPanel');
+      const btn = document.getElementById('fcBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('fcPanel');
+      if (isShowing) {
+        panel.classList.remove('show');
+        btn.classList.remove('active');
+      } else {
+        panel.classList.add('show');
+        btn.classList.add('active');
+        if (!fcLoaded) loadFareClasses();
+      }
+    }
+
+    async function loadFareClasses() {
+      showLoading();
+      try {
+        const res = await fetch('/api/fare-classes');
+        if (!res.ok) { hideLoading(); return; }
+        const data = await res.json();
+        fcLoaded = true;
+        renderFcCards(data);
+        renderFcPrices(data);
+        renderFcHeatmap(data);
+        renderFcSegTable(data);
+      } catch (e) {
+        console.error('Fare classes fetch error:', e);
+      }
+      hideLoading();
+    }
+
+    function renderFcCards(data) {
+      const container = document.getElementById('fcCards');
+      container.innerHTML = '';
+      const fcs = data.fare_classes;
+      Object.entries(fcs).forEach(([id, fc]) => {
+        container.innerHTML += `
+          <div class="fc-card">
+            <div class="fc-card-stripe" style="background:${fc.color}"></div>
+            <div class="fc-card-name">${fc.name}</div>
+            <div class="fc-card-mult" style="color:${fc.color}">${fc.multiplier}x</div>
+            <div class="fc-card-desc">${fc.description}</div>
+            <div class="fc-card-detail">Protection: ${(fc.protection * 100).toFixed(0)}% | LF Limit: ${(fc.open_until_lf * 100).toFixed(0)}%</div>
+          </div>
+        `;
+      });
+    }
+
+    function renderFcPrices(data) {
+      const container = document.getElementById('fcPricesRow');
+      container.innerHTML = '';
+      const fcs = data.fare_classes;
+      const prices = data.price_examples || {};
+      ['economy', 'business'].forEach(cabin => {
+        const cp = prices[cabin];
+        if (!cp) return;
+        let html = `<div class="fc-price-card">
+          <div class="fc-price-title">${cabin.charAt(0).toUpperCase() + cabin.slice(1)} — Base: $${cp.base_price}</div>
+          <div class="fc-price-grid">`;
+        Object.entries(fcs).forEach(([id, fc]) => {
+          const p = cp[id];
+          html += `<div class="fc-price-item">
+            <div class="fc-price-fc" style="color:${fc.color}">${id}</div>
+            <div class="fc-price-val">$${p ? p.price.toLocaleString() : '-'}</div>
+          </div>`;
+        });
+        html += '</div></div>';
+        container.innerHTML += html;
+      });
+    }
+
+    function renderFcHeatmap(data) {
+      const container = document.getElementById('fcHeatmap');
+      const heatmap = data.heatmap;
+      const dtdPts = data.dtd_points;
+      const lfPts = data.lf_points;
+      const fcs = data.fare_classes;
+      const cols = lfPts.length + 1;
+
+      let html = `<div class="fc-heatmap" style="grid-template-columns: 50px repeat(${lfPts.length}, 1fr)">`;
+      // Header row
+      html += '<div class="fc-hm-label">DTD ↓ LF →</div>';
+      lfPts.forEach(lf => { html += `<div class="fc-hm-label">${lf}%</div>`; });
+
+      heatmap.forEach((row, ri) => {
+        html += `<div class="fc-hm-label">D-${dtdPts[ri]}</div>`;
+        row.forEach(cell => {
+          const fc = fcs[cell.best_fare];
+          const color = fc ? fc.color : '#333';
+          html += `<div class="fc-hm-cell" style="background:${color}" title="DTD=${cell.dtd}, LF=${cell.lf}%: ${cell.available.join(',')} açık">${cell.best_fare}</div>`;
+        });
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function renderFcSegTable(data) {
+      const tbody = document.getElementById('fcSegBody');
+      tbody.innerHTML = '';
+      const fcs = data.fare_classes;
+      (data.segment_matching || []).forEach(s => {
+        const fc = fcs[s.preferred_fare];
+        const color = fc ? fc.color : '#888';
+        tbody.innerHTML += `<tr>
+          <td>${s.icon} ${s.segment_name}</td>
+          <td style="font-family:'JetBrains Mono',monospace">${s.elasticity}</td>
+          <td>${s.wtp_range}</td>
+          <td>${s.booking_window}</td>
+          <td><span class="fc-fare-tag" style="background:${color}">${s.preferred_fare_name}</span></td>
+        </tr>`;
+      });
+    }
+
+    // ─── SIMULATION ─────────────────────────────────────────
+    let simCharts = {};
+    let simLoaded = false;
+    let simSelectedRoute = null;
+
+    function toggleSimulation() {
+      const panel = document.getElementById('simPanel');
+      const btn = document.getElementById('simBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('simPanel');
+      if (isShowing) {
+        panel.classList.remove('show');
+        btn.classList.remove('active');
+      } else {
+        panel.classList.add('show');
+        btn.classList.add('active');
+        if (!simLoaded) loadSimulation();
+      }
+    }
+
+    async function loadSimulation() {
+      showLoading();
+      try {
+        const res = await fetch('/api/simulation');
+        if (!res.ok) {
+          document.getElementById('simInterpretation').innerHTML = 'Simülasyon verisi bulunamadı. Önce run_simulation.py çalıştırın.';
+          hideLoading(); return;
+        }
+        const data = await res.json();
+        simLoaded = true;
+        renderSimSummary(data);
+        renderSimTable(data);
+        renderSimCharts(data);
+      } catch (e) {
+        console.error('Simulation fetch error:', e);
+      }
+      hideLoading();
+    }
+
+    function renderSimSummary(data) {
+      const s = data.summary;
+      const cards = document.getElementById('simRoiCards');
+      cards.innerHTML = `
+        <div class="sim-roi-card blue">
+          <div class="sim-roi-label">Sabit Fiyat Geliri</div>
+          <div class="sim-roi-value">$${s.total_static_revenue.toLocaleString()}</div>
+          <div class="sim-roi-sub">Baseline senaryo</div>
+        </div>
+        <div class="sim-roi-card purple">
+          <div class="sim-roi-label">Dinamik Fiyat Geliri</div>
+          <div class="sim-roi-value">$${s.total_dynamic_revenue.toLocaleString()}</div>
+          <div class="sim-roi-sub">Optimizasyon senaryo</div>
+        </div>
+        <div class="sim-roi-card green">
+          <div class="sim-roi-label">Net Katma Değer</div>
+          <div class="sim-roi-value">+$${s.total_delta.toLocaleString()}</div>
+          <div class="sim-roi-sub">Ek gelir</div>
+        </div>
+        <div class="sim-roi-card cyan">
+          <div class="sim-roi-label">ROI</div>
+          <div class="sim-roi-value">+${s.total_roi_pct}%</div>
+          <div class="sim-roi-sub">Gelir artışı</div>
+        </div>
+      `;
+      document.getElementById('simInterpretation').innerHTML = `💬 <strong>${s.interpretation}</strong>`;
+    }
+
+    function renderSimTable(data) {
+      const tbody = document.getElementById('simRouteBody');
+      tbody.innerHTML = '';
+      const routes = data.routes || {};
+      Object.entries(routes).forEach(([key, r]) => {
+        const delta = r.comparison.revenue_delta;
+        const cls = delta >= 0 ? 'positive' : 'negative';
+        const sign = delta >= 0 ? '+' : '';
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => {
+          simSelectedRoute = key;
+          renderSimCharts(data);
+        };
+        tr.innerHTML = `
+          <td>${r.departure} → ${r.arrival}</td>
+          <td>${r.cabin}</td>
+          <td>${r.capacity}</td>
+          <td>$${r.static.total_revenue.toLocaleString()}</td>
+          <td>$${r.dynamic.total_revenue.toLocaleString()}</td>
+          <td class="${cls}">${sign}$${delta.toLocaleString()}</td>
+          <td class="${cls}">${sign}${r.comparison.roi_pct}%</td>
+          <td>${(r.static.load_factor * 100).toFixed(1)}%</td>
+          <td>${(r.dynamic.load_factor * 100).toFixed(1)}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSimCharts(data) {
+      Object.values(simCharts).forEach(c => c.destroy());
+      simCharts = {};
+
+      const routes = data.routes || {};
+      const routeKeys = Object.keys(routes);
+
+      // Pick a route for daily curves (first economy route or selected)
+      let curveKey = simSelectedRoute || routeKeys.find(k => routes[k].cabin === 'economy') || routeKeys[0];
+      const curveRoute = routes[curveKey];
+
+      if (curveRoute && curveRoute.static.daily && curveRoute.dynamic.daily) {
+        // 1) Cumulative Revenue Curve
+        const staticDaily = curveRoute.static.daily;
+        const dynamicDaily = curveRoute.dynamic.daily;
+        // Sample every 5th point for readability
+        const sample = staticDaily.filter((_, i) => i % 5 === 0);
+        const sampleDyn = dynamicDaily.filter((_, i) => i % 5 === 0);
+        const labels = sample.map(d => `D-${d.dtd}`);
+
+        simCharts.revenue = new Chart(document.getElementById('chartSimRevenue'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              { label: `Sabit (${curveRoute.route} ${curveRoute.cabin})`, data: sample.map(d => d.cumulative_rev), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+              { label: `Dinamik (${curveRoute.route} ${curveRoute.cabin})`, data: sampleDyn.map(d => d.cumulative_rev), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+            ]
+          },
+          options: {
+            ...chartOpts,
+            scales: {
+              x: { title: { display: true, text: 'Kalkışa Gün (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.08)' } },
+              y: { title: { display: true, text: 'Kümülatif Gelir ($)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            },
+          },
+        });
+
+        // 3) Load Factor comparison
+        simCharts.lf = new Chart(document.getElementById('chartSimLF'), {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              { label: 'Sabit LF', data: sample.map(d => (d.load_factor * 100)), borderColor: '#6366f1', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+              { label: 'Dinamik LF', data: sampleDyn.map(d => (d.load_factor * 100)), borderColor: '#10b981', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+            ]
+          },
+          options: {
+            ...chartOpts,
+            scales: {
+              x: { title: { display: true, text: 'Kalkışa Gün (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.08)' } },
+              y: { title: { display: true, text: 'Doluluk (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' }, min: 0, max: 100 },
+            },
+          },
+        });
+      }
+
+      // 2) Fare Class Breakdown (all routes combined)
+      const fcNames = ['V', 'K', 'M', 'Y'];
+      const fcColors = ['#06b6d4', '#f59e0b', '#8b5cf6', '#ef4444'];
+      const fcRevenues = fcNames.map(_ => 0);
+      Object.values(routes).forEach(r => {
+        if (r.dynamic.fare_class_breakdown) {
+          fcNames.forEach((fc, i) => {
+            fcRevenues[i] += (r.dynamic.fare_class_breakdown[fc]?.revenue || 0);
+          });
+        }
+      });
+
+      simCharts.fareClass = new Chart(document.getElementById('chartSimFareClass'), {
+        type: 'doughnut',
+        data: {
+          labels: fcNames.map((fc, i) => {
+            const cfg = data.simulation_config?.fare_classes?.[fc];
+            return cfg ? cfg.name : fc;
+          }),
+          datasets: [{ data: fcRevenues.map(v => Math.round(v)), backgroundColor: fcColors, borderColor: '#0d1117', borderWidth: 2 }],
+        },
+        options: { ...chartOpts, cutout: '55%', plugins: { ...chartOpts.plugins, legend: { display: true, position: 'right', labels: { color: '#c9d1d9', font: { size: 11 }, padding: 10, usePointStyle: true } } } },
+      });
+
+      // 4) ROI bar chart per route
+      const routeLabels = routeKeys.map(k => `${routes[k].route} ${routes[k].cabin}`);
+      const roiValues = routeKeys.map(k => routes[k].comparison.roi_pct);
+      const roiColors = roiValues.map(v => v >= 0 ? '#10b981' : '#ef4444');
+
+      simCharts.roi = new Chart(document.getElementById('chartSimROI'), {
+        type: 'bar',
+        data: {
+          labels: routeLabels,
+          datasets: [{ label: 'ROI %', data: roiValues, backgroundColor: roiColors, borderRadius: 4 }],
+        },
+        options: {
+          ...chartOpts,
+          indexAxis: 'y',
+          scales: {
+            x: { title: { display: true, text: 'ROI (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  SENTIMENT INTELLIGENCE
+    // ═══════════════════════════════════════════════════════════════
+    const SENT_CITIES_CFG = {
+      istanbul: { label: 'Istanbul', flag: '\u{1f1f9}\u{1f1f7}', accent: '#58a6ff' },
+      dubai:    { label: 'Dubai',    flag: '\u{1f1e6}\u{1f1ea}', accent: '#d29922' },
+      london:   { label: 'Londra',   flag: '\u{1f1ec}\u{1f1e7}', accent: '#bc8cff' },
+      telaviv:  { label: 'Tel Aviv', flag: '\u{1f1ee}\u{1f1f1}', accent: '#22c55e' },
+      beirut:   { label: 'Beirut',   flag: '\u{1f1f1}\u{1f1e7}', accent: '#ef4444' },
+    };
+    let sentLoaded = false;
+    let sentData = null;
+    let sentActiveCity = 'istanbul';
+    let sentCharts = {};
+
+    function toggleSentiment() {
+      const panel = document.getElementById('sentPanel');
+      const btn = document.getElementById('sentBtn');
+      const isShowing = panel.classList.contains('show');
+      closeAllPanels('sentPanel');
+      if (isShowing) { panel.classList.remove('show'); btn.classList.remove('active'); }
+      else { panel.classList.add('show'); btn.classList.add('active'); if (!sentLoaded) loadSentiment(); }
+    }
+
+    function sentScoreColor(s) {
+      if (s >= .2) return 'var(--green)';
+      if (s >= .05) return '#69c47a';
+      if (s >= -.05) return 'var(--text-3)';
+      if (s >= -.2) return '#e08040';
+      return 'var(--red)';
+    }
+    function sentFmtScore(s) { if (s == null) return '\u2014'; const v = Math.round(s * 100); return (v > 0 ? '+' : '') + v; }
+    function sentRelTime(iso) {
+      if (!iso) return '';
+      try { const d = (Date.now() - new Date(iso).getTime()) / 1000;
+        if (d < 3600) return Math.floor(d / 60) + 'd once';
+        if (d < 86400) return Math.floor(d / 3600) + 's once';
+        return Math.floor(d / 86400) + 'g once';
+      } catch { return ''; }
+    }
+    function sentAlertLabel(l) { return { low: 'NORMAL', medium: 'UYARI', high: 'ALARM' }[l] || '\u2014'; }
+
+    function sentBuildCityCards() {
+      const el = document.getElementById('sentCities');
+      el.innerHTML = Object.entries(SENT_CITIES_CFG).map(([k, c]) =>
+        `<div class="sent-city${k === sentActiveCity ? ' sel' : ''}" id="sc-${k}" style="--sa:${c.accent}" onclick="sentSwitchCity('${k}')">
+          <div class="sent-city-top">
+            <div class="sent-city-name"><span class="flag">${c.flag}</span><span class="name">${c.label}</span></div>
+            <span class="sent-alert low" id="sa-${k}">\u2014</span>
+          </div>
+          <div class="sent-score" id="ss-${k}" style="color:var(--text-3)">\u2014</div>
+          <div class="sent-score-lbl">bilesik skor</div>
+          <div class="sent-bar-track"><div class="sent-bar-mid"></div><div class="sent-bar-fill" id="sb-${k}" style="left:50%;width:0;background:var(--text-3)"></div></div>
+          <div class="sent-pills" id="sp-${k}"><span class="sent-pill cnt">\u2014 haber</span></div>
+          <div class="sent-event-lbl" id="se-${k}" style="--sa:${c.accent}">Yukleniyor...</div>
+        </div>`
+      ).join('');
+    }
+
+    function sentBuildTabs() {
+      const tabsEl = document.getElementById('sentTabs');
+      const panelsEl = document.getElementById('sentTabPanels');
+      tabsEl.innerHTML = Object.entries(SENT_CITIES_CFG).map(([k, c]) =>
+        `<button class="sent-tab${k === sentActiveCity ? ' active' : ''}" id="st-${k}" onclick="sentSwitchCity('${k}')">${c.flag} ${c.label}</button>`
+      ).join('');
+      panelsEl.innerHTML = Object.entries(SENT_CITIES_CFG).map(([k, c]) =>
+        `<div class="sent-tab-panel${k === sentActiveCity ? ' active' : ''}" id="stp-${k}">
+          <div class="sent-charts-row" style="margin-top:.8rem">
+            <div class="sent-chart-card"><div class="sent-chart-title">Sentiment Dagilimi</div><div class="sent-chart-wrap"><canvas id="scSent_${k}"></canvas></div></div>
+            <div class="sent-chart-card"><div class="sent-chart-title">Olay Turu Dagilimi</div><div class="sent-chart-wrap"><canvas id="scEvt_${k}"></canvas></div></div>
+          </div>
+          <div class="sent-tbl-wrap"><div class="sent-tbl-scroll"><table class="sent-tbl">
+            <thead><tr><th>Sent.</th><th>Skor</th><th>Baslik</th><th>Olay</th><th>Tarih</th></tr></thead>
+            <tbody id="sf-${k}"><tr><td colspan="5"><div class="sent-empty"><div class="sent-empty-icon">\u23F3</div>Yukleniyor...</div></td></tr></tbody>
+          </table></div></div>
+        </div>`
+      ).join('');
+    }
+
+    function sentSwitchCity(city) {
+      sentActiveCity = city;
+      Object.keys(SENT_CITIES_CFG).forEach(c => {
+        const card = document.getElementById('sc-' + c);
+        const tab = document.getElementById('st-' + c);
+        const panel = document.getElementById('stp-' + c);
+        if (card) card.classList.toggle('sel', c === city);
+        if (tab) tab.classList.toggle('active', c === city);
+        if (panel) panel.classList.toggle('active', c === city);
+      });
+    }
+
+    function sentUpdateCard(city, data) {
+      const agg = data.aggregate || {};
+      const s = agg.composite_score || 0;
+      const scoreEl = document.getElementById('ss-' + city);
+      if (scoreEl) { scoreEl.textContent = sentFmtScore(s); scoreEl.style.color = sentScoreColor(s); }
+      const bar = document.getElementById('sb-' + city);
+      if (bar) {
+        const cl = Math.max(-1, Math.min(1, s));
+        if (cl >= 0) { bar.style.left = '50%'; bar.style.width = (cl * 50) + '%'; bar.style.background = 'var(--green)'; }
+        else { bar.style.left = ((1 + cl) * 50) + '%'; bar.style.width = (-cl * 50) + '%'; bar.style.background = 'var(--red)'; }
+      }
+      const lv = agg.alert_level || 'low';
+      const al = document.getElementById('sa-' + city);
+      if (al) { al.textContent = sentAlertLabel(lv); al.className = 'sent-alert ' + lv; }
+      const pills = document.getElementById('sp-' + city);
+      if (pills) pills.innerHTML = `<span class="sent-pill pos">\u2713 ${agg.positive_count || 0} poz</span><span class="sent-pill neg">\u2717 ${agg.negative_count || 0} neg</span><span class="sent-pill cnt">${agg.article_count || 0} haber</span>`;
+      const evEl = document.getElementById('se-' + city);
+      if (evEl) evEl.textContent = agg.dominant_event_tr || 'Genel Seyahat Haberi';
+    }
+
+    function sentUpdateKPIs(all) {
+      let t = 0, p = 0, n = 0, h = 0, ss = 0, sc = 0;
+      Object.values(all).forEach(d => { const a = d.aggregate || {}; t += a.article_count || 0; p += a.positive_count || 0; n += a.negative_count || 0; h += (a.high_impact_events || []).length; if (a.composite_score != null) { ss += a.composite_score; sc++; } });
+      const avg = sc > 0 ? Math.round(ss / sc * 100) : 0;
+      document.getElementById('sentKpis').innerHTML = `
+        <div class="sent-kpi"><div class="sent-kpi-label">Toplam Haber</div><div class="sent-kpi-val">${t}</div><div class="sent-kpi-sub">Analiz edilen</div></div>
+        <div class="sent-kpi green"><div class="sent-kpi-label">Pozitif</div><div class="sent-kpi-val">${p}</div><div class="sent-kpi-sub">5 sehir toplam</div></div>
+        <div class="sent-kpi red"><div class="sent-kpi-label">Negatif</div><div class="sent-kpi-val">${n}</div><div class="sent-kpi-sub">5 sehir toplam</div></div>
+        <div class="sent-kpi orange"><div class="sent-kpi-label">Yuksek Etkili</div><div class="sent-kpi-val">${h}</div><div class="sent-kpi-sub">Kritik olay</div></div>
+        <div class="sent-kpi blue"><div class="sent-kpi-label">Ort. Skor</div><div class="sent-kpi-val" style="color:${sentScoreColor(avg / 100)}">${(avg > 0 ? '+' : '') + avg}</div><div class="sent-kpi-sub">-100 ~ +100</div></div>`;
+    }
+
+    function sentUpdateImpact(all) {
+      const el = document.getElementById('sentImpact');
+      el.innerHTML = Object.entries(SENT_CITIES_CFG).map(([k, c]) => {
+        const events = (all[k]?.aggregate?.high_impact_events) || [];
+        const cards = events.length
+          ? events.map(ev => `<div class="sent-impact-card" style="--sa:${c.accent}"><div class="sent-impact-card-title">${ev.title || ''}</div><div class="sent-impact-card-meta"><span class="sent-chip ${ev.sentiment_label}">${ev.sentiment_label === 'positive' ? 'POZ' : ev.sentiment_label === 'negative' ? 'NEG' : 'NOT'}</span><span class="sent-evt-tag">${ev.event_icon || ''} ${ev.event_tr || ''}</span><span class="sent-time">${sentRelTime(ev.published_at)}</span></div></div>`).join('')
+          : `<div class="sent-empty" style="padding:.6rem"><div class="sent-empty-icon" style="font-size:1rem">\u2705</div><span style="font-size:.72rem">Yuksek etkili olay yok</span></div>`;
+        return `<div><div class="sent-impact-col-title" style="--sa:${c.accent}"><div class="dot" style="background:${c.accent}"></div>${c.flag} ${c.label}</div>${cards}</div>`;
+      }).join('');
+    }
+
+    function sentUpdateFeed(city, articles) {
+      const tb = document.getElementById('sf-' + city);
+      if (!tb) return;
+      if (!articles || !articles.length) { tb.innerHTML = `<tr><td colspan="5"><div class="sent-empty"><div class="sent-empty-icon">\u{1f4ed}</div>Haber bulunamadi</div></td></tr>`; return; }
+      tb.innerHTML = articles.map(a => `<tr>
+        <td><span class="sent-chip ${a.sentiment_label || 'neutral'}">${a.sentiment_label === 'positive' ? 'POZ' : a.sentiment_label === 'negative' ? 'NEG' : 'NOT'}</span></td>
+        <td><span style="font-family:'JetBrains Mono',monospace;font-weight:500;font-size:.78rem;color:${sentScoreColor(a.sentiment_score || 0)}">${sentFmtScore(a.sentiment_score)}</span></td>
+        <td>${a.url ? `<a href="${a.url}" target="_blank" rel="noopener" style="color:var(--text-1);text-decoration:none;font-size:.75rem;transition:color .2s">${a.title || ''}</a>` : `<span style="font-size:.75rem">${a.title || ''}</span>`}<div class="sent-src">${a.source || ''}</div></td>
+        <td><span class="sent-evt-tag">${a.event_icon || '\u{1f4f0}'} ${a.event_tr || ''}</span></td>
+        <td class="sent-time">${sentRelTime(a.published_at)}</td>
+      </tr>`).join('');
+    }
+
+    function sentRenderCharts(city, agg) {
+      const cfg = SENT_CITIES_CFG[city];
+      const sentKey = 'scSent_' + city;
+      const evtKey = 'scEvt_' + city;
+      if (sentCharts[sentKey]) sentCharts[sentKey].destroy();
+      if (sentCharts[evtKey]) sentCharts[evtKey].destroy();
+      const sCtx = document.getElementById(sentKey);
+      if (sCtx) sentCharts[sentKey] = new Chart(sCtx, {
+        type: 'doughnut',
+        data: { labels: ['Pozitif', 'Negatif', 'Notr'], datasets: [{ data: [agg.positive_count || 0, agg.negative_count || 0, agg.neutral_count || 0], backgroundColor: ['rgba(63,185,80,.7)', 'rgba(248,81,73,.7)', 'rgba(110,118,129,.4)'], borderColor: ['#3fb950', '#f85149', '#6e7681'], borderWidth: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#8b949e', font: { size: 10 } } } }, cutout: '60%' },
+      });
+      const eCtx = document.getElementById(evtKey);
+      const dist = agg.event_distribution || {};
+      const entries = Object.entries(dist).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      const C = ['#58a6ff', '#3fb950', '#d29922', '#bc8cff', '#39d2c0', '#f85149'];
+      if (eCtx && entries.length) sentCharts[evtKey] = new Chart(eCtx, {
+        type: 'bar',
+        data: { labels: entries.map(([k]) => k.replace('general travel news', 'genel').replace(' or ', ' / ')), datasets: [{ data: entries.map(([, v]) => v), backgroundColor: C.map(c => c + '99'), borderColor: C, borderWidth: 1, borderRadius: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#6e7681', font: { size: 9 } }, grid: { color: 'rgba(33,38,45,.6)' } }, y: { ticks: { color: '#8b949e', font: { size: 9 } }, grid: { display: false } } } },
+      });
+    }
+
+    async function loadSentiment() {
+      showLoading();
+      sentBuildCityCards();
+      sentBuildTabs();
+      sentData = {};
+      try {
+        // Check status
+        const statusRes = await fetch('/api/sentiment/status');
+        if (statusRes.ok) {
+          const st = await statusRes.json();
+          if (st.api_status?.status !== 'ok') document.getElementById('sentApiWarn').classList.add('show');
+        }
+        // Fetch cities one by one so UI updates progressively
+        const cityKeys = Object.keys(SENT_CITIES_CFG);
+        for (const city of cityKeys) {
+          try {
+            const res = await fetch('/api/sentiment/' + city);
+            if (!res.ok) continue;
+            const cd = await res.json();
+            sentData[city] = cd;
+            sentUpdateCard(city, cd);
+            sentUpdateFeed(city, cd.articles || []);
+            sentRenderCharts(city, cd.aggregate || {});
+            sentUpdateKPIs(sentData);
+            sentUpdateImpact(sentData);
+          } catch (e) { console.error('[Sentiment] ' + city, e); }
+        }
+        sentLoaded = true;
+      } catch (e) { console.error('[Sentiment]', e); }
+      hideLoading();
     }
   </script>
 </body>
