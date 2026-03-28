@@ -1,0 +1,1 @@
+exec(open(r"C:\Users\ahmet\OneDrive\Desktop\ptir\train_xgb_enhanced.py").read())

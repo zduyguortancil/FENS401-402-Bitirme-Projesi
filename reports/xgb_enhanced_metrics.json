@@ -1,0 +1,13 @@
+{
+  "mae": 0.8553,
+  "rmse": 1.4104,
+  "auc": 0.7942,
+  "baseline_mae": 0.7892,
+  "baseline_rmse": 1.3399,
+  "improvement_mae_pct": -8.4,
+  "improvement_rmse_pct": -5.3,
+  "train_rows": 18484806,
+  "test_rows": 18499648,
+  "n_features": 45,
+  "sample_pct": 100
+}

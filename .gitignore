@@ -1,0 +1,30 @@
+# Data files (large, stored on Google Drive)
+*.parquet
+data/raw/
+data/processed/
+data/models/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment / secrets
+.env
+
+# Database cache
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / temp
+*.spec
+build/
+dist/

@@ -1,0 +1,166 @@
+{
+  "total_rows": 36996400,
+  "tag_columns": [
+    "tag_yaz_tatili",
+    "tag_kis_tatili",
+    "tag_yariyil_tatili",
+    "tag_bahar_tatili",
+    "tag_ramazan_donemi",
+    "tag_bayram_donemi",
+    "tag_yilbasi",
+    "tag_sevgililer_gunu",
+    "tag_futbol_sezonu",
+    "tag_kongre_fuar",
+    "tag_ski_sezonu",
+    "tag_festival_sezonu",
+    "tag_is_seyahati_yogun",
+    "tag_hac_umre",
+    "tag_gece_ucusu"
+  ],
+  "primary_events": [
+    "kongre_fuar",
+    "yaz_tatili",
+    "kis_tatili",
+    "ramazan_donemi",
+    "bahar_tatili",
+    "festival_sezonu",
+    "yilbasi",
+    "bayram_donemi",
+    "normal",
+    "sevgililer_gunu"
+  ],
+  "tag_stats": {
+    "yaz_tatili": {
+      "count": 9325844,
+      "pct": 25.2,
+      "avg_pax_tagged": 0.8372,
+      "avg_lf_tagged": 38.68,
+      "avg_pax_normal": 0.7719,
+      "avg_lf_normal": 35.68
+    },
+    "kis_tatili": {
+      "count": 6282148,
+      "pct": 17.0,
+      "avg_pax_tagged": 0.7803,
+      "avg_lf_tagged": 36.09,
+      "avg_pax_normal": 0.79,
+      "avg_lf_normal": 36.5
+    },
+    "yariyil_tatili": {
+      "count": 2737444,
+      "pct": 7.4,
+      "avg_pax_tagged": 0.6914,
+      "avg_lf_tagged": 31.96,
+      "avg_pax_normal": 0.7961,
+      "avg_lf_normal": 36.79
+    },
+    "bahar_tatili": {
+      "count": 6182598,
+      "pct": 16.7,
+      "avg_pax_tagged": 0.789,
+      "avg_lf_tagged": 36.46,
+      "avg_pax_normal": 0.7882,
+      "avg_lf_normal": 36.43
+    },
+    "ramazan_donemi": {
+      "count": 4558666,
+      "pct": 12.3,
+      "avg_pax_tagged": 0.7598,
+      "avg_lf_tagged": 35.12,
+      "avg_pax_normal": 0.7924,
+      "avg_lf_normal": 36.62
+    },
+    "bayram_donemi": {
+      "count": 1272068,
+      "pct": 3.4,
+      "avg_pax_tagged": 0.9297,
+      "avg_lf_tagged": 42.94,
+      "avg_pax_normal": 0.7833,
+      "avg_lf_normal": 36.2
+    },
+    "yilbasi": {
+      "count": 1722034,
+      "pct": 4.7,
+      "avg_pax_tagged": 0.835,
+      "avg_lf_tagged": 38.68,
+      "avg_pax_normal": 0.7861,
+      "avg_lf_normal": 36.32
+    },
+    "sevgililer_gunu": {
+      "count": 708434,
+      "pct": 1.9,
+      "avg_pax_tagged": 0.6871,
+      "avg_lf_tagged": 31.74,
+      "avg_pax_normal": 0.7903,
+      "avg_lf_normal": 36.52
+    },
+    "futbol_sezonu": {
+      "count": 30813802,
+      "pct": 83.3,
+      "avg_pax_tagged": 0.7795,
+      "avg_lf_tagged": 36.03,
+      "avg_pax_normal": 0.8325,
+      "avg_lf_normal": 38.45
+    },
+    "kongre_fuar": {
+      "count": 9223398,
+      "pct": 24.9,
+      "avg_pax_tagged": 0.7839,
+      "avg_lf_tagged": 36.22,
+      "avg_pax_normal": 0.7899,
+      "avg_lf_normal": 36.5
+    },
+    "ski_sezonu": {
+      "count": 12262388,
+      "pct": 33.1,
+      "avg_pax_tagged": 0.7617,
+      "avg_lf_tagged": 35.21,
+      "avg_pax_normal": 0.8016,
+      "avg_lf_normal": 37.04
+    },
+    "festival_sezonu": {
+      "count": 12365558,
+      "pct": 33.4,
+      "avg_pax_tagged": 0.824,
+      "avg_lf_tagged": 38.07,
+      "avg_pax_normal": 0.7705,
+      "avg_lf_normal": 35.61
+    },
+    "is_seyahati_yogun": {
+      "count": 13083404,
+      "pct": 35.4,
+      "avg_pax_tagged": 0.7527,
+      "avg_lf_tagged": 34.78,
+      "avg_pax_normal": 0.8079,
+      "avg_lf_normal": 37.34
+    },
+    "hac_umre": {
+      "count": 5257326,
+      "pct": 14.2,
+      "avg_pax_tagged": 0.8377,
+      "avg_lf_tagged": 38.71,
+      "avg_pax_normal": 0.7802,
+      "avg_lf_normal": 36.06
+    },
+    "gece_ucusu": {
+      "count": 9502500,
+      "pct": 25.7,
+      "avg_pax_tagged": 0.7906,
+      "avg_lf_tagged": 36.55,
+      "avg_pax_normal": 0.7876,
+      "avg_lf_normal": 36.39
+    }
+  },
+  "primary_distribution": {
+    "kongre_fuar": 9223398,
+    "yaz_tatili": 9019954,
+    "kis_tatili": 4560114,
+    "ramazan_donemi": 3695658,
+    "bahar_tatili": 2891656,
+    "festival_sezonu": 2836632,
+    "yilbasi": 1722034,
+    "bayram_donemi": 1272068,
+    "normal": 1066452,
+    "sevgililer_gunu": 708434
+  }
+}
