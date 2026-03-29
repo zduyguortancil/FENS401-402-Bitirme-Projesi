@@ -480,7 +480,9 @@ async function drainSeatQueue() {
     const el = seats[item.idx];
     el.className = `seat${ecoClass} ${cls}`;
     el.style.cursor = 'pointer';
+    el.style.position = 'relative';
     el.title = `${b.fare_class} — $${b.price} | Tikla: detay`;
+    el.innerHTML = b.is_connecting ? '<span style="position:absolute;top:1px;right:1px;font-size:7px;line-height:1;color:#000">&#9992;</span>' : '';
     // Booking verisini elemente bagla
     el._booking = {...b, cabin: item.cabin, seatIdx: item.idx, seatLabel: el.getAttribute('title')};
     el.onclick = function(){ showSeatDetail(this._booking, this); };
@@ -640,18 +642,36 @@ function showSeatDetail(booking, el) {
   const diff = booking.price - basePrice;
   const diffPct = basePrice > 0 ? ((diff / basePrice) * 100).toFixed(1) : '0';
 
-  document.getElementById('sdTitle').innerHTML = `Seat Detail — <span style="color:${fcColor}">${fcName}</span>`;
+  const isConn = booking.is_connecting;
+  const routeLabel = el?._booking?.cabin ? '' : '';
 
-  document.getElementById('sdBody').innerHTML = `
+  // Baslik: connecting ise rota goster
+  if (isConn && booking.origin) {
+    document.getElementById('sdTitle').innerHTML = `<span style="color:var(--accent)">${booking.origin} → IST → ${(booking.route||'').split('-')[1]||'?'}</span> — <span style="color:${fcColor}">${fcName}</span>`;
+  } else {
+    document.getElementById('sdTitle').innerHTML = `Seat Detail — <span style="color:${fcColor}">${fcName}</span>`;
+  }
+
+  let html = `
     <div class="sd-item"><div class="sd-label">Passenger Type</div><div class="sd-val">${isHuman ? 'Manual Booking' : segName}</div></div>
+    <div class="sd-item"><div class="sd-label">Routing</div><div class="sd-val">${isConn ? '<span style="color:var(--accent)">'+(booking.origin||'?')+' → IST → dest (Connecting)</span>' : 'Direct (Local)'}</div></div>
     <div class="sd-item"><div class="sd-label">Cabin</div><div class="sd-val">${cabin}</div></div>
     <div class="sd-item"><div class="sd-label">Fare Class</div><div class="sd-val" style="color:${fcColor}">${fcName}</div></div>
     <div class="sd-item"><div class="sd-label">Paid</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.price)}</div></div>
     <div class="sd-item"><div class="sd-label">Baseline</div><div class="sd-val" style="color:var(--text-2)">$${Math.round(basePrice)}</div></div>
     <div class="sd-item"><div class="sd-label">Delta</div><div class="sd-val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}$${Math.round(diff)} (${diff>=0?'+':''}${diffPct}%)</div></div>
     <div class="sd-item"><div class="sd-label">DTD</div><div class="sd-val">${booking.dtd} days</div></div>
-    <div class="sd-item"><div class="sd-label">Booked At</div><div class="sd-val" style="font-size:.75rem">${(booking.timestamp||'').substring(0,16)}</div></div>
-  `;
+    <div class="sd-item"><div class="sd-label">Booked At</div><div class="sd-val" style="font-size:.75rem">${(booking.timestamp||'').substring(0,16)}</div></div>`;
+
+  // Connecting detaylari
+  if (isConn) {
+    html += `
+    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Origin</div><div class="sd-val" style="color:var(--accent)">${booking.origin || '?'}</div></div>
+    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Total Itinerary</div><div class="sd-val">$${Math.round(booking.total_itinerary_fare || 0)}</div></div>
+    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Leg Contribution</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.leg_contribution || 0)}</div></div>`;
+  }
+
+  document.getElementById('sdBody').innerHTML = html;
 
   panel.style.display = 'block';
   panel.scrollIntoView({behavior:'smooth', block:'nearest'});
@@ -676,8 +696,8 @@ function selectFlightSeatmap(key, cabin, route, depDate) {
 }
 
 function resetSeatmap() {
-  seatmapSeats.business.forEach(s => { if(s) s.className = 'seat empty'; });
-  seatmapSeats.economy.forEach(s => { if(s) s.className = 'seat eco empty'; });
+  seatmapSeats.business.forEach(s => { if(s) { s.className = 'seat empty'; s.innerHTML = ''; s.onclick = null; s.style.cursor = ''; s._booking = null; } });
+  seatmapSeats.economy.forEach(s => { if(s) { s.className = 'seat eco empty'; s.innerHTML = ''; s.onclick = null; s.style.cursor = ''; s._booking = null; } });
   document.getElementById('seatmapStats').innerHTML = '';
   document.getElementById('animDate').textContent = '--';
   document.getElementById('animDTD').textContent = '';

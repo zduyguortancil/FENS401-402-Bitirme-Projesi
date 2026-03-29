@@ -68,6 +68,12 @@ class ForecastBridge:
         if tft_total is None:
             return None
 
+        # Unconstraining: yuksek talepli ucuslarda gizli talep eklenir
+        # tft_total kapasiteye yakinsa, gercek talep daha yuksek olabilir
+        cap_approx = 300  # economy default
+        if tft_total / cap_approx > 0.90:
+            tft_total = tft_total * 1.15  # %15 gizli talep
+
         # S-curve: kumulatif beklenen oran
         cum_fraction = 1.0 - (dtd / 180.0) ** 1.5 if dtd <= 180 else 0.0
         cum_fraction = max(0.0, min(1.0, cum_fraction))
@@ -177,6 +183,8 @@ class ForecastBridge:
         sold = inv.get("sold", 0)
 
         # pax_last_7d: booking gecmisinden turet
+        # Gercek veride ortalama 5.44 — simulasyon basinda 0 olunca model
+        # "satis olmaz" diyor (kisir dongu). Minimum 3 vererek cold-start onlenir.
         bookings = inv.get("bookings", [])
         pax_last_7d = 0
         if bookings and isinstance(sim_day, date):
@@ -184,6 +192,7 @@ class ForecastBridge:
                 b_dtd = b.get("dtd", 999)
                 if dtd <= b_dtd <= dtd + 7:
                     pax_last_7d += 1
+        pax_last_7d = max(pax_last_7d, 3)  # cold-start minimum
 
         # Route metadata'dan default'lar
         route_key = inv.get("route", "IST-LHR").replace("-", "_")

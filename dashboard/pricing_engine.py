@@ -101,15 +101,26 @@ class PricingEngine:
         self.sentiment_cache = sentiment_cache or {}
         self.airport_to_city = airport_to_city or {}
 
-        # Rota bazli fiyat faktorleri (veriden turetilmis)
+        # ── Kalibrasyon: veriden ogrenilmis katsayilar ──
+        self.calibration = {}
         self.route_price_factors = {}
         try:
             import json
-            factors_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                        '..', 'reports', 'route_price_factors.json')
-            if os.path.exists(factors_path):
-                with open(factors_path, encoding='utf-8') as f:
-                    self.route_price_factors = json.load(f)
+            cal_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    '..', 'reports', 'calibration_report.json')
+            if os.path.exists(cal_path):
+                with open(cal_path, encoding='utf-8') as f:
+                    self.calibration = json.load(f)
+                # Route factors from calibration
+                self.route_price_factors = self.calibration.get("route_factors", {})
+                print(f"[Pricing] Calibration loaded: {len(self.calibration)} groups")
+            else:
+                # Fallback: eski route_price_factors.json
+                factors_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                            '..', 'reports', 'route_price_factors.json')
+                if os.path.exists(factors_path):
+                    with open(factors_path, encoding='utf-8') as f:
+                        self.route_price_factors = json.load(f)
         except Exception:
             pass
 
@@ -226,27 +237,38 @@ class PricingEngine:
                 lf_mult = 1.40
             elif expected_final_lf >= 0.70:
                 lf_mult = 1.15
-            elif expected_final_lf >= 0.50:
-                lf_mult = 1.00
-            elif expected_final_lf >= 0.35:
-                lf_mult = 0.90
             else:
-                lf_mult = 0.80
+                lf_mult = 1.00  # asla indirim yok — dusuk talep icin ucuz sinif acilir
             return lf_mult * dtd_boost
 
-        # ── FALLBACK: mevcut LF heuristic ──
-        if lf >= 0.95:
-            lf_mult = 2.00
-        elif lf >= 0.85:
-            lf_mult = 1.50 + (lf - 0.85) * 5.0
-        elif lf >= 0.70:
-            lf_mult = 1.20 + (lf - 0.70) * 2.0
-        elif lf >= 0.50:
-            lf_mult = 1.05 + (lf - 0.50) * 0.75
-        elif lf >= 0.30:
-            lf_mult = 1.00 + (lf - 0.30) * 0.25
+        # ── FALLBACK: LF heuristic (kalibrasyondan veya default) ──
+        cal_lf = self.calibration.get("lf_curve", {}).get("factors", {})
+        if cal_lf:
+            if lf >= 0.95:
+                lf_mult = cal_lf.get("LF95+", 2.40)
+            elif lf >= 0.85:
+                lf_mult = cal_lf.get("LF85-95", 1.95)
+            elif lf >= 0.70:
+                lf_mult = cal_lf.get("LF70-85", 1.68)
+            elif lf >= 0.50:
+                lf_mult = cal_lf.get("LF50-70", 1.37)
+            elif lf >= 0.30:
+                lf_mult = cal_lf.get("LF30-50", 1.12)
+            else:
+                lf_mult = 1.00
         else:
-            lf_mult = 1.00
+            if lf >= 0.95:
+                lf_mult = 2.00
+            elif lf >= 0.85:
+                lf_mult = 1.50 + (lf - 0.85) * 5.0
+            elif lf >= 0.70:
+                lf_mult = 1.20 + (lf - 0.70) * 2.0
+            elif lf >= 0.50:
+                lf_mult = 1.05 + (lf - 0.50) * 0.75
+            elif lf >= 0.30:
+                lf_mult = 1.00 + (lf - 0.30) * 0.25
+            else:
+                lf_mult = 1.00
 
         return lf_mult * dtd_boost
 
@@ -264,21 +286,29 @@ class PricingEngine:
         elif isinstance(dep_date, datetime):
             dep_date = dep_date.date()
 
-        # Sezon
-        season = SEASON_FACTORS.get(dep_date.month, 1.0)
+        # Sezon — kalibrasyondan veya fallback
+        cal_season = self.calibration.get("season_factors", {}).get("factors", {})
+        if cal_season:
+            season = cal_season.get(str(dep_date.month), 1.0)
+        else:
+            season = SEASON_FACTORS.get(dep_date.month, 1.0)
 
         # Ozel gun
         special_key = (dep_date.year, dep_date.month, dep_date.day)
         special = SPECIAL_PERIODS.get(special_key)
         special_mult = special[1] if special else 1.0
 
-        # Hafta gunu
-        dow = DOW_FACTORS.get(dep_date.weekday(), 1.0)
+        # Hafta gunu — kalibrasyondan veya fallback
+        cal_dow = self.calibration.get("dow_factors", {})
+        if cal_dow:
+            dow = cal_dow.get(str(dep_date.weekday()), 1.0)
+        else:
+            dow = DOW_FACTORS.get(dep_date.weekday(), 1.0)
 
         # Bolge faktoru artik baz fiyatta (rota bazli), burada tekrar uygulanmaz
         raw = season * max(special_mult, 1.0) * dow
-        # Dampen: demand etkisini azalt — ana fark supply'dan gelmeli
-        return 1.0 + (raw - 1.0) * 0.3
+        # Dampen: talep etkisi arz'dan daha dusuk kalmali ama gercekci
+        return 1.0 + (raw - 1.0) * 0.7
 
     # ── SENTIMENT CARPANI ─────────────────────────────────────
     def _sentiment_multiplier(self, route):
@@ -477,10 +507,17 @@ class PricingEngine:
 
     # ── YARDIMCI FONKSIYONLAR ─────────────────────────────────
     def _compute_base_price(self, cabin, dist_km, route):
-        """Baz fiyat hesapla — rota bazli faktor (veriden turetilmis)."""
-        formula = BASE_PRICE_FORMULAS.get(cabin, BASE_PRICE_FORMULAS["economy"])
-        base = formula(dist_km)
-        # Rota bazli faktor: bolge faktoru yerine veriden turetilmis rota spesifik faktor
+        """Baz fiyat hesapla — kalibrasyon regresyonu veya fallback formul."""
+        cal_bp = self.calibration.get("base_price", {}).get(cabin)
+        if cal_bp:
+            # Veriden ogrenilmis regresyon: base = intercept + dist x coef
+            base = cal_bp["intercept"] + dist_km * cal_bp["price_per_km"]
+            base = max(base, 150 if cabin == "economy" else 800)
+        else:
+            # Fallback: eski formul
+            formula = BASE_PRICE_FORMULAS.get(cabin, BASE_PRICE_FORMULAS["economy"])
+            base = formula(dist_km)
+        # Rota bazli faktor: veriden turetilmis rota spesifik faktor
         route_key = route.replace("-", "_")
         route_factor = self.route_price_factors.get(route_key, 1.0)
         return base * route_factor

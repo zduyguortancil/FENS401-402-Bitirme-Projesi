@@ -100,12 +100,13 @@ class SimClock:
 class SimulationEngine:
     """Ana simulasyon motoru."""
 
-    def __init__(self, pricing_engine, forecast_bridge=None):
+    def __init__(self, pricing_engine, forecast_bridge=None, network_optimizer=None):
         self.pricing = pricing_engine
-        self.bridge = forecast_bridge  # ForecastBridge veya None (fallback rule-based)
+        self.bridge = forecast_bridge
+        self.network = network_optimizer  # NetworkOptimizer veya None
         self.clock = SimClock()
-        self.state = "idle"  # idle | ready | running | paused | completed
-        self.inventory = {}  # flight_key -> envanter dict
+        self.state = "idle"
+        self.inventory = {}
         self.lock = threading.Lock()
         self.thread = None
 
@@ -116,7 +117,29 @@ class SimulationEngine:
             "total_rejected": 0,
             "total_revenue_dynamic": 0.0,
             "total_revenue_baseline": 0.0,
+            "local_sales": 0,
+            "connecting_sales": 0,
+            "displacement_count": 0,
+            "displacement_revenue_saved": 0.0,
+            "cancellations": 0,
+            "cancellation_refunds": 0.0,
+            "no_shows": 0,
+            "denied_boardings": 0,
+            "denied_boarding_cost": 0.0,
         }
+
+        # Segment bazli no-show oranlari
+        self.NO_SHOW_RATES = {
+            "A": 0.15, "B": 0.05, "C": 0.08,
+            "D": 0.03, "E": 0.07, "F": 0.20, "HUMAN": 0.02,
+        }
+        # Fare class iptal oranlari (toplam, booking omru boyunca)
+        self.CANCEL_RATES = {"V": 0.01, "K": 0.03, "M": 0.08, "Y": 0.12}
+        # Fare class refund oranlari
+        self.REFUND_RATES = {"V": 0.0, "K": 0.50, "M": 0.80, "Y": 1.00}
+        # Overbooking: agirlikli no-show ortalamasi ~%8
+        self.OVERBOOKING_PCT = 0.08
+        self.DENIED_BOARDING_COST = 400  # $ per pax
 
         # Event log (son 100 olay)
         self.event_log = []
@@ -147,9 +170,22 @@ class SimulationEngine:
         random.seed(seed)
         self.state = "initializing"
         self.inventory = {}
-        self.stats = {k: 0 for k in self.stats}
-        self.stats["total_revenue_dynamic"] = 0.0
-        self.stats["total_revenue_baseline"] = 0.0
+        self.stats = {
+            "total_bots": 0,
+            "total_sales": 0,
+            "total_rejected": 0,
+            "total_revenue_dynamic": 0.0,
+            "total_revenue_baseline": 0.0,
+            "local_sales": 0,
+            "connecting_sales": 0,
+            "displacement_count": 0,
+            "displacement_revenue_saved": 0.0,
+            "cancellations": 0,
+            "cancellation_refunds": 0.0,
+            "no_shows": 0,
+            "denied_boardings": 0,
+            "denied_boarding_cost": 0.0,
+        }
         self.event_log = []
 
         if dtd_curves:
@@ -186,6 +222,9 @@ class SimulationEngine:
                 "price_history": [],
                 "fare_classes_open": [],
                 "current_prices": {},
+                "local_sold": 0,
+                "connecting_sold": 0,
+                "overbooking_limit": int(f["capacity"] * (1 + self.OVERBOOKING_PCT)),
             }
 
         # Saat ayarla — booking window 180 gun oncesinden baslar
@@ -373,11 +412,13 @@ class SimulationEngine:
             time.sleep(delay)
 
         if self.state != "paused":
+            # Simulasyon bitti — no-show ve denied boarding hesapla
+            self._process_departure()
             self.state = "completed"
             print(f"[Sim] Completed!", flush=True)
 
     def _process_day(self, sim_day):
-        """Bir gunluk bot uretimi + fiyat guncelleme."""
+        """Bir gunluk bot uretimi + iptal + fiyat guncelleme."""
         # Gunluk batch predict (bridge varsa)
         daily_preds = {}
         if self.bridge:
@@ -385,6 +426,9 @@ class SimulationEngine:
                 daily_preds = self.bridge.predict_daily_batch(self.inventory, sim_day)
             except Exception:
                 daily_preds = {}
+
+        # Iptal kontrolu — mevcut bookingleri tara
+        self._process_cancellations(sim_day)
 
         with self.lock:
             for key, inv in self.inventory.items():
@@ -434,7 +478,8 @@ class SimulationEngine:
         - Kabin orani (veriden)
         """
         capacity = inv["capacity"]
-        remaining = capacity - inv["sold"]
+        sell_limit = inv.get("overbooking_limit", capacity)  # overbooking dahil limit
+        remaining = sell_limit - inv["sold"]
         if remaining <= 0:
             return
 
@@ -475,27 +520,53 @@ class SimulationEngine:
             ts_demand *= random.gauss(1.0, 0.15)
             ts_demand = max(0, ts_demand)
 
-            # Segmentlere dagit
+            # O&D: lokal vs connecting ayir
+            conn_pct = 0.0
+            if self.network:
+                conn_pct = self.network.get_connecting_pct(inv["route"])
+            local_demand = ts_demand * (1.0 - conn_pct)
+            connecting_demand = ts_demand * conn_pct
+
+            # LOKAL botlar
             for seg_id, seg in self.segments.items():
                 dtd_weight = self._get_dtd_demand(seg_id, dtd)
                 if dtd_weight <= 0:
                     continue
                 share = seg.get("base_share_pct", 10) / 100
-                seg_demand = ts_demand * share * dtd_weight
-
+                seg_demand = local_demand * share * dtd_weight
                 if cabin == "business":
                     seg_demand *= self.BIZ_RATIO.get(seg_id, 0.18)
                 else:
                     seg_demand *= (1.0 - self.BIZ_RATIO.get(seg_id, 0.18))
-
                 num_bots = int(seg_demand)
                 if random.random() < (seg_demand - num_bots):
                     num_bots += 1
                 for _ in range(min(num_bots, remaining)):
-                    if inv["sold"] >= capacity:
+                    if inv["sold"] >= sell_limit:
                         break
-                    self._process_bot(key, inv, seg_id, dtd)
-                    remaining = capacity - inv["sold"]
+                    self._process_bot(key, inv, seg_id, dtd, is_connecting=False)
+                    remaining = sell_limit - inv["sold"]
+
+            # CONNECTING botlar
+            if self.network and connecting_demand > 0:
+                for seg_id, seg in self.segments.items():
+                    dtd_weight = self._get_dtd_demand(seg_id, dtd)
+                    if dtd_weight <= 0:
+                        continue
+                    share = seg.get("base_share_pct", 10) / 100
+                    seg_demand = connecting_demand * share * dtd_weight
+                    if cabin == "business":
+                        seg_demand *= self.BIZ_RATIO.get(seg_id, 0.18)
+                    else:
+                        seg_demand *= (1.0 - self.BIZ_RATIO.get(seg_id, 0.18))
+                    num_bots = int(seg_demand)
+                    if random.random() < (seg_demand - num_bots):
+                        num_bots += 1
+                    for _ in range(min(num_bots, remaining)):
+                        if inv["sold"] >= sell_limit:
+                            break
+                        self._process_bot(key, inv, seg_id, dtd, is_connecting=True)
+                        remaining = sell_limit - inv["sold"]
             return
 
         # ══════════════════════════════════════════════
@@ -536,21 +607,44 @@ class SimulationEngine:
                 num_bots += 1
 
             for _ in range(min(num_bots, remaining)):
-                if inv["sold"] >= capacity:
+                if inv["sold"] >= sell_limit:
                     break
                 self._process_bot(key, inv, seg_id, dtd)
-                remaining = capacity - inv["sold"]
+                remaining = sell_limit - inv["sold"]
 
-    def _process_bot(self, key, inv, segment_id, dtd):
-        """Bir bot fiyati degerlendirir ve alir/almaz."""
+    def _process_bot(self, key, inv, segment_id, dtd, is_connecting=False):
+        """Bir bot fiyati degerlendirir ve alir/almaz. O&D bid price kontrolu dahil."""
         self.stats["total_bots"] += 1
 
         # Fiyat al
         quote = self.pricing.compute_price(inv, dtd, segment_id=segment_id)
-        open_fares = quote["open_fares"]
+        # EMSR-b override: inventory'deki fare_classes_open kullan (EMSR-b tarafindan guncellenmis)
+        open_fares = inv.get("fare_classes_open") or quote["open_fares"]
         if not open_fares:
             self.stats["total_rejected"] += 1
             return False
+
+        # Connecting yolcu icin fare proration
+        leg_contribution = None
+        od_info = None
+        if is_connecting and self.network:
+            origin_key = self.network.pick_random_origin()
+            if origin_key:
+                od_info = self.network.prorate_fare(origin_key, inv["route"], inv.get("cabin", "economy"))
+                if od_info:
+                    leg_contribution = od_info["leg_contribution"]
+
+        # O&D BID PRICE KONTROLU — sadece LF > %60 sonrasi aktif
+        # Erken donemde herkesi kabul et, gec donemde koltuk koru
+        if self.network and inv["load_factor"] > 0.60:
+            bid = self.network.get_bid_price(quote["base_price"], inv["capacity"], inv["sold"], open_fares, quote["prices"])
+            check_fare = leg_contribution if is_connecting and leg_contribution else quote["best_price"]
+            accepted, reason = self.network.evaluate_od(is_connecting, check_fare, leg_contribution or check_fare, bid)
+            if not accepted:
+                self.stats["total_rejected"] += 1
+                self.stats["displacement_count"] += 1
+                self.stats["displacement_revenue_saved"] += bid - check_fare
+                return False
 
         # Botun kisisel WTP'si
         seg = self.segments[segment_id]
@@ -559,7 +653,7 @@ class SimulationEngine:
         base_price = quote["base_price"]
         max_willing = base_price * personal_wtp
 
-        # En pahali karsilayabilecegi fare class'i bul (gelir max)
+        # En pahali karsilayabilecegi fare class'i bul
         chosen_fare = None
         chosen_price = None
         for fc_id in reversed(open_fares):
@@ -596,7 +690,7 @@ class SimulationEngine:
         inv["revenue_dynamic"] += chosen_price
         inv["revenue_baseline"] += baseline
 
-        inv["bookings"].append({
+        booking_record = {
             "timestamp": self.clock.now().isoformat(),
             "dtd": dtd,
             "segment": segment_id,
@@ -604,22 +698,76 @@ class SimulationEngine:
             "price": round(chosen_price, 2),
             "baseline_price": round(baseline, 2),
             "is_bot": True,
-        })
+            "is_connecting": is_connecting,
+        }
+        if od_info:
+            booking_record["origin"] = od_info["origin"]
+            booking_record["total_itinerary_fare"] = od_info["total_fare"]
+            booking_record["leg_contribution"] = od_info["leg_contribution"]
+        inv["bookings"].append(booking_record)
 
         self.stats["total_sales"] += 1
         self.stats["total_revenue_dynamic"] += chosen_price
         self.stats["total_revenue_baseline"] += baseline
+        if is_connecting:
+            self.stats["connecting_sales"] += 1
+            inv["connecting_sold"] = inv.get("connecting_sold", 0) + 1
+        else:
+            self.stats["local_sales"] += 1
+            inv["local_sold"] = inv.get("local_sold", 0) + 1
 
         return True
 
     def _update_prices(self, key, inv, dtd, pred=None):
-        """Fiyatlari guncelle ve gecmise kaydet."""
+        """Fiyatlari guncelle ve gecmise kaydet.
+        EMSR-b varsa: protection levels ile fare class availability'yi override eder.
+        """
         # Pickup-informed: predicted_remaining'i pricing engine'e ilet
         predicted_remaining = None
         if pred:
             predicted_remaining = pred.get("predicted_remaining")
         quote = self.pricing.compute_price(inv, dtd, predicted_remaining=predicted_remaining)
-        inv["fare_classes_open"] = quote["open_fares"]
+
+        # ── EMSR-b fare class override ──
+        open_fares = quote["open_fares"]
+        if self.network:
+            base_price = quote.get("base_price", 300)
+            capacity = inv["capacity"]
+            sold = inv["sold"]
+            fc_sold = inv.get("fare_class_sold", {})
+
+            # TFT'den toplam talep tahmini (varsa EMSR-b'ye besle)
+            expected_demand = None
+            if self.bridge:
+                tft_total = self.bridge.get_tft_total(
+                    inv["route"], inv.get("cabin", "economy"), inv["dep_date"]
+                )
+                if tft_total:
+                    # Demand tahmini kapasiteyi geçmesin — aşırı koruma önle
+                    expected_demand = min(tft_total, capacity * 1.1)
+                elif pred and pred.get("predicted_remaining"):
+                    expected_demand = min(sold + pred["predicted_remaining"], capacity * 1.1)
+
+            protection = self.network.compute_protection_levels(
+                base_price, capacity, current_sold=sold,
+                expected_total_demand=expected_demand
+            )
+            # EMSR-b sadece INDIRIMLI siniflari (V, K) kapatabilir.
+            # M ve Y pricing engine'e birakilir — M kapanirsa
+            # Y'nin yuksek fiyati nedeniyle koltuklar bos kalir.
+            emsr_closed = set()
+            for fc_id in ["V", "K"]:
+                info = protection.get(fc_id, {})
+                quota = info.get("quota", 0)
+                sold_in_class = fc_sold.get(fc_id, 0)
+                if sold_in_class >= quota and quota > 0:
+                    emsr_closed.add(fc_id)
+
+            open_fares = [fc for fc in open_fares if fc not in emsr_closed]
+            if not open_fares:
+                open_fares = ["Y"]
+
+        inv["fare_classes_open"] = open_fares
         inv["current_prices"] = quote["prices"]
 
         # Her gun icin fiyat gecmisi kaydet
@@ -629,11 +777,66 @@ class SimulationEngine:
             "load_factor": round(inv["load_factor"], 4),
             "sold": inv["sold"],
             "prices": {k: round(v, 2) for k, v in quote["prices"].items()},
-            "open_fares": quote["open_fares"],
+            "open_fares": open_fares,
             "best_price": round(quote["best_price"], 2),
             "baseline_price": round(quote["baseline_price"], 2),
             "multipliers": quote["multipliers"],
         })
+
+    def _process_cancellations(self, sim_day):
+        """Mevcut bookingleri tara, iptal olasiliklarini hesapla."""
+        with self.lock:
+            for key, inv in self.inventory.items():
+                dep = inv["dep_date"]
+                dtd = (dep - sim_day).days
+                if dtd < 0 or dtd > 180:
+                    continue
+                bookings = inv.get("bookings", [])
+                if not bookings:
+                    continue
+                remaining_days = max(dtd, 1)
+                to_remove = []
+                for i, b in enumerate(bookings):
+                    if b.get("cancelled"):
+                        continue
+                    fc = b.get("fare_class", "M")
+                    total_cancel_rate = self.CANCEL_RATES.get(fc, 0.05)
+                    daily_rate = total_cancel_rate / 180  # booking omru boyunca dagilim
+                    if random.random() < daily_rate:
+                        to_remove.append(i)
+                # Iptalleri uygula
+                for i in reversed(to_remove):
+                    b = bookings[i]
+                    b["cancelled"] = True
+                    fc = b.get("fare_class", "M")
+                    refund = b["price"] * self.REFUND_RATES.get(fc, 0.5)
+                    inv["sold"] -= 1
+                    inv["load_factor"] = inv["sold"] / inv["capacity"] if inv["capacity"] > 0 else 0
+                    inv["revenue_dynamic"] -= refund
+                    self.stats["cancellations"] += 1
+                    self.stats["cancellation_refunds"] += refund
+
+    def _process_departure(self):
+        """Kalkis gunu: no-show ve denied boarding hesapla."""
+        with self.lock:
+            for key, inv in self.inventory.items():
+                bookings = [b for b in inv.get("bookings", []) if not b.get("cancelled")]
+                total_booked = len(bookings)
+                capacity = inv["capacity"]
+                # Her yolcu icin no-show kontrolu
+                showed_up = 0
+                for b in bookings:
+                    seg = b.get("segment", "D")
+                    no_show_rate = self.NO_SHOW_RATES.get(seg, 0.05)
+                    if random.random() > no_show_rate:
+                        showed_up += 1
+                    else:
+                        self.stats["no_shows"] += 1
+                # Denied boarding
+                if showed_up > capacity:
+                    denied = showed_up - capacity
+                    self.stats["denied_boardings"] += denied
+                    self.stats["denied_boarding_cost"] += denied * self.DENIED_BOARDING_COST
 
     def _get_dtd_demand(self, segment_id, dtd):
         """Segment icin DTD bazli talep degeri (0-1 arasi)."""

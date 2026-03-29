@@ -13,6 +13,7 @@ import threading
 import numpy as np
 from flask import Flask, render_template, jsonify, request
 import duckdb
+import shap
 
 # ─── .env dosyasından ortam değişkenlerini oku ───────────
 def _load_dotenv():
@@ -908,6 +909,23 @@ def api_pickup(flight_id):
             mae_flight = None
             wape_flight = None
 
+        # ── SHAP explanation ──
+        shap_top = None
+        if predicted_remaining is not None:
+            try:
+                import numpy as np_local
+                explainer = shap.TreeExplainer(PICKUP_MODEL)
+                shap_values = explainer.shap_values(dmat)
+                # Mean absolute SHAP across all DTD points for this flight
+                mean_shap = np_local.mean(np_local.abs(shap_values), axis=0)
+                top_idx = np_local.argsort(mean_shap)[::-1][:10]
+                shap_top = [
+                    {"feature": PICKUP_FEATURES[i], "importance": round(float(mean_shap[i]), 3)}
+                    for i in top_idx
+                ]
+            except Exception:
+                shap_top = None
+
         result[cab] = {
             "rows": rows,
             "metadata": {
@@ -932,7 +950,8 @@ def api_pickup(flight_id):
                 "model_mae": PICKUP_METRICS.get("mae"),
                 "model_wape": PICKUP_METRICS.get("wape") or PICKUP_METRICS.get("mape"),
                 "model_improvement": PICKUP_METRICS.get("improvement_mae_pct"),
-            }
+            },
+            "shap_importance": shap_top,
         }
 
     con.close()
@@ -1983,7 +2002,33 @@ try:
     except Exception as e:
         print(f"[Bridge] ForecastBridge not available: {e}")
 
-    _sim_engine = SimulationEngine(pricing_engine=_pricing_engine, forecast_bridge=_forecast_bridge)
+    # NetworkOptimizer — O&D + EMSR-b
+    _network_optimizer = None
+    try:
+        from network_optimizer import NetworkOptimizer
+        # Connecting oranlarini tft_route_daily'den cek
+        _conn_pcts = {}
+        if TFT_DATA is not None:
+            _cpct = TFT_DATA.groupby("entity_id")["connecting_pct"].mean()
+            for eid, cpct in _cpct.items():
+                parts = eid.rsplit("_", 1)
+                if len(parts) == 2:
+                    route_key = parts[0]
+                    _conn_pcts[route_key] = float(cpct)
+        _network_optimizer = NetworkOptimizer(
+            route_distances=_route_distances,
+            segments=_segments,
+            connecting_pcts=_conn_pcts,
+        )
+        print(f"[Network] O&D optimizer ready: {len(_conn_pcts)} routes with connecting data")
+    except Exception as e:
+        print(f"[Network] O&D optimizer not available: {e}")
+
+    _sim_engine = SimulationEngine(
+        pricing_engine=_pricing_engine,
+        forecast_bridge=_forecast_bridge,
+        network_optimizer=_network_optimizer,
+    )
 
     SIM_READY = True
     print(f"[Pricing] Engine ready: {len(_route_distances)} routes, {len(_segments)} segments")
