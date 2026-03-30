@@ -673,8 +673,27 @@ class SimulationEngine:
             self.stats["total_rejected"] += 1
             return False
 
-        # SATIS!
+        # Son kota kontrolu — gun ici asimi onle
         from pricing_engine import FARE_CLASSES
+        fc_def = FARE_CLASSES.get(chosen_fare, {})
+        if chosen_fare != "Y":
+            quota = int(inv["capacity"] * fc_def.get("quota_pct", 1.0))
+            sold_in_class = inv.get("fare_class_sold", {}).get(chosen_fare, 0)
+            if sold_in_class >= quota:
+                # Kota doldu — bir ust sinifa kaydir
+                upper = {"V": "K", "K": "M", "M": "Y"}
+                next_fc = upper.get(chosen_fare)
+                if next_fc and next_fc in open_fares:
+                    chosen_fare = next_fc
+                    chosen_price = quote["prices"].get(next_fc, chosen_price)
+                    if chosen_price > max_willing:
+                        self.stats["total_rejected"] += 1
+                        return False
+                else:
+                    self.stats["total_rejected"] += 1
+                    return False
+
+        # SATIS!
         baseline_full = self.pricing.compute_baseline_price(
             inv["route"], inv["cabin"], dtd,
             inv["dep_date"].isoformat() if isinstance(inv["dep_date"], date) else inv["dep_date"]

@@ -296,8 +296,93 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     </div>
   </div>
 
+  <!-- Explainability Panel -->
+  <div class="explain-panel" id="explainPanel" style="display:none">
+    <div class="explain-header">
+      <span class="explain-title">Aciklanabilirlik Paneli</span>
+      <span class="explain-sub">Sistem kararlarin arkasindaki nedenleri gosterir</span>
+    </div>
+    <div class="explain-grid">
+
+      <!-- TFT Variable Importance -->
+      <div class="explain-card">
+        <div class="explain-card-title">Talep Tahmini Aciklamasi</div>
+        <div class="explain-card-sub">TFT modeli kararlari verirken hangi bilgilere ne kadar bakiyor?</div>
+        <div id="tftStaticBars" class="bar-section">
+          <div class="bar-label-sm">Rota ve Kabin Ozellikleri</div>
+          <div id="tftStaticList"></div>
+        </div>
+        <div id="tftEncoderBars" class="bar-section" style="margin-top:.8rem">
+          <div class="bar-label-sm">Gecmis Veriler (son 60 gun)</div>
+          <div id="tftEncoderList"></div>
+        </div>
+        <div id="tftDecoderBars" class="bar-section" style="margin-top:.8rem">
+          <div class="bar-label-sm">Gelecege Ait Bilgiler</div>
+          <div id="tftDecoderList"></div>
+        </div>
+      </div>
+
+      <!-- Pricing Decomposition -->
+      <div class="explain-card">
+        <div class="explain-card-title">Fiyat Ayristirmasi</div>
+        <div class="explain-card-sub">Bu ucusun fiyati hangi faktorlerden olusuyor?</div>
+        <div id="pricingDecomp">
+          <div class="decomp-placeholder">Simulasyon basladiktan sonra otomatik guncellenir</div>
+        </div>
+      </div>
+
+      <!-- EMSR-b Fare Class -->
+      <div class="explain-card">
+        <div class="explain-card-title">Koltuk Sinifi Durumu</div>
+        <div class="explain-card-sub">Hangi bilet siniflari acik, hangisi neden kapandi?</div>
+        <div id="emsrbStatus">
+          <div class="decomp-placeholder">Simulasyon basladiktan sonra otomatik guncellenir</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 
 </div>
+
+<style>
+/* ── Explainability Panel ── */
+.explain-panel{margin-top:1.2rem}
+.explain-header{margin-bottom:.8rem}
+.explain-title{font-size:.95rem;font-weight:700;color:var(--text-0)}
+.explain-sub{font-size:.7rem;color:var(--text-3);margin-left:.8rem}
+.explain-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+@media(max-width:1200px){.explain-grid{grid-template-columns:1fr}}
+.explain-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;position:relative;overflow:hidden}
+.explain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple));opacity:.6}
+.explain-card-title{font-size:.78rem;font-weight:700;color:var(--text-0);margin-bottom:.15rem}
+.explain-card-sub{font-size:.65rem;color:var(--text-3);margin-bottom:.8rem}
+.bar-section{margin-bottom:.4rem}
+.bar-label-sm{font-size:.62rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+.feat-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.feat-name{font-size:.68rem;color:var(--text-2);min-width:120px;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feat-bar-bg{flex:1;height:8px;background:var(--bg-3);border-radius:4px;overflow:hidden}
+.feat-bar{height:100%;border-radius:4px;transition:width .6s ease}
+.feat-val{font-size:.62rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;min-width:36px;text-align:right}
+.decomp-placeholder{font-size:.72rem;color:var(--text-3);font-style:italic;text-align:center;padding:2rem 0}
+/* Pricing decomp */
+.decomp-row{display:flex;align-items:center;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)}
+.decomp-row:last-child{border-bottom:none}
+.decomp-label{font-size:.72rem;color:var(--text-2)}
+.decomp-val{font-size:.78rem;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text-0)}
+.decomp-val.high{color:var(--red)}
+.decomp-val.low{color:var(--green)}
+.decomp-val.neutral{color:var(--text-2)}
+.decomp-divider{border-top:1px dashed var(--border-light);margin:.4rem 0}
+/* EMSR-b */
+.fc-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem}
+.fc-badge{font-size:.7rem;font-weight:700;padding:.2rem .5rem;border-radius:4px;min-width:28px;text-align:center;font-family:'JetBrains Mono',monospace}
+.fc-badge.open{background:var(--green-dim);color:var(--green)}
+.fc-badge.closed{background:var(--red-dim);color:var(--red)}
+.fc-info{font-size:.68rem;color:var(--text-2);flex:1}
+.fc-quota{font-size:.65rem;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+</style>
 
 <script>
 let pollTimer = null;
@@ -924,10 +1009,12 @@ function renderFlightTable(flights){
   // En yuksek delta'li 50 ucusu goster
   const sorted=[...flights].sort((a,b)=>b.load_factor-a.load_factor).slice(0,50);
   document.getElementById('tblCount').textContent=flights.length+' ucus (en dolu 50)';
-  tbody.innerHTML=sorted.map(f=>{
+  window._lastFlights = sorted;
+  tbody.innerHTML=sorted.map((f,idx)=>{
     const lfColor=f.load_factor>=0.85?'var(--green)':f.load_factor>=0.5?'var(--orange)':'var(--text-3)';
     const dCls=f.delta_pct>=0?'pos':'neg';
-    return `<tr style="cursor:pointer" onclick="selectFlightSeatmap('${f.key}','${f.cabin}','${f.route}','${f.dep_date}')">
+    const sel = (window._selectedFlightKey === f.key) ? 'background:rgba(88,166,255,.08);' : '';
+    return `<tr style="cursor:pointer;${sel}" onclick="onFlightRowClick('${f.key}','${f.cabin}','${f.route}','${f.dep_date}',${idx})">
       <td>${f.route}</td>
       <td>${f.cabin}</td>
       <td>${f.dep_date}</td>
@@ -940,7 +1027,260 @@ function renderFlightTable(flights){
       <td>${(f.open_fares||[]).join(' ')}</td>
     </tr>`;
   }).join('');
+  // Ilk poll'da otomatik olarak ilk ucusu sec (panel icin)
+  if (!window._selectedFlightKey && sorted.length) {
+    onFlightRowClick(sorted[0].key, sorted[0].cabin, sorted[0].route, sorted[0].dep_date, 0);
+  }
+  // Secili ucus varsa paneli guncelle
+  if (window._selectedFlightKey) {
+    const selFlight = sorted.find(f => f.key === window._selectedFlightKey);
+    if (selFlight) autoUpdatePanel(selFlight);
+  }
 }
+
+// ═══════════════════════════════════════════
+// EXPLAINABILITY PANEL
+// ═══════════════════════════════════════════
+
+let _tftInterp = null;
+window._selectedFlightKey = null;
+
+// Tablo satirina tiklandiginda — seatmap'e dokunma, sadece paneli guncelle
+function onFlightRowClick(key, cabin, route, depDate, idx) {
+  window._selectedFlightKey = key;
+  // Seatmap sadece ilk kez veya farkli ucus secildiginde yuklenir
+  if (seatmapFlightKeys[cabin] !== key) {
+    seatmapFlightKeys = {economy: null, business: null};
+    seatmapFlightKeys[cabin] = key;
+    const otherCabin = cabin === 'economy' ? 'business' : 'economy';
+    seatmapFlightKeys[otherCabin] = key.replace('_' + cabin, '_' + otherCabin);
+    document.getElementById('seatmapFlightLabel').textContent = route.replace('-',' \u2192 ') + ' | ' + depDate;
+    window._simDepDate = depDate;
+  }
+  // Paneli guncelle
+  const flight = window._lastFlights?.find(f => f.key === key);
+  if (flight) {
+    updatePricingDecomp(flight);
+    updateEMSRbStatus(flight);
+  }
+  // Satir highlight
+  document.querySelectorAll('#tblBody tr').forEach(tr => tr.style.background = '');
+  const rows = document.querySelectorAll('#tblBody tr');
+  if (rows[idx]) rows[idx].style.background = 'rgba(88,166,255,.08)';
+}
+
+// Otomatik panel guncelleme (her poll'da secili ucus icin)
+function autoUpdatePanel(flight) {
+  if (!flight) return;
+  updatePricingDecomp(flight);
+  updateEMSRbStatus(flight);
+}
+
+async function loadTFTInterpretation() {
+  try {
+    const res = await fetch('/api/tft/interpretation');
+    if (res.ok) {
+      _tftInterp = await res.json();
+      renderTFTBars();
+      document.getElementById('explainPanel').style.display = '';
+    }
+  } catch(e) { console.warn('TFT interp not available:', e); }
+}
+
+// Feature isimlerini insanin anlayacagi Turkce'ye cevir
+const FEAT_TR = {
+  'entity_id':'Rota Kimliği','route':'Rota','cabin_class':'Kabin Tipi','direction':'Yon',
+  'total_pax_center':'Ort. Yolcu (normalize)','total_pax_scale':'Yolcu Varyansı',
+  'avg_fare':'Ortalama Bilet Fiyati','relative_time_idx':'Zaman Pozisyonu',
+  'total_pax':'Toplam Yolcu','tag_is_seyahati':'Is Seyahati Etkisi',
+  'connecting_pct':'Baglanti Yolcu Orani','tag_hac_umre':'Hac/Umre Donemi',
+  'late_booking_pct':'Gec Rezervasyon Orani','time_idx':'Zaman Indeksi',
+  'n_flights':'Ucus Sayisi','tag_yaz_tatili':'Yaz Tatili Etkisi',
+  'dep_month':'Kalkis Ayi','dep_dow':'Kalkis Gunu','is_special_period':'Ozel Gun mu',
+  'is_weekend':'Hafta Sonu mu','capacity':'Kapasite','load_factor':'Doluluk',
+};
+function trName(f) { return FEAT_TR[f] || f.replace(/_/g, ' '); }
+
+function renderTFTBars() {
+  if (!_tftInterp) return;
+  function renderBarList(containerId, items, color, maxItems) {
+    const el = document.getElementById(containerId);
+    if (!el || !items || !items.length) return;
+    const maxVal = items[0].importance || 1;
+    el.innerHTML = items.slice(0, maxItems).map(item => {
+      const pct = Math.max((item.importance / maxVal) * 100, 3);
+      return `<div class="feat-row">
+        <span class="feat-name" title="${item.feature}">${trName(item.feature)}</span>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:${pct}%;background:${color}"></div></div>
+        <span class="feat-val">${(item.importance*100).toFixed(1)}%</span>
+      </div>`;
+    }).join('');
+  }
+  renderBarList('tftStaticList', _tftInterp.static_variable_importance, '#58a6ff', 5);
+  renderBarList('tftEncoderList', _tftInterp.encoder_variable_importance, '#39d2c0', 6);
+  renderBarList('tftDecoderList', _tftInterp.decoder_variable_importance, '#bc8cff', 5);
+
+  // Ozet yorum ekle
+  const topStatic = _tftInterp.static_variable_importance?.[0];
+  const topEnc = _tftInterp.encoder_variable_importance?.[0];
+  const topDec = _tftInterp.decoder_variable_importance?.[0];
+  const summary = document.createElement('div');
+  summary.style.cssText = 'margin-top:.8rem;padding:.6rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.68rem;color:var(--text-2);line-height:1.5';
+  summary.innerHTML = `<b style="color:var(--text-0)">Ozet:</b> TFT talep tahmininde en cok <b style="color:#58a6ff">${trName(topStatic?.feature)}</b> bilgisine bakiyor — yani her rotanin kendine ozgu talep patterni var. Zaman serisinde <b style="color:#39d2c0">${trName(topEnc?.feature)}</b> en etkili girdi. Gelecek icin <b style="color:#bc8cff">${trName(topDec?.feature)}</b> en belirleyici faktor.`;
+  document.getElementById('tftDecoderBars').after(summary);
+}
+
+function updatePricingDecomp(flight) {
+  const el = document.getElementById('pricingDecomp');
+  if (!flight || !flight.current_prices) {
+    el.innerHTML = '<div class="decomp-placeholder">Simulasyon baslatilmadi</div>';
+    return;
+  }
+  const prices = flight.current_prices || {};
+  const openFares = flight.open_fares || [];
+  const bestFare = openFares[0] || 'Y';
+  const bestPrice = prices[bestFare] || 0;
+
+  // Ucus detayindan multiplier'lari al
+  fetch(`/api/sim/flight/${flight.key}`).then(r=>r.json()).then(d=>{
+    const ph = d.price_history;
+    const last = ph && ph.length ? ph[ph.length-1] : null;
+    const mults = last?.multipliers || {};
+    function valClass(v) { return v > 1.1 ? 'high' : v < 0.95 ? 'low' : 'neutral'; }
+
+    el.innerHTML = `
+      <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date} | ${flight.cabin}</div>
+      <div class="decomp-row"><span class="decomp-label">Baz Fiyat</span><span class="decomp-val">${fmt$(last?.baseline_price || 0)}</span></div>
+      <div class="decomp-row"><span class="decomp-label">Arz (supply)</span><span class="decomp-val ${valClass(mults.supply||1)}">${(mults.supply||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Talep (demand)</span><span class="decomp-val ${valClass(mults.demand||1)}">${(mults.demand||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Sentiment</span><span class="decomp-val ${valClass(mults.sentiment||1)}">${(mults.sentiment||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Musteri</span><span class="decomp-val ${valClass(mults.customer||1)}">${(mults.customer||1).toFixed(3)}x</span></div>
+      <div class="decomp-divider"></div>
+      <div class="decomp-row"><span class="decomp-label"><b>Bilesik</b></span><span class="decomp-val" style="color:var(--accent)">${(mults.combined||1).toFixed(3)}x</span></div>
+      <div class="decomp-divider"></div>
+      ${['V','K','M','Y'].map(fc => {
+        const p = prices[fc] || d.current_prices?.[fc];
+        const isOpen = openFares.includes(fc);
+        return `<div class="decomp-row" style="opacity:${isOpen?1:0.35}">
+          <span class="decomp-label">${fc} ${isOpen?'&#9679;':''}</span>
+          <span class="decomp-val">${p ? fmt$(p) : '-'}</span>
+        </div>`;
+      }).join('')}
+      <div class="decomp-divider"></div>
+      <div class="decomp-row">
+        <span class="decomp-label" style="font-weight:700;color:var(--text-0)">Yolcu Fiyati</span>
+        <span class="decomp-val" style="color:var(--green);font-size:.9rem">${fmt$(bestPrice)} (${bestFare})</span>
+      </div>
+      <div style="margin-top:.6rem;padding:.5rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.66rem;color:var(--text-2);line-height:1.5">
+        <b style="color:var(--text-0)">Yorum:</b>
+        ${mults.supply > 1.3 ? ' Koltuklar hizla doluyor — arz carpani fiyati yukseltiyor.' :
+          mults.supply > 1.1 ? ' Doluluk ortalamanin uzerinde, fiyatlar hafif yukseliyor.' :
+          ' Doluluk dusuk, fiyatlar baz seviyede.'}
+        ${mults.demand > 1.2 ? ' Yuksek sezon/ozel gun etkisiyle talep guclu.' :
+          mults.demand > 1.05 ? ' Talep normal seviyelerde.' :
+          ' Dusuk talep donemi.'}
+        ${mults.sentiment < 0.95 ? ' Destinasyonda olumsuz haber etkisi var.' :
+          mults.sentiment > 1.05 ? ' Destinasyonda olumlu haber etkisi var.' : ''}
+        Yolcu su an <b>${bestFare}</b> sinifinda <b>${fmt$(bestPrice)}</b> oduyor
+        (baz fiyatin <b>${((mults.combined||1)*({'V':0.5,'K':0.75,'M':1,'Y':1.5}[bestFare]||1)*100).toFixed(0)}%</b>'i).
+      </div>
+    `;
+  }).catch(()=>{
+    // Fetch hata verirse mevcut veriden goster
+    el.innerHTML = `
+      <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date}</div>
+      ${['V','K','M','Y'].map(fc => {
+        const p = prices[fc];
+        const isOpen = openFares.includes(fc);
+        return `<div class="decomp-row" style="opacity:${isOpen?1:0.35}">
+          <span class="decomp-label">${fc} ${isOpen?'&#9679;':''}</span>
+          <span class="decomp-val">${p ? fmt$(p) : '-'}</span>
+        </div>`;
+      }).join('')}
+    `;
+  });
+}
+
+function updateEMSRbStatus(flight) {
+  const el = document.getElementById('emsrbStatus');
+  if (!flight) {
+    el.innerHTML = '<div class="decomp-placeholder">Simulasyon baslatilmadi</div>';
+    return;
+  }
+  fetch(`/api/sim/flight/${flight.key}`).then(r=>r.json()).then(d=>{
+    const fcSold = d.fare_class_sold || {};
+    const openFares = d.fare_classes_open || flight.open_fares || [];
+    const cap = d.capacity || 300;
+    const sold = d.sold || 0;
+    const remaining = cap - sold;
+
+    const fcDefs = [
+      {id:'V', name:'Promosyon', quotaPct:0.15, color:'#94a3b8'},
+      {id:'K', name:'Indirimli', quotaPct:0.25, color:'#c9a227'},
+      {id:'M', name:'Esnek',     quotaPct:0.35, color:'#6366f1'},
+      {id:'Y', name:'Tam Fiyat', quotaPct:1.00, color:'#ef4444'},
+    ];
+
+    el.innerHTML = `
+      <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date} | LF ${fmtPct(flight.load_factor)}</div>
+    ` + fcDefs.map(fc => {
+      const isOpen = openFares.includes(fc.id);
+      const soldC = fcSold[fc.id] || 0;
+      const quota = Math.floor(cap * fc.quotaPct);
+      const pct = quota > 0 ? Math.min(soldC / quota * 100, 100) : 100;
+      let reason = '';
+      if (!isOpen) {
+        // Neden kapalı — en spesifik nedeni bul
+        if (soldC >= quota && fc.id !== 'Y') {
+          reason = `Kota doldu (${soldC}/${quota})`;
+        } else if (fc.id === 'V' && sold/cap > 0.4) {
+          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, V sinifi %40 uzerinde kapanir`;
+        } else if (fc.id === 'K' && sold/cap > 0.6) {
+          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, K sinifi %60 uzerinde kapanir`;
+        } else if (fc.id === 'M' && sold/cap > 0.85) {
+          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, M sinifi %85 uzerinde kapanir`;
+        } else {
+          // DTD kuralina bak
+          const dtd = flight.dtd || 0;
+          if (dtd <= 6) reason = `Son ${dtd} gun, sadece Y acik`;
+          else if (dtd <= 13) reason = `Son hafta, V ve K kapali`;
+          else if (dtd <= 29) reason = `Gec donem, V kapali`;
+          else reason = `Donem kurali ile kapali`;
+        }
+      }
+      const showQuota = fc.id !== 'Y';
+      return `<div class="fc-row">
+        <span class="fc-badge ${isOpen?'open':'closed'}" style="border:1px solid ${fc.color}">${fc.id}</span>
+        <span class="fc-info">${fc.name}${!isOpen ? ` <span style="color:var(--red);font-size:.6rem">${reason}</span>` : ''}</span>
+        <span class="fc-quota">${showQuota ? soldC+'/'+quota : soldC+' satildi'}</span>
+        ${showQuota ? `<div style="width:50px;height:6px;background:var(--bg-3);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${isOpen?'var(--green)':'var(--red)'};border-radius:3px;transition:width .5s"></div>
+        </div>` : ''}
+      </div>`;
+    }).join('') + `
+    <div style="margin-top:.5rem;padding-top:.4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-3)">
+      <span>Kapasite: ${cap}</span><span>Satilan: ${sold}</span><span>Kalan: ${remaining}</span><span>Overbooking: ${Math.floor(cap*1.08)}</span>
+    </div>
+    <div style="margin-top:.5rem;padding:.5rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.66rem;color:var(--text-2);line-height:1.5">
+      <b style="color:var(--text-0)">Yorum:</b>
+      ${openFares.length === 1 && openFares[0] === 'Y' ?
+        (fcSold['Y'] === 0 ?
+          ' Sadece tam fiyat (Y) acik ama henuz alan yok — fiyat yuksek. Sistem kalan ${remaining} koltugu premium yolcular icin koruyor.' :
+          ` Sadece tam fiyat (Y) acik, ${fcSold['Y']} kisi aldi. Ucuz siniflar kapandi, kalan ${remaining} koltuk yuksek fiyatla satilacak.`) :
+        openFares.length <= 2 ?
+        ` ${openFares.join(' ve ')} siniflari acik. Diger siniflar doluluk veya kota nedeniyle kapandi.` :
+        ` ${openFares.join(', ')} siniflari acik — erken donem, indirimli siniflar musait.`}
+      ${sold > cap * 0.85 ? ` Ucus %${(sold/cap*100).toFixed(0)} dolu — son koltuklar yuksek fiyatla satilacak.` :
+        sold > cap * 0.6 ? ` Ucus %${(sold/cap*100).toFixed(0)} dolu, sistem dusuk siniflardan koruma yapiyor.` :
+        ` Ucus henuz %${(sold/cap*100).toFixed(0)} dolu — erken asama.`}
+    </div>`;
+  }).catch(()=>{
+    el.innerHTML = '<div class="decomp-placeholder">Detay yuklenemedi</div>';
+  });
+}
+
+// Sayfa yuklendiginde TFT'yi yukle
+document.addEventListener('DOMContentLoaded', () => { loadTFTInterpretation(); });
 
 
 </script>

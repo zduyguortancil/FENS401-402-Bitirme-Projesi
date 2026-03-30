@@ -286,24 +286,16 @@ class PricingEngine:
         elif isinstance(dep_date, datetime):
             dep_date = dep_date.date()
 
-        # Sezon — kalibrasyondan veya fallback
-        cal_season = self.calibration.get("season_factors", {}).get("factors", {})
-        if cal_season:
-            season = cal_season.get(str(dep_date.month), 1.0)
-        else:
-            season = SEASON_FACTORS.get(dep_date.month, 1.0)
+        # Sezon — her zaman orijinal (kalibrasyonda duz cikiyor cunku veri seasonality'yi fiyata degil talebe yansitiyor)
+        season = SEASON_FACTORS.get(dep_date.month, 1.0)
 
         # Ozel gun
         special_key = (dep_date.year, dep_date.month, dep_date.day)
         special = SPECIAL_PERIODS.get(special_key)
         special_mult = special[1] if special else 1.0
 
-        # Hafta gunu — kalibrasyondan veya fallback
-        cal_dow = self.calibration.get("dow_factors", {})
-        if cal_dow:
-            dow = cal_dow.get(str(dep_date.weekday()), 1.0)
-        else:
-            dow = DOW_FACTORS.get(dep_date.weekday(), 1.0)
+        # Hafta gunu — her zaman orijinal (ayni sebep)
+        dow = DOW_FACTORS.get(dep_date.weekday(), 1.0)
 
         # Bolge faktoru artik baz fiyatta (rota bazli), burada tekrar uygulanmaz
         raw = season * max(special_mult, 1.0) * dow

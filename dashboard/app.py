@@ -964,6 +964,23 @@ def api_pickup(flight_id):
     return jsonify(result)
 
 
+# ─── TFT INTERPRETATION API ───────────────────────────────
+TFT_INTERP_PATH = f"{PROJECT_DIR}/reports/tft_interpretation.json"
+_tft_interp_cache = None
+
+@app.route("/api/tft/interpretation")
+def api_tft_interpretation():
+    """TFT Variable Selection Network weights + attention pattern."""
+    global _tft_interp_cache
+    if _tft_interp_cache is None:
+        interp_path = TFT_INTERP_PATH.replace("/", os.sep)
+        if not os.path.exists(interp_path):
+            return jsonify({"error": "TFT interpretation not extracted. Run extract_tft_attention.py"}), 404
+        with open(interp_path, "r", encoding="utf-8") as f:
+            _tft_interp_cache = json.load(f)
+    return jsonify(_tft_interp_cache)
+
+
 # ─── CLUSTER API ──────────────────────────────────────────
 CLUSTER_PARQUET = f"{DATA_DIR}/processed/passenger_clusters.parquet"
 CLUSTER_REPORT  = f"{PROJECT_DIR}/reports/cluster_report.json"

@@ -1,4 +1,4 @@
-# Data files (large, stored on Google Drive)
+# Data files (large — download separately, see README)
 *.parquet
 data/raw/
 data/processed/
@@ -8,9 +8,11 @@ data/models/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
 
 # Environment / secrets
 .env
+.env.*
 
 # Database cache
 *.db
@@ -19,12 +21,23 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+*.swo
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Build / temp
 *.spec
 build/
 dist/
+
+# Model checkpoints (large)
+*.ckpt
+*.pt
+*.pkl
+
+# Temp scripts
+pv.py
+pv_panel.py
