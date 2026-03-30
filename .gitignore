@@ -41,3 +41,8 @@ dist/
 # Temp scripts
 pv.py
 pv_panel.py
+
+# Non-repo artifacts
+archive/
+presentation_figs/
+docs_ts/
