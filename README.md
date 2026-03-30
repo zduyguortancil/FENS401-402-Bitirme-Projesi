@@ -1,156 +1,133 @@
 # SeatWise
 
-**End-to-end airline revenue management system** combining machine learning demand forecasting, dynamic pricing, fare class optimization, and real-time booking simulation.
+**End-to-end airline revenue management system** that combines machine learning demand forecasting, dynamic pricing, fare class optimization, and real-time booking simulation.
 
-Built for the IST (Istanbul) hub network: 50 routes, 51 destinations, 5 regions, 2 cabin classes, ~146K daily observations.
+> Source code is available upon request.
 
-## System Architecture
+---
 
-```
-                    +─────────────────────────────────+
-                    |        DASHBOARD (Flask)         |
-                    |  Simulation UI · Booking · APIs  |
-                    +────────────┬────────────────────+
-                                 │
-          +──────────────────────┼──────────────────────+
-          │                      │                      │
-  +───────▼───────+    +────────▼────────+    +────────▼────────+
-  │   SIMULATION  │    │  PRICING ENGINE │    │    NETWORK      │
-  │    ENGINE     │    │                 │    │   OPTIMIZER     │
-  │               │    │  base × supply  │    │                 │
-  │  Bot agents   │    │  × demand       │    │  EMSR-b         │
-  │  Cancel/NoShow│    │  × sentiment    │    │  Bid price      │
-  │  Overbooking  │    │  × customer     │    │  O&D proration  │
-  +───────▲───────+    +────────▲────────+    +────────▲────────+
-          │                      │                      │
-          +──────────────────────┼──────────────────────+
-                                 │
-                    +────────────▼────────────────────+
-                    |       FORECAST BRIDGE            |
-                    |  Connects 3 ML models to sim    |
-                    +────────────┬────────────────────+
-                                 │
-          +──────────────────────┼──────────────────────+
-          │                      │                      │
-  +───────▼───────+    +────────▼────────+    +────────▼────────+
-  │   TFT         │    │  Two-Stage XGB  │    │  Pickup XGB     │
-  │               │    │  (Hurdle Model) │    │                 │
-  │  Route-daily  │    │  Daily booking  │    │  Remaining pax  │
-  │  demand       │    │  prediction     │    │  prediction     │
-  │  MAE: 14.03   │    │  AUC: 0.835    │    │  MAE: 3.45      │
-  +───────────────+    +─────────────────+    │  SHAP explain.  │
-                                              +─────────────────+
-                    +─────────────────────────────────+
-                    |     SENTIMENT INTELLIGENCE       |
-                    |  GDELT + Google News + DeBERTa   |
-                    |  51 cities · 14-day recency      |
-                    +─────────────────────────────────+
-```
+## Screenshots
 
-## Key Features
+### Dashboard
+![Dashboard](screenshots/main_screen.png)
 
-### Demand Forecasting
-- **Temporal Fusion Transformer (TFT):** Route-daily demand prediction with interpretable attention. 200 entities, 30-day horizon, quantile loss. Variable Selection Network reveals which features drive predictions.
-- **Two-Stage XGBoost (Hurdle Model):** Handles 70.8% zero-inflated daily sales data. Stage 1 classifies sale probability (AUC 0.835), Stage 2 predicts quantity (MAE 0.78).
-- **Pickup XGBoost:** Predicts remaining passengers at each DTD point. 49 features, 70.4% improvement over naive baseline. SHAP TreeExplainer provides per-flight feature importance.
+### Booking Simulation
+Real-time seat map with animated bookings, fare class colors, and KPI tracking.
 
-### Dynamic Pricing
-- **4-factor pricing formula:** `price = base * supply * demand * sentiment * customer`
-- **Data-calibrated coefficients:** Base price learned via linear regression (R2=0.979), LF curve and route factors from statistical analysis. Season/DOW/special period factors from industry standards.
-- **Fare class management:** 4 classes (V/K/M/Y) with DTD rules, LF thresholds, quota limits, and EMSR-b dynamic protection.
+![Simulation](screenshots/simulasyon.png)
 
-### Revenue Optimization
-- **EMSR-b fare class optimization:** Forecast-informed Expected Marginal Seat Revenue controls V/K class availability. Protection levels computed using inverse normal CDF with demand estimates from TFT/Pickup.
-- **O&D network optimization:** Bid price control for connecting vs local passengers. Distance-based fare proration with 15% connecting discount. Displacement tracking.
-- **Overbooking:** Sell limit at 108% capacity, calibrated against segment-specific no-show rates (3-20%).
+### Demand Forecast
+XGBoost Pickup model predictions with SHAP feature importance and model metrics.
 
-### Simulation
-- **Real-time booking simulation** with configurable speed (1x to 14400x).
-- **6 passenger segments** (A-F) with distinct WTP ranges, booking windows, and no-show rates.
-- **Cancellation model:** Fare-class based daily cancel probabilities with refund logic.
-- **Explainability panel:** TFT attention weights, pricing decomposition, and EMSR-b status displayed in the simulation UI.
+![Forecast](screenshots/talep_tahmini.png)
 
 ### Sentiment Intelligence
-- **51 destination cities** monitored via GDELT API and Google News RSS.
-- **DeBERTa NLI classification** for positive/negative/neutral sentiment.
-- **14-day recency filter** ensures only fresh news affects pricing.
-- Dual impact: sentiment affects both demand volume and price level.
+Real-time news monitoring for 51 destination cities. DeBERTa NLI classification with GDELT and Google News data.
+
+![Sentiment](screenshots/sentiment_analizi.png)
+
+---
+
+## Architecture
+
+```
+                         DASHBOARD (Flask)
+                    Simulation · Booking · APIs
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+    SIMULATION          PRICING ENGINE       NETWORK OPTIMIZER
+    ENGINE
+    Bot agents          base x supply        EMSR-b protection
+    Cancel/NoShow       x demand             Bid price control
+    Overbooking         x sentiment          O&D fare proration
+                        x customer
+                              |
+                       FORECAST BRIDGE
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+         TFT           Two-Stage XGB        Pickup XGB
+    Route-daily         Hurdle model        Remaining pax
+    demand forecast     Daily booking       prediction
+    MAE: 14.03          AUC: 0.835          MAE: 3.45
+
+                   SENTIMENT INTELLIGENCE
+                GDELT + Google News + DeBERTa
+                51 cities, 14-day recency
+```
+
+## Features
+
+### Demand Forecasting (3 Models)
+- **Temporal Fusion Transformer (TFT)** — Route-daily demand prediction with interpretable attention. 200 entities, 30-day horizon, quantile loss. Variable Selection Network provides feature importance for explainability.
+- **Two-Stage XGBoost (Hurdle Model)** — Addresses 70.8% zero-inflated daily sales. Classifier (AUC 0.835) + Regressor (MAE 0.78) combined as `P(sale) x E[pax|sale]`.
+- **Pickup XGBoost** — Remaining passenger prediction. 49 features, 70.4% improvement over baseline. SHAP TreeExplainer for per-flight explainability.
+
+### Dynamic Pricing
+- **4-factor multiplicative formula:** `price = base x supply x demand x sentiment x customer`
+- **Data-calibrated coefficients** — Base price via linear regression (R2 = 0.979, n = 102K), load factor curve and route factors from statistical analysis
+- **Behavioral pricing** — Session-based customer multiplier using return visits, search patterns, device type, FF tier
+
+### Fare Class Optimization
+- **4 fare classes** (V / K / M / Y) with DTD rules, load factor thresholds, and quota limits
+- **EMSR-b (Expected Marginal Seat Revenue)** — Forecast-informed protection levels via inverse normal CDF. Dynamically closes discount classes when quotas fill.
+- **3-layer decision:** DTD rules → LF thresholds → EMSR-b override
+
+### O&D Network Optimization
+- **Bid price control** for connecting vs local passengers (active above 60% LF)
+- **Distance-based fare proration** with 15% connecting discount
+- **Displacement tracking** — measures revenue saved by rejecting low-yield connecting passengers
+
+### Booking Simulation
+- **Real-time simulation** with configurable speed (1x to 14,400x)
+- **6 passenger segments** with distinct WTP, booking windows, and no-show rates (3-20%)
+- **Overbooking model** — Sell limit at 108% capacity, no-show simulation, denied boarding cost tracking
+- **Cancellation model** — Fare-class based daily probabilities (V: 1%, K: 3%, M: 8%, Y: 12%) with refund logic
+- **Explainability panel** — TFT attention, pricing decomposition, EMSR-b fare class status
+
+### Sentiment Intelligence
+- **51 destination cities** via GDELT API + Google News RSS
+- **DeBERTa-v3 NLI** classification (positive / negative / neutral)
+- **14-day recency filter** — only fresh news affects pricing
+- **Dual impact:** demand volume (+/-30%) and price level (+/-15%)
 
 ## Model Performance
 
-| Model | MAE | Other Metric | Data |
-|-------|-----|-------------|------|
-| TFT | 14.03 | Correlation: 0.991 | 200 entities x 730 days |
-| Pickup XGBoost | 3.45 | WAPE: 9.82%, Improvement: 70.4% | 49 features |
-| Two-Stage XGBoost | 0.78 | AUC: 0.835 | 31 features, hurdle model |
+| Model | Task | MAE | Key Metric | Training Data |
+|-------|------|-----|-----------|---------------|
+| TFT | Route-daily demand | 14.03 | Corr: 0.991 | 200 entities x 730 days |
+| Pickup XGB | Remaining passengers | 3.45 | WAPE: 9.82% | 49 features, 36.8M rows |
+| Two-Stage XGB | Daily bookings | 0.78 | AUC: 0.835 | 31 features, hurdle model |
 
-## Project Structure
+## Simulation Results (IST-LHR, July, 15 flights)
 
-```
-seatwise/
-├── dashboard/
-│   ├── app.py                    # Flask application - all API endpoints
-│   ├── pricing_engine.py         # Dynamic pricing (4 multipliers + fare class)
-│   ├── simulation_engine.py      # Booking simulation + overbooking + cancellation
-│   ├── forecast_bridge.py        # ML model bridge (TFT + Two-Stage + Pickup)
-│   ├── network_optimizer.py      # O&D optimization, EMSR-b, bid price
-│   ├── sentiment/                # Sentiment analysis module
-│   └── templates/                # HTML templates (simulation, booking, dashboard)
-├── scripts/
-│   ├── calibrate_from_data.py    # Learn pricing coefficients from data
-│   ├── extract_tft_attention.py  # Extract TFT interpretation weights
-│   ├── generate_reports.py       # PDF report generator
-│   ├── data_prep/                # Data preparation pipeline
-│   ├── training/                 # Model training scripts
-│   └── kaggle/                   # Kaggle GPU training notebooks
-├── reports/                      # JSON metric reports + calibration
-├── docs_ts/                      # Time series documentation
-└── data/                         # Data files (not in repo, see Setup)
-```
-
-## Setup
-
-### Requirements
-
-```
-Python 3.11+
-flask, duckdb, xgboost, pandas, numpy, joblib, shap
-pytorch-forecasting, lightning, torch
-transformers, feedparser, scipy
-reportlab (for PDF reports)
-```
-
-### Data
-
-Data files are not included in the repository due to size. Place the following:
-
-```
-data/raw/           -> flight_snapshot_v2.parquet, bookings_enriched.parquet
-data/processed/     -> tft_route_daily.parquet, pickup_master.parquet, flight_metadata.parquet, ...
-data/models/        -> pickup_xgb.json, xgb_demand_*.pkl, tft_full_checkpoint.ckpt, ...
-```
-
-### Run
-
-```bash
-cd dashboard
-python app.py
-# Dashboard:  http://localhost:5005
-# Simulation: http://localhost:5005/simulation
-# Booking:    http://localhost:5005/booking
-```
+| Metric | Value |
+|--------|-------|
+| Revenue Delta vs Baseline | +2.8% |
+| Average Load Factor | 69.9% |
+| Fare Mix V / K / M / Y | 16.5% / 36.7% / 48.7% / 0.3% |
+| Cancellations | 72 |
+| No-Shows | 125 |
+| Denied Boardings | 0 |
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Backend | Python, Flask |
-| Database | DuckDB + Apache Parquet |
-| ML - TFT | PyTorch, pytorch-forecasting |
-| ML - XGBoost | xgboost, joblib |
-| ML - SHAP | shap (TreeExplainer) |
-| NLP | HuggingFace transformers, DeBERTa-v3 |
-| Optimization | scipy.stats (EMSR-b) |
-| Frontend | Vanilla JS, CSS, Chart.js |
-| Data Collection | GDELT API, Google News RSS |
+| Database | DuckDB, Apache Parquet |
+| Forecasting | PyTorch, pytorch-forecasting (TFT) |
+| ML | XGBoost, scikit-learn, SHAP |
+| NLP | HuggingFace Transformers, DeBERTa-v3 |
+| Optimization | SciPy (EMSR-b inverse normal CDF) |
+| Frontend | Vanilla JS, Chart.js |
+| Data | GDELT API, Google News RSS |
 
+## Data
+
+The system is built on a synthetic airline dataset modeled after the IST hub network:
+- **50 routes**, 51 destinations across 5 regions
+- **2 cabin classes** (Economy ~300 seats, Business ~49 seats)
+- **~146,000 daily observations** across 200 route-cabin entities over 2 years
+- Panel data structure enables cross-sectional learning across routes

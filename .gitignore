@@ -46,3 +46,9 @@ pv_panel.py
 archive/
 presentation_figs/
 docs_ts/
+
+# Source code (private repo)
+dashboard/
+scripts/
+reports/
+data/
