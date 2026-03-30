@@ -18,7 +18,7 @@ import json
 import time
 import gc
 
-BASE = Path(r"C:\Users\ahmet\OneDrive\Desktop\ptir")
+BASE = Path(__file__).resolve().parent.parent.parent
 DATA = BASE / "data" / "processed"
 MODELS = BASE / "data" / "models"
 REPORTS = BASE / "reports"

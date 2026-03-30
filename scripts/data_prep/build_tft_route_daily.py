@@ -16,8 +16,8 @@ import numpy as np
 from pathlib import Path
 
 # ── Paths ──
-BASE_DIR   = Path(r"C:\Users\ahmet\OneDrive\Desktop\ptir")
-DATA_DIR   = Path(r"C:\Users\ahmet\OneDrive\Desktop\veriler")
+BASE_DIR   = Path(__file__).resolve().parent.parent.parent
+DATA_DIR   = BASE_DIR / "data" / "raw"
 OUT_PATH   = BASE_DIR / "tft_route_daily.parquet"
 
 FLIGHTS_PATH    = DATA_DIR / "flights.parquet"

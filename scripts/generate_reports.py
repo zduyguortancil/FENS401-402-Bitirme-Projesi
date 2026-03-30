@@ -37,7 +37,7 @@ WARNING = HexColor("#f39c12")
 DANGER = HexColor("#e74c3c")
 INFO_BLUE = HexColor("#3498db")
 
-DESKTOP = os.path.expanduser("~/OneDrive/Desktop")
+DESKTOP = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def get_styles():

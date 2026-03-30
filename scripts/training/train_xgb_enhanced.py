@@ -17,7 +17,7 @@ import json
 import time
 import gc
 
-BASE_DIR = Path(r"C:\Users\ahmet\OneDrive\Desktop\ptir")
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 DEMAND_PATH   = BASE_DIR / "demand_training.parquet"
 METADATA_PATH = BASE_DIR / "flight_metadata.parquet"

@@ -9,8 +9,9 @@ import os
 import warnings
 warnings.filterwarnings("ignore")
 
-base = os.path.join("C:", os.sep, "Users", "ahmet", "OneDrive", "Desktop", "seatwise", "data", "processed")
-out = os.path.join("C:", os.sep, "Users", "ahmet", "OneDrive", "Desktop", "seatwise", "docs_ts")
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+base = os.path.join(PROJECT_DIR, "data", "processed")
+out = os.path.join(PROJECT_DIR, "docs_ts")
 os.makedirs(out, exist_ok=True)
 
 df = pd.read_parquet(os.path.join(base, "tft_route_daily.parquet"))

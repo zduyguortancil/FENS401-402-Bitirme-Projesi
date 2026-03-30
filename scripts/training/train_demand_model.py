@@ -19,7 +19,7 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "-q", "install", "xgboost"])
     from xgboost import XGBClassifier, XGBRegressor
 
-BASE_DIR     = Path(r"C:\Users\ahmet\OneDrive\Desktop\ptir")
+BASE_DIR     = Path(__file__).resolve().parent.parent.parent
 DATA_PATH    = BASE_DIR / "demand_training.parquet"
 OUT_CLF      = BASE_DIR / "xgb_demand_classifier.pkl"
 OUT_REG      = BASE_DIR / "xgb_demand_regressor.pkl"

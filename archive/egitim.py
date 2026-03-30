@@ -1,1 +1,2 @@
-exec(open(r"C:\Users\ahmet\OneDrive\Desktop\ptir\train_xgb_enhanced.py").read())
+# Wrapper script — run train_xgb_enhanced.py
+exec(open("scripts/training/train_xgb_enhanced.py").read())

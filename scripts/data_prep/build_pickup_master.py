@@ -19,7 +19,7 @@ import time
 from pathlib import Path
 import gc
 
-BASE = Path(r"C:\Users\ahmet\OneDrive\Desktop\ptir")
+BASE = Path(__file__).resolve().parent.parent.parent
 DATA = BASE / "data" / "processed"
 
 DEMAND   = str(DATA / "demand_training.parquet").replace("\\", "/")

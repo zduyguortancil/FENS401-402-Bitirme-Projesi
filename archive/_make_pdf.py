@@ -3,11 +3,11 @@ import re
 import sys
 from fpdf import FPDF
 
-FONT_DIR = r"C:\Users\ahmet\AppData\Local\Programs\Python\Python313\Lib\site-packages\matplotlib\mpl-data\fonts\ttf"
+FONT_DIR = os.path.join(os.path.dirname(sys.executable), "Lib", "site-packages", "matplotlib", "mpl-data", "fonts", "ttf")
 
 # Allow command-line override or use defaults
-INPUT = sys.argv[1] if len(sys.argv) > 1 else r"C:\Users\ahmet\OneDrive\Desktop\ptir\SENTIMENT_TECHNICAL_DOC.md"
-OUTPUT = sys.argv[2] if len(sys.argv) > 2 else r"C:\Users\ahmet\OneDrive\Desktop\Sentiment_Teknik_Dokumantasyon.pdf"
+INPUT = sys.argv[1] if len(sys.argv) > 1 else "SENTIMENT_TECHNICAL_DOC.md"
+OUTPUT = sys.argv[2] if len(sys.argv) > 2 else "Sentiment_Teknik_Dokumantasyon.pdf"
 
 
 class PDF(FPDF):

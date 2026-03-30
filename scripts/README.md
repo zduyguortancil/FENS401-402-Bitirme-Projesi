@@ -9,7 +9,7 @@ Ham veriden islenmis veri ureten scriptler.
 |---|-------|-------|-------|----------|
 | 1 | build_demand_training.py | raw/*.parquet | processed/demand_training.parquet, flight_metadata.parquet | 37M satirlik DTD bazli egitim verisi + ucus metadata |
 | 2 | add_event_tags.py | processed/demand_training.parquet | (demand_training'e tag ekler) | 15 olay etiketi (ramazan, bayram, tatil, vb.) |
-| 3 | build_tft_route_daily.py | raw/ (OneDrive/veriler/) | processed/tft_route_daily.parquet | TFT icin rota bazli gunluk agregat (138K satir) |
+| 3 | build_tft_route_daily.py | data/raw/ | processed/tft_route_daily.parquet | TFT icin rota bazli gunluk agregat (138K satir) |
 | 4 | build_pickup_master.py | processed/demand_training + flight_metadata + tft_route_daily | processed/pickup_master.parquet | XGBoost pickup model master tablosu (36.8M satir, 54 kolon) |
 | 5 | build_tft_dataset.py | raw/*.parquet | processed/tft_dataset.parquet | TFT icin eski ucus bazli dataset (kullanilmiyor) |
 | 6 | build_demand_functions.py | processed/demand_training.parquet | reports/demand_functions_report.json | Talep fonksiyonlari analizi |
