@@ -770,8 +770,9 @@ class SimulationEngine:
         self.stats["total_bots"] += 1
         from pricing_engine import FARE_CLASSES
 
-        # Fiyat al
-        quote = self.pricing.compute_price(inv, dtd, segment_id=segment_id)
+        # Fiyat al (rakip fiyatlari dahil — dinamik tepki)
+        _comp_prices = self.competitor_manager.get_competitor_prices(key) if self.competitor_manager else None
+        quote = self.pricing.compute_price(inv, dtd, segment_id=segment_id, competitor_prices=_comp_prices)
         open_fares = inv.get("fare_classes_open") or quote["open_fares"]
         if not open_fares:
             self.stats["total_rejected"] += 1
