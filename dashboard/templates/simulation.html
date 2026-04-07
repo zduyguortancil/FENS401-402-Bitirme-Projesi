@@ -382,43 +382,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 
 </div>
 
-<style>
-/* ── Explainability Panel ── */
-.explain-panel{margin-top:1.2rem}
-.explain-header{margin-bottom:.8rem}
-.explain-title{font-size:.95rem;font-weight:700;color:var(--text-0)}
-.explain-sub{font-size:.7rem;color:var(--text-3);margin-left:.8rem}
-.explain-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
-@media(max-width:1200px){.explain-grid{grid-template-columns:1fr}}
-.explain-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;position:relative;overflow:hidden}
-.explain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple));opacity:.6}
-.explain-card-title{font-size:.78rem;font-weight:700;color:var(--text-0);margin-bottom:.15rem}
-.explain-card-sub{font-size:.65rem;color:var(--text-3);margin-bottom:.8rem}
-.bar-section{margin-bottom:.4rem}
-.bar-label-sm{font-size:.62rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
-.feat-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
-.feat-name{font-size:.68rem;color:var(--text-2);min-width:120px;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.feat-bar-bg{flex:1;height:8px;background:var(--bg-3);border-radius:4px;overflow:hidden}
-.feat-bar{height:100%;border-radius:4px;transition:width .6s ease}
-.feat-val{font-size:.62rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;min-width:36px;text-align:right}
-.decomp-placeholder{font-size:.72rem;color:var(--text-3);font-style:italic;text-align:center;padding:2rem 0}
-/* Pricing decomp */
-.decomp-row{display:flex;align-items:center;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)}
-.decomp-row:last-child{border-bottom:none}
-.decomp-label{font-size:.72rem;color:var(--text-2)}
-.decomp-val{font-size:.78rem;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text-0)}
-.decomp-val.high{color:var(--red)}
-.decomp-val.low{color:var(--green)}
-.decomp-val.neutral{color:var(--text-2)}
-.decomp-divider{border-top:1px dashed var(--border-light);margin:.4rem 0}
-/* EMSR-b */
-.fc-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem}
-.fc-badge{font-size:.7rem;font-weight:700;padding:.2rem .5rem;border-radius:4px;min-width:28px;text-align:center;font-family:'JetBrains Mono',monospace}
-.fc-badge.open{background:var(--green-dim);color:var(--green)}
-.fc-badge.closed{background:var(--red-dim);color:var(--red)}
-.fc-info{font-size:.68rem;color:var(--text-2);flex:1}
-.fc-quota{font-size:.65rem;color:var(--text-3);font-family:'JetBrains Mono',monospace}
-</style>
 
 <script>
 let pollTimer = null;
@@ -1369,7 +1332,6 @@ async function loadTFTInterpretation() {
     if (res.ok) {
       _tftInterp = await res.json();
       renderTFTBars();
-      document.getElementById('explainPanel').style.display = '';
     }
   } catch(e) { console.warn('TFT interp not available:', e); }
 }
