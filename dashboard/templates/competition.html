@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>SeatWise — Rekabet Simulasyonu</title>
+<title>SeatWise — Competition Simulation</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
@@ -68,12 +68,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 <div class="header">
   <a class="logo" href="/"><div class="logo-icon">S</div>SeatWise</a>
   <span style="color:var(--text-3);font-size:.8rem">/</span>
-  <span style="color:var(--text-2);font-size:.8rem">Rekabet Simulasyonu</span>
+  <span style="color:var(--text-2);font-size:.8rem">Competition Simulation</span>
   <div class="hdr-spacer"></div>
   <a class="nav-link" href="/">Dashboard</a>
-  <a class="nav-link" href="/simulation">Simulasyon</a>
-  <a class="nav-link" href="/competition" style="color:var(--accent)">Rekabet</a>
-  <span class="sim-state idle" id="simState">HAZIR</span>
+  <a class="nav-link" href="/simulation">Simulation</a>
+  <a class="nav-link" href="/competition" style="color:var(--accent)">Competition</a>
+  <span class="sim-state idle" id="simState">READY</span>
 </div>
 
 <div class="main">
@@ -81,12 +81,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
   <!-- DTD + Status -->
   <div class="dtd-display">
     <span id="dtdVal">--</span>
-    <div class="sub">Kalkisa Kalan Gun | <span id="simDate">--</span> | <span id="depDateLabel">--</span></div>
+    <div class="sub">Days to Departure | <span id="simDate">--</span> | <span id="depDateLabel">--</span></div>
   </div>
 
   <!-- Market Share Bar -->
   <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:1.2rem">
-    <div style="font-weight:600;font-size:.85rem;margin-bottom:.6rem;color:var(--text-0)">Pazar Payi</div>
+    <div style="font-weight:600;font-size:.85rem;margin-bottom:.6rem;color:var(--text-0)">Market Share</div>
     <div class="ms-bar">
       <div id="msBarPC" style="background:#f59e0b">0%</div>
       <div id="msBarTK" style="background:var(--accent)">0%</div>
@@ -94,15 +94,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     </div>
     <div class="ms-labels">
       <span>Pegasus: <strong id="msPCpct">0%</strong></span>
-      <span>THY (Biz): <strong id="msTKpct">0%</strong></span>
+      <span>THY (Us): <strong id="msTKpct">0%</strong></span>
       <span>Emirates: <strong id="msEKpct">0%</strong></span>
     </div>
     <!-- Won/Lost -->
     <div class="wl-grid">
-      <div class="wl-card"><div class="val" style="color:var(--red)" id="wlLostPC">0</div><div class="lbl">Pegasus'a Yolcu Kaybi</div></div>
-      <div class="wl-card"><div class="val" style="color:var(--green)" id="wlStolenPC">0</div><div class="lbl">Pegasus'tan Yolcu Kazanimi</div></div>
-      <div class="wl-card"><div class="val" style="color:var(--red)" id="wlLostEK">0</div><div class="lbl">Emirates'e Yolcu Kaybi</div></div>
-      <div class="wl-card"><div class="val" style="color:var(--green)" id="wlStolenEK">0</div><div class="lbl">Emirates'ten Yolcu Kazanimi</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--red)" id="wlLostPC">0</div><div class="lbl">Passenger Loss to Pegasus</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--green)" id="wlStolenPC">0</div><div class="lbl">Passenger Gain from Pegasus</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--red)" id="wlLostEK">0</div><div class="lbl">Passenger Loss to Emirates</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--green)" id="wlStolenEK">0</div><div class="lbl">Passenger Gain from Emirates</div></div>
     </div>
   </div>
 
@@ -114,14 +114,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
       <div class="airline-header">
         <span class="airline-name" style="color:#f59e0b">&#9992; Pegasus</span>
         <span class="airline-badge" style="background:rgba(245,158,11,.15);color:#f59e0b">BUDGET</span>
-        <span class="airline-badge" style="background:var(--bg-3);color:var(--text-3)">SABIT FIYAT</span>
+        <span class="airline-badge" style="background:var(--bg-3);color:var(--text-3)">FIXED PRICE</span>
       </div>
-      <div class="airline-meta">Airbus A321neo — Tek Sinif — 150 Koltuk</div>
+      <div class="airline-meta">Airbus A321neo — Single Class — 150 Seats</div>
       <div class="airline-kpis">
-        <div class="airline-kpi">Doluluk: <strong id="pcLF">0%</strong></div>
-        <div class="airline-kpi">Satis: <strong id="pcSold">0</strong>/150</div>
-        <div class="airline-kpi">Fiyat: <strong id="pcPrice">$0</strong></div>
-        <div class="airline-kpi">Gelir: <strong id="pcRev">$0</strong></div>
+        <div class="airline-kpi">Load Factor: <strong id="pcLF">0%</strong></div>
+        <div class="airline-kpi">Sold: <strong id="pcSold">0</strong>/150</div>
+        <div class="airline-kpi">Price: <strong id="pcPrice">$0</strong></div>
+        <div class="airline-kpi">Revenue: <strong id="pcRev">$0</strong></div>
       </div>
       <div class="seat-grid" id="pcSeatmap"></div>
     </div>
@@ -129,15 +129,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     <!-- THY (BIZ) -->
     <div class="airline-card ours" id="cardTK">
       <div class="airline-header">
-        <span class="airline-name" style="color:var(--accent)">&#9992; Turkish Airlines (Biz)</span>
-        <span class="airline-badge" style="background:rgba(88,166,255,.15);color:var(--accent)">DINAMIK FIYAT</span>
+        <span class="airline-name" style="color:var(--accent)">&#9992; Turkish Airlines (Us)</span>
+        <span class="airline-badge" style="background:rgba(88,166,255,.15);color:var(--accent)">DYNAMIC PRICING</span>
       </div>
-      <div class="airline-meta">Boeing 787 — Business (49) + Economy (300) = 349 Koltuk</div>
+      <div class="airline-meta">Boeing 787 — Business (49) + Economy (300) = 349 Seats</div>
       <div class="airline-kpis">
         <div class="airline-kpi">Eco LF: <strong id="tkLFeco">0%</strong></div>
         <div class="airline-kpi">Biz LF: <strong id="tkLFbiz">0%</strong></div>
-        <div class="airline-kpi">Satis: <strong id="tkSold">0</strong>/349</div>
-        <div class="airline-kpi">Gelir: <strong id="tkRev">$0</strong></div>
+        <div class="airline-kpi">Sold: <strong id="tkSold">0</strong>/349</div>
+        <div class="airline-kpi">Revenue: <strong id="tkRev">$0</strong></div>
         <div class="airline-kpi">Delta: <strong id="tkDelta">0%</strong></div>
       </div>
       <div class="seat-grid">
@@ -153,14 +153,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
       <div class="airline-header">
         <span class="airline-name" style="color:#06b6d4">&#9992; Emirates</span>
         <span class="airline-badge" style="background:rgba(6,182,212,.15);color:#06b6d4">PREMIUM</span>
-        <span class="airline-badge" style="background:var(--bg-3);color:var(--text-3)">SABIT FIYAT</span>
+        <span class="airline-badge" style="background:var(--bg-3);color:var(--text-3)">FIXED PRICE</span>
       </div>
-      <div class="airline-meta">Boeing 777-300ER — Business (42) + Economy (280) = 322 Koltuk</div>
+      <div class="airline-meta">Boeing 777-300ER — Business (42) + Economy (280) = 322 Seats</div>
       <div class="airline-kpis">
-        <div class="airline-kpi">Doluluk: <strong id="ekLF">0%</strong></div>
-        <div class="airline-kpi">Satis: <strong id="ekSold">0</strong>/322</div>
-        <div class="airline-kpi">Fiyat: <strong id="ekPrice">$0</strong></div>
-        <div class="airline-kpi">Gelir: <strong id="ekRev">$0</strong></div>
+        <div class="airline-kpi">Load Factor: <strong id="ekLF">0%</strong></div>
+        <div class="airline-kpi">Sold: <strong id="ekSold">0</strong>/322</div>
+        <div class="airline-kpi">Price: <strong id="ekPrice">$0</strong></div>
+        <div class="airline-kpi">Revenue: <strong id="ekRev">$0</strong></div>
       </div>
       <div class="seat-grid">
         <div style="font-size:.65rem;color:var(--text-3);margin-bottom:4px">BUSINESS (1-2-1 Herringbone)</div>
@@ -278,7 +278,7 @@ function fmt$(v) { return '$' + Math.round(v).toLocaleString(); }
 
 function updatePage(status, comp) {
   // State
-  const stMap = {idle:'HAZIR',running:'CALISIYOR',paused:'DURAKLATILDI',completed:'TAMAMLANDI',ready:'HAZIR'};
+  const stMap = {idle:'READY',running:'RUNNING',paused:'PAUSED',completed:'COMPLETED',ready:'READY'};
   const stEl = document.getElementById('simState');
   stEl.textContent = stMap[status.state] || status.state;
   stEl.className = 'sim-state ' + (status.state === 'running' ? 'running' : status.state === 'completed' ? 'completed' : 'idle');
@@ -377,9 +377,9 @@ async function loadTHYSeats() {
       document.getElementById('tkLFeco').textContent = Math.round(eco.load_factor * 100) + '%';
       // Price
       const depDate = eco.dep_date;
-      document.getElementById('depDateLabel').textContent = 'Kalkis: ' + depDate;
+      document.getElementById('depDateLabel').textContent = 'Departure: ' + depDate;
       if (eco.dtd !== undefined) {
-        document.getElementById('dtdVal').textContent = eco.dtd > 0 ? eco.dtd : 'KALKIS!';
+        document.getElementById('dtdVal').textContent = eco.dtd > 0 ? eco.dtd : 'DEPARTURE!';
       }
     }
     if (biz) {

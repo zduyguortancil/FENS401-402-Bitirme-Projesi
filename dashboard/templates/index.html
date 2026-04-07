@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
@@ -2280,13 +2280,13 @@
     <div class="breadcrumb" id="breadcrumb">
       <span>Dashboard</span>
     </div>
-    <button class="nav-btn" id="segBtn" onclick="toggleSegmentation()">Segmentler</button>
+    <button class="nav-btn" id="segBtn" onclick="toggleSegmentation()">Segments</button>
     <button class="nav-btn" id="trendBtn" onclick="toggleTrends()">Trend</button>
-    <button class="nav-btn" id="routesBtn" onclick="toggleRoutes()">Rotalar</button>
-    <button class="nav-btn" id="eventsBtn" onclick="toggleEvents()">Olaylar</button>
+    <button class="nav-btn" id="routesBtn" onclick="toggleRoutes()">Routes</button>
+    <button class="nav-btn" id="eventsBtn" onclick="toggleEvents()">Events</button>
     <button class="nav-btn" id="fcBtn" onclick="toggleFareClasses()">Fare Class</button>
-    <button class="nav-btn" id="simBtn" onclick="window.location.href='/simulation'">Simülasyon</button>
-    <button class="nav-btn" id="demfnBtn" onclick="toggleDemandFunctions()">Talep Fonk.</button>
+    <button class="nav-btn" id="simBtn" onclick="window.location.href='/simulation'">Simulation</button>
+    <button class="nav-btn" id="demfnBtn" onclick="toggleDemandFunctions()">Demand Fn.</button>
     <button class="nav-btn" id="riskBtn" onclick="toggleRisk()">Risk</button>
     <button class="nav-btn" id="sentBtn" onclick="toggleSentiment()">Sentiment</button>
   </header>
@@ -2297,28 +2297,28 @@
     <!-- SEGMENTATION PANEL -->
     <div class="seg-panel" id="segPanel">
       <div class="seg-header">
-        <h2>Yolcu Segmentasyonu</h2>
+        <h2>Passenger Segmentation</h2>
         <span class="seg-badge">K-MEANS CLUSTERING</span>
-        <button class="seg-close-btn" onclick="toggleSegmentation()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleSegmentation()">✕ Close</button>
       </div>
       <div class="seg-grid" id="segCards"></div>
       <div class="seg-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Küme Dağılımı (Uçuş Sayısı)</div>
+          <div class="chart-title">Cluster Distribution (Flight Count)</div>
           <div class="chart-canvas-wrap"><canvas id="chartClusterDist"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Küme Profil Karşılaştırma</div>
+          <div class="chart-title">Cluster Profile Comparison</div>
           <div class="chart-canvas-wrap"><canvas id="chartClusterRadar"></canvas></div>
         </div>
       </div>
       <div class="seg-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Son Dakika vs Erken Rezervasyon (%)</div>
+          <div class="chart-title">Last Minute vs Early Booking (%)</div>
           <div class="chart-canvas-wrap"><canvas id="chartClusterTiming"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Kabin & Zamanlama Profili (%)</div>
+          <div class="chart-title">Cabin & Timing Profile (%)</div>
           <div class="chart-canvas-wrap"><canvas id="chartClusterCabin"></canvas></div>
         </div>
       </div>
@@ -2327,9 +2327,9 @@
     <!-- FARE CLASSES PANEL -->
     <div class="fc-panel" id="fcPanel">
       <div class="fc-header">
-        <h2>Fare Class Yönetimi</h2>
+        <h2>Fare Class Management</h2>
         <span class="fc-badge">BOOKING CLASSES</span>
-        <button class="seg-close-btn" onclick="toggleFareClasses()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleFareClasses()">✕ Close</button>
       </div>
 
       <!-- Fare Class Cards -->
@@ -2340,7 +2340,7 @@
 
       <!-- DTD×LF Heatmap -->
       <div class="fc-heatmap-wrap">
-        <div class="fc-heatmap-title">DTD × Doluluk Matrisi — En Ucuz Açık Fare Class</div>
+        <div class="fc-heatmap-title">DTD × Load Factor Matrix — Cheapest Open Fare Class</div>
         <div id="fcHeatmap"></div>
       </div>
 
@@ -2351,10 +2351,10 @@
             <thead>
               <tr>
                 <th>Segment</th>
-                <th>Elastikiyet</th>
-                <th>WTP Aralığı</th>
+                <th>Elasticity</th>
+                <th>WTP Range</th>
                 <th>Booking Window</th>
-                <th>Tercih Ettiği Fare</th>
+                <th>Preferred Fare</th>
               </tr>
             </thead>
             <tbody id="fcSegBody"></tbody>
@@ -2366,9 +2366,9 @@
     <!-- SIMULATION PANEL -->
     <div class="sim-panel" id="simPanel">
       <div class="sim-header">
-        <h2>Simülasyon: Sabit vs Dinamik Fiyatlama</h2>
+        <h2>Simulation: Fixed vs Dynamic Pricing</h2>
         <span class="sim-badge">ROI ANALYSIS</span>
-        <button class="seg-close-btn" onclick="toggleSimulation()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleSimulation()">✕ Close</button>
       </div>
 
       <!-- ROI Summary Cards -->
@@ -2383,15 +2383,15 @@
           <table class="sim-route-table" id="simRouteTable">
             <thead>
               <tr>
-                <th>Rota</th>
-                <th>Kabin</th>
-                <th>Kapasite</th>
-                <th>Sabit Gelir</th>
-                <th>Dinamik Gelir</th>
-                <th>Fark</th>
+                <th>Route</th>
+                <th>Cabin</th>
+                <th>Capacity</th>
+                <th>Fixed Revenue</th>
+                <th>Dynamic Revenue</th>
+                <th>Delta</th>
                 <th>ROI %</th>
-                <th>Sabit LF</th>
-                <th>Dinamik LF</th>
+                <th>Fixed LF</th>
+                <th>Dynamic LF</th>
               </tr>
             </thead>
             <tbody id="simRouteBody"></tbody>
@@ -2402,21 +2402,21 @@
       <!-- Charts -->
       <div class="sim-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Kümülatif Gelir Eğrisi (Sabit vs Dinamik)</div>
+          <div class="chart-title">Cumulative Revenue Curve (Fixed vs Dynamic)</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimRevenue"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Fare Class Gelir Dağılımı</div>
+          <div class="chart-title">Fare Class Revenue Distribution</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimFareClass"></canvas></div>
         </div>
       </div>
       <div class="sim-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Doluluk Oranı Karşılaştırması (LF %)</div>
+          <div class="chart-title">Load Factor Comparison (LF %)</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimLF"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Rota Bazlı ROI Karşılaştırması</div>
+          <div class="chart-title">Route-Level ROI Comparison</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartSimROI"></canvas></div>
         </div>
       </div>
@@ -2425,9 +2425,9 @@
     <!-- DEMAND FUNCTIONS PANEL -->
     <div class="demfn-panel" id="demfnPanel">
       <div class="demfn-header">
-        <h2>Talep Fonksiyonları</h2>
+        <h2>Demand Functions</h2>
         <span class="demfn-badge">DEMAND FUNCTIONS</span>
-        <button class="seg-close-btn" onclick="toggleDemandFunctions()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleDemandFunctions()">✕ Close</button>
       </div>
 
       <div class="demfn-cabin-toggle">
@@ -2444,21 +2444,21 @@
       <!-- Charts -->
       <div class="demfn-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Fiyat–Talep Eğrisi (Segment Bazlı)</div>
+          <div class="chart-title">Price–Demand Curve (By Segment)</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnPrice"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Fiyat–Gelir Eğrisi (Toplam)</div>
+          <div class="chart-title">Price–Revenue Curve (Total)</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnRevenue"></canvas></div>
         </div>
       </div>
       <div class="demfn-charts-row">
         <div class="chart-card">
-          <div class="chart-title">DTD Bazlı Segment Talep Dağılımı</div>
+          <div class="chart-title">DTD-Based Segment Demand Distribution</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnDTD"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Segment Payları (%)</div>
+          <div class="chart-title">Segment Shares (%)</div>
           <div class="chart-canvas-wrap" style="height:300px"><canvas id="chartDemfnShares"></canvas></div>
         </div>
       </div>
@@ -2467,50 +2467,50 @@
     <!-- TREND ANALYSIS PANEL -->
     <div class="trend-panel" id="trendPanel">
       <div class="trend-header">
-        <h2>Talep Trend Analizi</h2>
+        <h2>Demand Trend Analysis</h2>
         <span class="trend-badge">TIME SERIES</span>
-        <button class="seg-close-btn" onclick="toggleTrends()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleTrends()">✕ Close</button>
       </div>
       <div class="trend-filters">
-        <label>Yıl:</label>
+        <label>Year:</label>
         <select class="trend-select" id="trendYear" onchange="loadTrends()">
-          <option value="">Tümü</option>
+          <option value="">All</option>
         </select>
-        <label>Kabin:</label>
+        <label>Cabin:</label>
         <select class="trend-select" id="trendCabin" onchange="loadTrends()">
-          <option value="">Tümü</option>
+          <option value="">All</option>
         </select>
-        <label>Bölge:</label>
+        <label>Region:</label>
         <select class="trend-select" id="trendRegion" onchange="loadTrends()">
-          <option value="">Tümü</option>
+          <option value="">All</option>
         </select>
       </div>
 
       <div class="trend-chart-wide">
         <div class="chart-card">
-          <div class="chart-title">Aylık Toplam Yolcu Talebi (Time Series)</div>
+          <div class="chart-title">Monthly Total Passenger Demand (Time Series)</div>
           <div class="chart-canvas-wrap"><canvas id="chartTrendMain"></canvas></div>
         </div>
       </div>
 
       <div class="trend-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Kabin Bazlı Aylık Talep</div>
+          <div class="chart-title">Monthly Demand by Cabin</div>
           <div class="chart-canvas-wrap"><canvas id="chartTrendCabin"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Bölge Bazlı Aylık Talep</div>
+          <div class="chart-title">Monthly Demand by Region</div>
           <div class="chart-canvas-wrap"><canvas id="chartTrendRegion"></canvas></div>
         </div>
       </div>
 
       <div class="trend-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Aylık Doluluk Oranı & Satış Oranı</div>
+          <div class="chart-title">Monthly Load Factor & Sales Rate</div>
           <div class="chart-canvas-wrap"><canvas id="chartTrendLF"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Haftanın Gününe Göre Talep Dağılımı</div>
+          <div class="chart-title">Demand Distribution by Day of Week</div>
           <div class="chart-canvas-wrap"><canvas id="chartTrendDow"></canvas></div>
         </div>
       </div>
@@ -2519,26 +2519,26 @@
     <!-- TOP ROUTES PANEL -->
     <div class="routes-panel" id="routesPanel">
       <div class="routes-header">
-        <h2>Top Rotalar Analizi</h2>
+        <h2>Top Routes Analysis</h2>
         <span class="routes-badge">EDA</span>
-        <button class="seg-close-btn" onclick="toggleRoutes()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleRoutes()">✕ Close</button>
       </div>
       <div class="trend-filters">
-        <label>Göster:</label>
+        <label>Show:</label>
         <select class="trend-select" id="routesN" onchange="loadRoutes()">
           <option value="5">Top 5</option>
           <option value="10" selected>Top 10</option>
           <option value="20">Top 20</option>
         </select>
-        <label>Sırala:</label>
+        <label>Sort by:</label>
         <select class="trend-select" id="routesSort" onchange="loadRoutes()">
-          <option value="total_pax">Toplam Yolcu</option>
-          <option value="final_lf">Doluluk Oranı</option>
-          <option value="total_rev">Toplam Gelir</option>
+          <option value="total_pax">Total Passengers</option>
+          <option value="final_lf">Load Factor</option>
+          <option value="total_rev">Total Revenue</option>
         </select>
-        <label>Kabin:</label>
+        <label>Cabin:</label>
         <select class="trend-select" id="routesCabin" onchange="loadRoutes()">
-          <option value="">Tümü</option>
+          <option value="">All</option>
         </select>
       </div>
 
@@ -2546,21 +2546,21 @@
 
       <div class="trend-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Rota Karşılaştırma (Pax & Doluluk)</div>
+          <div class="chart-title">Route Comparison (Pax & Load Factor)</div>
           <div class="chart-canvas-wrap"><canvas id="chartRoutesBar"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Doluluk vs DTD (Seçili Rotalar)</div>
+          <div class="chart-title">Load Factor vs DTD (Selected Routes)</div>
           <div class="chart-canvas-wrap"><canvas id="chartRoutesLF"></canvas></div>
         </div>
       </div>
       <div class="trend-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Birim Fiyat vs DTD (Dinamik Fiyatlama)</div>
+          <div class="chart-title">Unit Price vs DTD (Dynamic Pricing)</div>
           <div class="chart-canvas-wrap"><canvas id="chartRoutesPrice"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Gelir Kırılımı (Ticket vs Ancillary)</div>
+          <div class="chart-title">Revenue Breakdown (Ticket vs Ancillary)</div>
           <div class="chart-canvas-wrap"><canvas id="chartRoutesRev"></canvas></div>
         </div>
       </div>
@@ -2569,26 +2569,26 @@
     <!-- EVENT ANALYSIS PANEL -->
     <div class="events-panel" id="eventsPanel">
       <div class="events-header">
-        <h2>Olay / Sezon Analizi</h2>
+        <h2>Event / Season Analysis</h2>
         <span class="events-badge">SENTIMENT</span>
-        <button class="seg-close-btn" onclick="toggleEvents()">✕ Kapat</button>
+        <button class="seg-close-btn" onclick="toggleEvents()">✕ Close</button>
       </div>
 
       <div class="event-tags-grid" id="eventTagsGrid"></div>
 
       <div class="trend-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Kategoriye Göre Talep Etkisi (Lift)</div>
+          <div class="chart-title">Demand Impact by Category (Lift)</div>
           <div class="chart-canvas-wrap"><canvas id="chartEventLift"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Birincil Olay Dağılımı</div>
+          <div class="chart-title">Primary Event Distribution</div>
           <div class="chart-canvas-wrap"><canvas id="chartEventDist"></canvas></div>
         </div>
       </div>
       <div class="trend-chart-wide">
         <div class="chart-card">
-          <div class="chart-title">Aylık Talep — Olaylara Göre Kırılım</div>
+          <div class="chart-title">Monthly Demand — Breakdown by Events</div>
           <div class="chart-canvas-wrap"><canvas id="chartEventMonthly"></canvas></div>
         </div>
       </div>
@@ -2597,34 +2597,34 @@
     <!-- RISK / OPPORTUNITY INDEX PANEL -->
     <div class="risk-panel" id="riskPanel">
       <div class="risk-header">
-        <h2>Risk / Fırsat İndeksi</h2>
-        <span class="events-badge" style="background:linear-gradient(135deg,#ef4444,#dc2626)">PRICİNG</span>
-        <button class="seg-close-btn" onclick="toggleRisk()">✕ Kapat</button>
+        <h2>Risk / Opportunity Index</h2>
+        <span class="events-badge" style="background:linear-gradient(135deg,#ef4444,#dc2626)">PRICING</span>
+        <button class="seg-close-btn" onclick="toggleRisk()">✕ Close</button>
       </div>
 
       <div class="risk-summary" id="riskSummary"></div>
 
       <div class="risk-tabs" id="riskTabs">
-        <button class="risk-tab active-up" data-cat="price_increase" onclick="switchRiskTab('price_increase')">📈 Fiyat
-          Artırım Fırsatı</button>
-        <button class="risk-tab" data-cat="price_decrease" onclick="switchRiskTab('price_decrease')">📉 Fiyat Düşürme
-          Gerekli</button>
-        <button class="risk-tab" data-cat="cancel_risk" onclick="switchRiskTab('cancel_risk')">🚨 İptal Riski</button>
+        <button class="risk-tab active-up" data-cat="price_increase" onclick="switchRiskTab('price_increase')">📈 Price Increase
+          Opportunity</button>
+        <button class="risk-tab" data-cat="price_decrease" onclick="switchRiskTab('price_decrease')">📉 Price Decrease
+          Required</button>
+        <button class="risk-tab" data-cat="cancel_risk" onclick="switchRiskTab('cancel_risk')">🚨 Cancellation Risk</button>
       </div>
 
       <div style="max-height:400px;overflow-y:auto;margin-bottom:1.5rem">
         <table class="risk-flights-table" id="riskTable">
           <thead>
             <tr>
-              <th>Uçuş</th>
-              <th>Rota</th>
-              <th>Kabin</th>
+              <th>Flight</th>
+              <th>Route</th>
+              <th>Cabin</th>
               <th>DTD</th>
-              <th>Doluluk</th>
-              <th>Kalan</th>
-              <th>Gelir</th>
+              <th>Load Factor</th>
+              <th>Remaining</th>
+              <th>Revenue</th>
               <th>Risk</th>
-              <th>Aksiyon</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="riskTableBody"></tbody>
@@ -2633,11 +2633,11 @@
 
       <div class="trend-charts-row">
         <div class="chart-card">
-          <div class="chart-title">Kategori Dağılımı</div>
+          <div class="chart-title">Category Distribution</div>
           <div class="chart-canvas-wrap"><canvas id="chartRiskDist"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Doluluk vs Risk Skoru</div>
+          <div class="chart-title">Load Factor vs Risk Score</div>
           <div class="chart-canvas-wrap"><canvas id="chartRiskScatter"></canvas></div>
         </div>
       </div>
@@ -2647,16 +2647,16 @@
     <div class="sent-panel" id="sentPanel">
       <div class="sent-header">
         <h2>Sentiment Intelligence</h2>
-        <span class="sent-badge">51 SEHIR</span>
-        <span class="sent-badge" style="background:linear-gradient(135deg,#065f46,#047857);color:#34d399">CANLI</span>
+        <span class="sent-badge">51 CITIES</span>
+        <span class="sent-badge" style="background:linear-gradient(135deg,#065f46,#047857);color:#34d399">LIVE</span>
         <div style="flex:1"></div>
-        <input type="text" placeholder="Sehir ara..." id="sentSearch" oninput="sentApplyFilter()" style="width:170px;padding:.35rem .7rem;font-size:.75rem;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text-1);outline:none;font-family:'Inter',sans-serif" />
-        <button class="seg-close-btn" onclick="toggleSentiment()">&#10005; Kapat</button>
+        <input type="text" placeholder="Search city..." id="sentSearch" oninput="sentApplyFilter()" style="width:170px;padding:.35rem .7rem;font-size:.75rem;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text-1);outline:none;font-family:'Inter',sans-serif" />
+        <button class="seg-close-btn" onclick="toggleSentiment()">&#10005; Close</button>
       </div>
 
       <div class="sent-api-warn" id="sentApiWarn">
         <span>&#9888;&#65039;</span>
-        <div><strong>Sentiment modulu yuklenemedi.</strong></div>
+        <div><strong>Sentiment module could not be loaded.</strong></div>
       </div>
 
       <!-- KPIs -->
@@ -2670,17 +2670,17 @@
         <div class="sent-detail-top" id="sentDetailHeader"></div>
         <div class="sent-detail-kpis" id="sentDetailKpis"></div>
         <div class="sent-charts-row">
-          <div class="sent-chart-card"><div class="sent-chart-title">Sentiment Dagilimi</div><div class="sent-chart-wrap"><canvas id="sentDetailSentChart"></canvas></div></div>
-          <div class="sent-chart-card"><div class="sent-chart-title">Olay Turu Dagilimi</div><div class="sent-chart-wrap"><canvas id="sentDetailEvtChart"></canvas></div></div>
+          <div class="sent-chart-card"><div class="sent-chart-title">Sentiment Distribution</div><div class="sent-chart-wrap"><canvas id="sentDetailSentChart"></canvas></div></div>
+          <div class="sent-chart-card"><div class="sent-chart-title">Event Type Distribution</div><div class="sent-chart-wrap"><canvas id="sentDetailEvtChart"></canvas></div></div>
         </div>
         <div id="sentDetailImpact"></div>
         <div class="sent-detail-tbl-header">
-          <span class="sent-detail-tbl-title" id="sentDetailTblTitle">Haberler</span>
+          <span class="sent-detail-tbl-title" id="sentDetailTblTitle">News</span>
           <span class="sent-detail-tbl-count" id="sentDetailTblCount"></span>
         </div>
         <div class="sent-tbl-wrap"><div class="sent-tbl-scroll"><table class="sent-tbl">
           <thead><tr>
-            <th>Durum</th><th>Skor</th><th>Etki</th><th>Baslik</th><th>Kategori</th><th>Tarih</th>
+            <th>Status</th><th>Score</th><th>Impact</th><th>Title</th><th>Category</th><th>Date</th>
           </tr></thead>
           <tbody id="sentDetailFeed"></tbody>
         </table></div></div>
@@ -2690,35 +2690,35 @@
     <!-- SEARCH -->
     <div class="search-section" id="searchSection">
       <div class="search-title">Flight Snapshot Explorer</div>
-      <div class="search-subtitle">Uçuş numarası girerek sefer verilerini inceleyin</div>
+      <div class="search-subtitle">Enter a flight number to explore trip data</div>
       <div class="search-box">
         <span class="search-icon">⌕</span>
         <input type="text" class="search-input" id="searchInput"
-          placeholder="Ucus no veya havaalani kodu (or. TK1234, IST)" autocomplete="off" spellcheck="false" />
+          placeholder="Flight no or airport code (e.g. TK1234, IST)" autocomplete="off" spellcheck="false" />
         <div class="dropdown" id="dropdown"></div>
       </div>
       <div class="date-picker-row">
-        <label for="datePicker" class="date-label">Tarihe Gore Ara:</label>
+        <label for="datePicker" class="date-label">Search by Date:</label>
         <input type="date" class="date-input" id="datePicker" />
-        <button class="date-btn" id="dateSearchBtn" onclick="searchByDate()">Ara</button>
+        <button class="date-btn" id="dateSearchBtn" onclick="searchByDate()">Search</button>
       </div>
     </div>
 
     <!-- DATE SEARCH RESULTS -->
     <div class="flight-dates" id="dateFlights" style="display:none">
-      <div class="dates-label" id="dateFlightsLabel">Tarih Ucuslari</div>
+      <div class="dates-label" id="dateFlightsLabel">Date Flights</div>
       <div class="dates-grid" id="dateFlightsGrid"></div>
     </div>
 
     <!-- AIRPORT FLIGHTS -->
     <div class="flight-dates" id="airportFlights" style="display:none">
-      <div class="dates-label" id="airportLabel">Havaalani Uçuşları</div>
+      <div class="dates-label" id="airportLabel">Airport Flights</div>
       <div class="dates-grid" id="airportGrid"></div>
     </div>
 
     <!-- FLIGHT DATES -->
     <div class="flight-dates" id="flightDates" style="display:none">
-      <div class="dates-label">Sefer Tarihleri</div>
+      <div class="dates-label">Service Dates</div>
       <div class="dates-grid" id="datesGrid"></div>
     </div>
 
@@ -2733,19 +2733,19 @@
 
       <!-- View Mode Toggle (3 mod) -->
       <div class="cabin-toggle" id="forecastToggleWrap" style="margin-top:.5rem">
-        <button class="cabin-btn active" id="btnActual" onclick="setViewMode('actual')">Rezervasyon Verileri</button>
-        <button class="cabin-btn" id="btnPickup" onclick="setViewMode('pickup')">Talep Tahmini</button>
-        <button class="cabin-btn" id="btnForecast" onclick="setViewMode('tft')">Rota Analizi</button>
+        <button class="cabin-btn active" id="btnActual" onclick="setViewMode('actual')">Booking Data</button>
+        <button class="cabin-btn" id="btnPickup" onclick="setViewMode('pickup')">Demand Forecast</button>
+        <button class="cabin-btn" id="btnForecast" onclick="setViewMode('tft')">Route Analysis</button>
       </div>
 
       <!-- Pickup Container (hidden by default) -->
       <div id="pickupWrap" style="display:none;margin-top:1rem">
         <div style="background:rgba(22,163,74,0.03);border:1px solid rgba(22,163,74,0.3);border-radius:var(--radius-lg);padding:1.2rem">
-          <span style="display:inline-block;background:#16a34a;color:#fff;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px;margin-bottom:.8rem">TALEP TAHMINI (XGBoost Pickup)</span>
+          <span style="display:inline-block;background:#16a34a;color:#fff;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px;margin-bottom:.8rem">DEMAND FORECAST (XGBoost Pickup)</span>
           <div class="kpi-groups" id="pickupKpiGroups"></div>
         </div>
         <div class="chart-card" style="margin-top:1rem">
-          <div class="chart-title">Rezervasyon Egrisi ve Kalan Talep Tahmini</div>
+          <div class="chart-title">Booking Curve and Remaining Demand Forecast</div>
           <div class="chart-canvas-wrap" style="height:280px"><canvas id="chartPickup"></canvas></div>
         </div>
         <div id="pickupTableWrap" style="margin-top:1rem"></div>
@@ -2754,7 +2754,7 @@
       <!-- TFT Forecast KPIs (hidden by default) -->
       <div id="forecastSettingsWrap" style="display:none">
         <div style="background:rgba(245,158,11,0.03);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-lg);padding:1.2rem;margin-top:.5rem">
-          <span style="display:inline-block;background:#d97706;color:#fff;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px;margin-bottom:.8rem">ROTA ANALIZI (TFT Model)</span>
+          <span style="display:inline-block;background:#d97706;color:#fff;font-size:.65rem;font-weight:700;padding:2px 10px;border-radius:20px;margin-bottom:.8rem">ROUTE ANALYSIS (TFT Model)</span>
           <div class="kpi-groups" id="forecastKpiGroups"></div>
         </div>
       </div>
@@ -2765,33 +2765,33 @@
       <!-- Charts -->
       <div class="charts-grid">
         <div class="chart-card">
-          <div class="chart-title">Koltuk Doluluk & Kalan Koltuk</div>
+          <div class="chart-title">Seat Occupancy & Remaining Seats</div>
           <div class="chart-canvas-wrap"><canvas id="chartOccupancy"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Günlük Satış Pace</div>
+          <div class="chart-title">Daily Sales Pace</div>
           <div class="chart-canvas-wrap"><canvas id="chartPace"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Kümülatif Gelir (Ticket / Ancillary / Total)</div>
+          <div class="chart-title">Cumulative Revenue (Ticket / Ancillary / Total)</div>
           <div class="chart-canvas-wrap"><canvas id="chartRevenue"></canvas></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">Günlük Gelir Kırılımı</div>
+          <div class="chart-title">Daily Revenue Breakdown</div>
           <div class="chart-canvas-wrap"><canvas id="chartRevenueBreakdown"></canvas></div>
         </div>
       </div>
 
       <!-- Forecast Chart (hidden by default) -->
       <div class="chart-card" id="forecastChartCard" style="display:none;margin-bottom:1.5rem">
-        <div class="chart-title">Rota Bazli Gunluk Talep (TFT Model)</div>
+        <div class="chart-title">Route-Level Daily Demand (TFT Model)</div>
         <div class="chart-canvas-wrap"><canvas id="chartForecast"></canvas></div>
       </div>
 
       <!-- Table -->
       <div class="table-section">
         <div class="table-header">
-          <div class="table-title">DTD Bazlı Detay Verisi</div>
+          <div class="table-title">DTD Detail Data</div>
           <div class="table-count" id="tableCount"></div>
         </div>
         <div class="table-wrap">
@@ -2851,7 +2851,7 @@
       const results = await res.json();
       dropdown.innerHTML = '';
       if (results.length === 0) {
-        dropdown.innerHTML = '<div class="dropdown-item" style="color:var(--text-3)">Sonuç bulunamadı</div>';
+        dropdown.innerHTML = '<div class="dropdown-item" style="color:var(--text-3)">No results found</div>';
       } else {
         // Group by type
         const flights = results.filter(r => r.type === 'flight');
@@ -2860,7 +2860,7 @@
         if (flights.length > 0) {
           const header = document.createElement('div');
           header.className = 'dropdown-header';
-          header.textContent = 'Uçuşlar';
+          header.textContent = 'Flights';
           dropdown.appendChild(header);
           flights.forEach(r => {
             const item = document.createElement('div');
@@ -2874,12 +2874,12 @@
         if (airports.length > 0) {
           const header = document.createElement('div');
           header.className = 'dropdown-header';
-          header.textContent = 'Havaalanları';
+          header.textContent = 'Airports';
           dropdown.appendChild(header);
           airports.forEach(r => {
             const item = document.createElement('div');
             item.className = 'dropdown-item';
-            item.innerHTML = `<span>✈</span> <strong>${r.value}</strong> <span style="color:var(--text-3);margin-left:.3rem">Tüm Uçuşlar</span>`;
+            item.innerHTML = `<span>✈</span> <strong>${r.value}</strong> <span style="color:var(--text-3);margin-left:.3rem">All Flights</span>`;
             item.onclick = () => selectAirport(r.value);
             dropdown.appendChild(item);
           });
@@ -2908,7 +2908,7 @@
 
       const airportDiv = document.getElementById('airportFlights');
       const grid = document.getElementById('airportGrid');
-      document.getElementById('airportLabel').textContent = `${airportCode} — Uçuşlar (${flights.length})`;
+      document.getElementById('airportLabel').textContent = `${airportCode} — Flights (${flights.length})`;
       grid.innerHTML = '';
 
       flights.forEach(f => {
@@ -2946,12 +2946,12 @@
 
       // Format date for label
       const d = new Date(dateVal + 'T00:00:00');
-      const dateLabel = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
-      document.getElementById('dateFlightsLabel').textContent = `${dateLabel} — ${flights.length} ucus`;
+      const dateLabel = d.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+      document.getElementById('dateFlightsLabel').textContent = `${dateLabel} — ${flights.length} flights`;
       grid.innerHTML = '';
 
       if (flights.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-3);padding:1rem">Bu tarihte ucus bulunamadi.</div>';
+        grid.innerHTML = '<div style="color:var(--text-3);padding:1rem">No flights found on this date.</div>';
       }
 
       flights.forEach(f => {
@@ -3114,7 +3114,7 @@
       // "Tümü" button
       const allBtn = document.createElement('button');
       allBtn.className = 'cabin-btn' + (!state.cabin ? ' active' : '');
-      allBtn.textContent = 'Tümü';
+      allBtn.textContent = 'All';
       allBtn.onclick = () => { state.cabin = null; loadSnapshot(); };
       // toggle.appendChild(allBtn);  // optional: show all cabins
 
@@ -3147,14 +3147,14 @@
       const kpis = [
         // Row 1: Pax KPIs
         { label: 'Kapasite', value: fmt(capacity), sub: state.cabin || '', cls: '' },
-        { label: 'Toplam Satılan', value: fmt(totalSold), sub: `/ ${fmt(capacity)}`, cls: 'green' },
-        { label: 'Kalan Koltuk', value: fmt(remaining), sub: remaining !== null && capacity ? `${((remaining / capacity) * 100).toFixed(0)}% boş` : '', cls: remaining > 0 ? 'orange' : 'red' },
-        { label: 'Doluluk Oranı', value: loadFactor !== null ? `%${(loadFactor * 100).toFixed(1)}` : '—', sub: '', cls: loadFactor >= 0.8 ? 'green' : loadFactor >= 0.5 ? 'orange' : 'red' },
+        { label: 'Total Sold', value: fmt(totalSold), sub: `/ ${fmt(capacity)}`, cls: 'green' },
+        { label: 'Remaining Seats', value: fmt(remaining), sub: remaining !== null && capacity ? `${((remaining / capacity) * 100).toFixed(0)}% empty` : '', cls: remaining > 0 ? 'orange' : 'red' },
+        { label: 'Load Factor', value: loadFactor !== null ? `${(loadFactor * 100).toFixed(1)}%` : '—', sub: '', cls: loadFactor >= 0.8 ? 'green' : loadFactor >= 0.5 ? 'orange' : 'red' },
         // Row 2: Revenue KPIs
-        { label: 'Ticket Gelir', value: ticketRev !== null ? `$${fmtMoney(ticketRev)}` : '—', sub: 'Bilet', cls: 'blue' },
-        { label: 'Ancillary Gelir', value: ancRev !== null ? `$${fmtMoney(ancRev)}` : '—', sub: 'Pet + Bagaj', cls: 'orange' },
-        { label: 'Toplam Gelir', value: totalRev !== null ? `$${fmtMoney(totalRev)}` : '—', sub: 'Ticket + Anc', cls: 'purple' },
-        { label: 'Ancillary Pay', value: ancShare !== null ? `%${(ancShare * 100).toFixed(1)}` : '—', sub: 'anc / total', cls: ancShare > 0.1 ? 'green' : '' },
+        { label: 'Ticket Revenue', value: ticketRev !== null ? `$${fmtMoney(ticketRev)}` : '—', sub: 'Ticket', cls: 'blue' },
+        { label: 'Ancillary Revenue', value: ancRev !== null ? `$${fmtMoney(ancRev)}` : '—', sub: 'Pet + Baggage', cls: 'orange' },
+        { label: 'Total Revenue', value: totalRev !== null ? `$${fmtMoney(totalRev)}` : '—', sub: 'Ticket + Anc', cls: 'purple' },
+        { label: 'Ancillary Share', value: ancShare !== null ? `${(ancShare * 100).toFixed(1)}%` : '—', sub: 'anc / total', cls: ancShare > 0.1 ? 'green' : '' },
       ];
 
       kpis.forEach(k => {
@@ -3198,14 +3198,14 @@
             titleFont: { family: 'Inter', weight: '600' },
             bodyFont: { family: 'JetBrains Mono', size: 12 },
             callbacks: {
-              title: (items) => `DTD: ${items[0].label} gün`
+              title: (items) => `DTD: ${items[0].label} days`
             }
           }
         },
         scales: {
           x: {
             reverse: true,
-            title: { display: true, text: 'Kalkışa Kalan Gün (DTD)', color: '#6e7681', font: { family: 'Inter', size: 11 } },
+            title: { display: true, text: 'Days to Departure (DTD)', color: '#6e7681', font: { family: 'Inter', size: 11 } },
             ticks: { color: '#6e7681', font: { family: 'JetBrains Mono', size: 10 }, maxTicksLimit: 15 },
             grid: { color: 'rgba(33,38,45,.5)' },
           },
@@ -3223,14 +3223,14 @@
           labels,
           datasets: [
             {
-              label: 'Satılan (Kümülatif)',
+              label: 'Sold (Cumulative)',
               data: sorted.map(r => r.pax_sold_cum),
               borderColor: '#58a6ff',
               backgroundColor: 'rgba(88,166,255,.08)',
               fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
             },
             {
-              label: 'Kalan Koltuk',
+              label: 'Remaining Seats',
               data: sorted.map(r => r.remaining_seats),
               borderColor: '#d29922',
               backgroundColor: 'rgba(210,153,34,.08)',
@@ -3254,7 +3254,7 @@
         data: {
           labels,
           datasets: [{
-            label: 'Günlük Satış',
+            label: 'Daily Sales',
             data: sorted.map(r => r.pax_sold_today),
             backgroundColor: 'rgba(63,185,80,.5)',
             borderColor: '#3fb950',
@@ -3277,21 +3277,21 @@
           labels,
           datasets: [
             {
-              label: 'Total Gelir',
+              label: 'Total Revenue',
               data: sorted.map(r => r.total_rev_cum),
               borderColor: '#bc8cff',
               backgroundColor: 'rgba(188,140,255,.06)',
               fill: true, tension: .3, pointRadius: 0, borderWidth: 2.5,
             },
             {
-              label: 'Ticket Gelir',
+              label: 'Ticket Revenue',
               data: sorted.map(r => r.ticket_rev_cum),
               borderColor: '#58a6ff',
               backgroundColor: 'rgba(88,166,255,.06)',
               fill: true, tension: .3, pointRadius: 0, borderWidth: 2,
             },
             {
-              label: 'Ancillary Gelir',
+              label: 'Ancillary Revenue',
               data: sorted.map(r => r.anc_rev_cum),
               borderColor: '#f0883e',
               backgroundColor: 'rgba(240,136,62,.06)',
@@ -3305,7 +3305,7 @@
             ...commonOpts.scales,
             y: {
               ...commonOpts.scales.y,
-              title: { display: true, text: 'Gelir ($)', color: '#6e7681', font: { size: 11 } },
+              title: { display: true, text: 'Revenue ($)', color: '#6e7681', font: { size: 11 } },
             }
           }
         }
@@ -3318,7 +3318,7 @@
           labels,
           datasets: [
             {
-              label: 'Ticket (Günlük)',
+              label: 'Ticket (Daily)',
               data: sorted.map(r => r.ticket_rev_today),
               backgroundColor: 'rgba(88,166,255,.6)',
               borderColor: '#58a6ff',
@@ -3326,7 +3326,7 @@
               stack: 'rev',
             },
             {
-              label: 'Ancillary (Günlük)',
+              label: 'Ancillary (Daily)',
               data: sorted.map(r => r.anc_rev_today),
               backgroundColor: 'rgba(240,136,62,.6)',
               borderColor: '#f0883e',
@@ -3343,7 +3343,7 @@
             y: {
               ...commonOpts.scales.y,
               stacked: true,
-              title: { display: true, text: 'Günlük Gelir ($)', color: '#6e7681', font: { size: 11 } },
+              title: { display: true, text: 'Daily Revenue ($)', color: '#6e7681', font: { size: 11 } },
             }
           }
         }
@@ -3355,15 +3355,15 @@
       const sorted = [...data].sort((a, b) => (b.dtd || 0) - (a.dtd || 0));
       const cols = [
         { key: 'dtd', label: 'DTD', cls: 'highlight' },
-        { key: 'pax_sold_today', label: 'Günlük Satış', cls: 'num' },
-        { key: 'pax_sold_cum', label: 'Küm. Satış', cls: 'num' },
-        { key: 'remaining_seats', label: 'Kalan', cls: 'num' },
-        { key: 'load_factor', label: 'Doluluk %', cls: 'num', fmt: v => v !== null ? `${(v * 100).toFixed(1)}%` : '—' },
-        { key: 'ticket_rev_today', label: 'Ticket (Gün)', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
-        { key: 'anc_rev_today', label: 'Anc. (Gün)', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
-        { key: 'total_rev_cum', label: 'Küm. Gelir', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
-        { key: 'ancillary_share', label: 'Anc. Pay', cls: 'num', fmt: v => v !== null ? `${(v * 100).toFixed(1)}%` : '—' },
-        { key: 'avg_fare_today', label: 'Ort. Ücret', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'pax_sold_today', label: 'Daily Sales', cls: 'num' },
+        { key: 'pax_sold_cum', label: 'Cum. Sales', cls: 'num' },
+        { key: 'remaining_seats', label: 'Remaining', cls: 'num' },
+        { key: 'load_factor', label: 'Load Factor %', cls: 'num', fmt: v => v !== null ? `${(v * 100).toFixed(1)}%` : '—' },
+        { key: 'ticket_rev_today', label: 'Ticket (Day)', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'anc_rev_today', label: 'Anc. (Day)', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'total_rev_cum', label: 'Cum. Revenue', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
+        { key: 'ancillary_share', label: 'Anc. Share', cls: 'num', fmt: v => v !== null ? `${(v * 100).toFixed(1)}%` : '—' },
+        { key: 'avg_fare_today', label: 'Avg. Fare', cls: 'num', fmt: v => v !== null ? `$${fmtMoney(v)}` : '—' },
         { key: 'pax_last_7d', label: '7g Pace', cls: 'num' },
       ];
 
@@ -3382,7 +3382,7 @@
         }).join('') + '</tr>';
       }).join('');
 
-      document.getElementById('tableCount').textContent = `${sorted.length} satır`;
+      document.getElementById('tableCount').textContent = `${sorted.length} rows`;
     }
 
     // ─── UTILS ──────────────────────────────────────────────
@@ -3507,18 +3507,18 @@
       const container = document.getElementById('pickupKpiGroups');
       container.innerHTML = '';
       const isPred = meta.is_prediction;
-      const yearLabel = isPred ? '2026 (Tahmin)' : '2025 (Gerceklesen)';
+      const yearLabel = isPred ? '2026 (Forecast)' : '2025 (Actual)';
       const lfVal = meta.actual_final_lf;
       const lfCls = lfVal > 0.85 ? 'green' : lfVal > 0.6 ? 'orange' : 'red';
 
       let html = `
         <div class="kpi-group-box">
-          <div class="group-title">UCUS BILGISI: ${meta.flight_number || ''} \u2014 ${meta.departure_airport} \u2192 ${meta.arrival_airport} (${meta.dep_date})</div>
+          <div class="group-title">FLIGHT INFO: ${meta.flight_number || ''} \u2014 ${meta.departure_airport} \u2192 ${meta.arrival_airport} (${meta.dep_date})</div>
           <div class="kpi-grid-mini">
-            <div class="kpi-card blue"><div class="kpi-label">Toplam Yolcu</div><div class="kpi-value">${meta.actual_final_pax}</div><div class="kpi-sub">${yearLabel}</div></div>
-            <div class="kpi-card ${lfCls}"><div class="kpi-label">Doluluk Orani</div><div class="kpi-value">${(lfVal*100).toFixed(1)}%</div><div class="kpi-sub">${meta.actual_final_pax} / ${meta.capacity} koltuk</div></div>
-            <div class="kpi-card"><div class="kpi-label">Kapasite</div><div class="kpi-value">${meta.capacity}</div><div class="kpi-sub">${meta.cabin_class || 'economy'} kabin</div></div>
-            <div class="kpi-card"><div class="kpi-label">Bolge</div><div class="kpi-value" style="font-size:1rem">${meta.region || 'N/A'}</div><div class="kpi-sub">${meta.distance_km ? meta.distance_km + ' km' : ''}</div></div>
+            <div class="kpi-card blue"><div class="kpi-label">Total Passengers</div><div class="kpi-value">${meta.actual_final_pax}</div><div class="kpi-sub">${yearLabel}</div></div>
+            <div class="kpi-card ${lfCls}"><div class="kpi-label">Load Factor</div><div class="kpi-value">${(lfVal*100).toFixed(1)}%</div><div class="kpi-sub">${meta.actual_final_pax} / ${meta.capacity} seats</div></div>
+            <div class="kpi-card"><div class="kpi-label">Capacity</div><div class="kpi-value">${meta.capacity}</div><div class="kpi-sub">${meta.cabin_class || 'economy'} cabin</div></div>
+            <div class="kpi-card"><div class="kpi-label">Region</div><div class="kpi-value" style="font-size:1rem">${meta.region || 'N/A'}</div><div class="kpi-sub">${meta.distance_km ? meta.distance_km + ' km' : ''}</div></div>
           </div>
         </div>`;
 
@@ -3527,12 +3527,12 @@
         const fwapeCls = accuracy.flight_wape != null ? (accuracy.flight_wape < 10 ? 'green' : accuracy.flight_wape < 15 ? 'orange' : 'red') : '';
         html += `
         <div class="kpi-group-box">
-          <div class="group-title">MODEL DOGRULUGU (XGBoost Pickup Model)</div>
+          <div class="group-title">MODEL ACCURACY (XGBoost Pickup Model)</div>
           <div class="kpi-grid-mini">
-            <div class="kpi-card ${wapeCls}"><div class="kpi-label">Genel WAPE</div><div class="kpi-value">%${accuracy.model_wape || 'N/A'}</div><div class="kpi-sub">agirlikli mutlak yuzde hata</div></div>
-            <div class="kpi-card"><div class="kpi-label">Genel MAE</div><div class="kpi-value">${accuracy.model_mae} yolcu</div><div class="kpi-sub">ortalama mutlak hata</div></div>
-            <div class="kpi-card ${fwapeCls}"><div class="kpi-label">Bu Ucus WAPE</div><div class="kpi-value">${accuracy.flight_wape != null ? '%' + accuracy.flight_wape : 'N/A'}</div><div class="kpi-sub">ucusa ozel dogruluk</div></div>
-            <div class="kpi-card"><div class="kpi-label">Bu Ucus MAE</div><div class="kpi-value">${accuracy.flight_mae != null ? accuracy.flight_mae + ' yolcu' : 'N/A'}</div><div class="kpi-sub">ucusa ozel hata</div></div>
+            <div class="kpi-card ${wapeCls}"><div class="kpi-label">Overall WAPE</div><div class="kpi-value">${accuracy.model_wape || 'N/A'}%</div><div class="kpi-sub">weighted absolute percentage error</div></div>
+            <div class="kpi-card"><div class="kpi-label">Overall MAE</div><div class="kpi-value">${accuracy.model_mae} pax</div><div class="kpi-sub">mean absolute error</div></div>
+            <div class="kpi-card ${fwapeCls}"><div class="kpi-label">This Flight WAPE</div><div class="kpi-value">${accuracy.flight_wape != null ? accuracy.flight_wape + '%' : 'N/A'}</div><div class="kpi-sub">flight-specific accuracy</div></div>
+            <div class="kpi-card"><div class="kpi-label">This Flight MAE</div><div class="kpi-value">${accuracy.flight_mae != null ? accuracy.flight_mae + ' pax' : 'N/A'}</div><div class="kpi-sub">flight-specific error</div></div>
           </div>
         </div>`;
       }
@@ -3552,8 +3552,8 @@
         // 2025: sadece rezervasyon cizgisi
         state.pickupChart = new Chart(ctx, {
           type: 'line',
-          data: { labels, datasets: [{ label: 'Rezervasyonlar', data: paxSold, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,.1)', fill: true, tension: .3, pointRadius: 0 }] },
-          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8b949e'}}}, scales:{x:{title:{display:true,text:'Kalkisa Kalan Gun (DTD)',color:'#6e7681'},ticks:{color:'#6e7681'},grid:{color:'#21262d'}},y:{title:{display:true,text:'Yolcu Sayisi',color:'#6e7681'},ticks:{color:'#6e7681'},grid:{color:'#21262d'}}} }
+          data: { labels, datasets: [{ label: 'Bookings', data: paxSold, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,.1)', fill: true, tension: .3, pointRadius: 0 }] },
+          options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8b949e'}}}, scales:{x:{title:{display:true,text:'Days to Departure (DTD)',color:'#6e7681'},ticks:{color:'#6e7681'},grid:{color:'#21262d'}},y:{title:{display:true,text:'Passenger Count',color:'#6e7681'},ticks:{color:'#6e7681'},grid:{color:'#21262d'}}} }
         });
         return;
       }
@@ -3563,18 +3563,18 @@
       const actualFinal = rows[0]?.actual_final;
 
       const datasets = [
-        { label: 'Mevcut Rezervasyonlar', data: paxSold, backgroundColor: 'rgba(139,92,246,.7)', borderColor: '#8b5cf6', borderWidth: 1, borderRadius: 2 },
-        { label: 'Tahmini Kalan Talep', data: predRemaining, backgroundColor: 'rgba(34,197,94,.5)', borderColor: '#22c55e', borderWidth: 1, borderRadius: 2 },
+        { label: 'Current Bookings', data: paxSold, backgroundColor: 'rgba(139,92,246,.7)', borderColor: '#8b5cf6', borderWidth: 1, borderRadius: 2 },
+        { label: 'Estimated Remaining Demand', data: predRemaining, backgroundColor: 'rgba(34,197,94,.5)', borderColor: '#22c55e', borderWidth: 1, borderRadius: 2 },
       ];
 
       if (actualFinal != null) {
-        datasets.push({ label: 'Gerceklesen Toplam', data: labels.map(() => actualFinal), type: 'line', borderColor: '#eab308', borderDash: [6,3], borderWidth: 2, pointRadius: 0, fill: false });
+        datasets.push({ label: 'Actual Total', data: labels.map(() => actualFinal), type: 'line', borderColor: '#eab308', borderDash: [6,3], borderWidth: 2, pointRadius: 0, fill: false });
       }
 
       state.pickupChart = new Chart(ctx, {
         type: 'bar',
         data: { labels, datasets },
-        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8b949e',font:{size:10}}},tooltip:{callbacks:{afterBody:(items)=>{const idx=items[0]?.dataIndex;if(idx!=null){const total=(paxSold[idx]||0)+(predRemaining[idx]||0);return 'Tahmini Toplam: '+Math.round(total);}return '';}}}}, scales:{x:{stacked:true,title:{display:true,text:'Kalkisa Kalan Gun (DTD)',color:'#6e7681'},ticks:{color:'#6e7681',maxTicksLimit:20},grid:{color:'#21262d'}},y:{stacked:true,title:{display:true,text:'Yolcu Sayisi',color:'#6e7681'},ticks:{color:'#6e7681'},grid:{color:'#21262d'}}} }
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:'#8b949e',font:{size:10}}},tooltip:{callbacks:{afterBody:(items)=>{const idx=items[0]?.dataIndex;if(idx!=null){const total=(paxSold[idx]||0)+(predRemaining[idx]||0);return 'Estimated Total: '+Math.round(total);}return '';}}}}, scales:{x:{stacked:true,title:{display:true,text:'Days to Departure (DTD)',color:'#6e7681'},ticks:{color:'#6e7681',maxTicksLimit:20},grid:{color:'#21262d'}},y:{stacked:true,title:{display:true,text:'Passenger Count',color:'#6e7681'},ticks:{color:'#6e7681'},grid:{color:'#21262d'}}} }
       });
     }
 
@@ -3584,15 +3584,15 @@
       const keyDtds = [180,150,120,90,75,60,45,30,21,14,7,5,3,1];
       const filtered = rows.filter(r => keyDtds.includes(r.dtd)).sort((a,b) => b.dtd - a.dtd);
 
-      let html = `<div class="chart-card"><div class="chart-title">DTD Bazli Detay Tablosu</div>
+      let html = `<div class="chart-card"><div class="chart-title">DTD Detail Table</div>
         <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.85rem">
         <thead><tr style="border-bottom:1px solid var(--border)">
-          <th style="padding:8px;text-align:left;color:#94a3b8">Kalan Gun</th>
-          <th style="padding:8px;text-align:right;color:#94a3b8">Rezervasyon</th>`;
+          <th style="padding:8px;text-align:left;color:#94a3b8">Days Left</th>
+          <th style="padding:8px;text-align:right;color:#94a3b8">Bookings</th>`;
       if (isPred) {
-        html += `<th style="padding:8px;text-align:right;color:#94a3b8">Gercek Kalan</th>
-          <th style="padding:8px;text-align:right;color:#94a3b8">Tahmin Kalan</th>
-          <th style="padding:8px;text-align:right;color:#94a3b8">Tahmin Toplam</th>`;
+        html += `<th style="padding:8px;text-align:right;color:#94a3b8">Actual Remaining</th>
+          <th style="padding:8px;text-align:right;color:#94a3b8">Predicted Remaining</th>
+          <th style="padding:8px;text-align:right;color:#94a3b8">Predicted Total</th>`;
       }
       html += `</tr></thead><tbody>`;
 
@@ -3662,7 +3662,7 @@
       const q90 = rows.map(r => r.pred_q90);
       const hasCI = q10.some(v => v != null);
       const isTFT = meta.forecast_source === 'tft_model';
-      const forecastLabel = isTFT ? 'TFT Model Tahmini' : 'Gecen Yil Baseline';
+      const forecastLabel = isTFT ? 'TFT Model Forecast' : 'Last Year Baseline';
 
       // Kalkis gunu highlight
       const depIdx = labels.indexOf(depDate);
@@ -3670,7 +3670,7 @@
       const datasets = [
         {
           type: 'bar',
-          label: 'Gerceklesen Yolcu',
+          label: 'Actual Passengers',
           data: actual,
           backgroundColor: labels.map((l,i) => i === depIdx ? 'rgba(99,102,241,0.9)' : 'rgba(99,102,241,0.4)'),
           borderColor: 'rgba(99,102,241,0.7)',
@@ -3741,7 +3741,7 @@
                 },
                 label: (ctx) => {
                   if (ctx.dataset.label.startsWith('_')) return null;
-                  return `${ctx.dataset.label}: ${ctx.raw != null ? Math.round(ctx.raw) + ' yolcu' : 'N/A'}`;
+                  return `${ctx.dataset.label}: ${ctx.raw != null ? Math.round(ctx.raw) + ' pax' : 'N/A'}`;
                 },
               },
               filter: (item) => !item.dataset.label.startsWith('_'),
@@ -3749,12 +3749,12 @@
           },
           scales: {
             x: {
-              title: { display: true, text: 'Tarih', color: '#6e7681' },
+              title: { display: true, text: 'Date', color: '#6e7681' },
               ticks: { color: '#6e7681', maxTicksLimit: 15, maxRotation: 45 },
               grid: { color: '#21262d' },
             },
             y: {
-              title: { display: true, text: 'Gunluk Yolcu Sayisi (Rota Toplami)', color: '#6e7681' },
+              title: { display: true, text: 'Daily Passenger Count (Route Total)', color: '#6e7681' },
               ticks: { color: '#6e7681' },
               grid: { color: 'rgba(33,38,45,.6)' },
               beginAtZero: true,
@@ -3772,12 +3772,12 @@
       const routeBox = document.createElement('div');
       routeBox.className = 'kpi-group-box';
       routeBox.innerHTML = `
-        <div class="group-title">ROTA BILGISI: ${meta.flight_number || ''} \u2014 ${meta.route || ''} (${meta.dep_date})</div>
+        <div class="group-title">ROUTE INFO: ${meta.flight_number || ''} \u2014 ${meta.route || ''} (${meta.dep_date})</div>
         <div class="kpi-grid-mini">
-          <div class="kpi-card blue"><div class="kpi-label">Kalkis Gunu Talebi</div><div class="kpi-value">${meta.dep_date_pax != null ? Math.round(meta.dep_date_pax) : 'N/A'}</div><div class="kpi-sub">toplam rota yolcu</div></div>
-          <div class="kpi-card"><div class="kpi-label">Ucus Basi</div><div class="kpi-value">${meta.dep_date_pax_per_flight || 'N/A'}</div><div class="kpi-sub">yolcu / ucus</div></div>
-          <div class="kpi-card ${(meta.dep_date_load_factor||0) > 0.85 ? 'green' : (meta.dep_date_load_factor||0) > 0.6 ? 'orange' : 'red'}"><div class="kpi-label">Doluluk</div><div class="kpi-value">${meta.dep_date_load_factor != null ? (meta.dep_date_load_factor * 100).toFixed(1) + '%' : 'N/A'}</div><div class="kpi-sub">kalkis gunu</div></div>
-          <div class="kpi-card"><div class="kpi-label">Bolge</div><div class="kpi-value" style="font-size:1rem">${meta.region || 'N/A'}</div><div class="kpi-sub">${meta.distance_km ? meta.distance_km + ' km' : ''}</div></div>
+          <div class="kpi-card blue"><div class="kpi-label">Departure Day Demand</div><div class="kpi-value">${meta.dep_date_pax != null ? Math.round(meta.dep_date_pax) : 'N/A'}</div><div class="kpi-sub">total route passengers</div></div>
+          <div class="kpi-card"><div class="kpi-label">Per Flight</div><div class="kpi-value">${meta.dep_date_pax_per_flight || 'N/A'}</div><div class="kpi-sub">pax / flight</div></div>
+          <div class="kpi-card ${(meta.dep_date_load_factor||0) > 0.85 ? 'green' : (meta.dep_date_load_factor||0) > 0.6 ? 'orange' : 'red'}"><div class="kpi-label">Load Factor</div><div class="kpi-value">${meta.dep_date_load_factor != null ? (meta.dep_date_load_factor * 100).toFixed(1) + '%' : 'N/A'}</div><div class="kpi-sub">departure day</div></div>
+          <div class="kpi-card"><div class="kpi-label">Region</div><div class="kpi-value" style="font-size:1rem">${meta.region || 'N/A'}</div><div class="kpi-sub">${meta.distance_km ? meta.distance_km + ' km' : ''}</div></div>
         </div>
       `;
       container.appendChild(routeBox);
@@ -3790,12 +3790,12 @@
       const testCorr = meta.tft_test_corr;
       const corrCls = testCorr != null ? (testCorr > 0.97 ? 'green' : testCorr > 0.90 ? 'orange' : 'red') : '';
       modelBox.innerHTML = `
-        <div class="group-title">MODEL DOGRULUGU (${isTFTSrc ? 'TFT Model' : 'YoY Baseline'})</div>
+        <div class="group-title">MODEL ACCURACY (${isTFTSrc ? 'TFT Model' : 'YoY Baseline'})</div>
         <div class="kpi-grid-mini">
-          <div class="kpi-card"><div class="kpi-label">Test MAE</div><div class="kpi-value">${testMae != null ? testMae + ' yolcu' : 'N/A'}</div><div class="kpi-sub">Kaggle test seti</div></div>
-          <div class="kpi-card ${corrCls}"><div class="kpi-label">Korelasyon</div><div class="kpi-value">${testCorr != null ? testCorr.toFixed(3) : 'N/A'}</div><div class="kpi-sub">gercek vs tahmin</div></div>
-          <div class="kpi-card"><div class="kpi-label">Bu Rota MAE</div><div class="kpi-value">${meta.window_mae != null ? meta.window_mae + ' yolcu' : 'N/A'}</div><div class="kpi-sub">son ${meta.window_days} gun</div></div>
-          <div class="kpi-card"><div class="kpi-label">Bu Rota WAPE</div><div class="kpi-value">${meta.window_wape != null ? meta.window_wape + '%' : 'N/A'}</div><div class="kpi-sub">son ${meta.window_days} gun</div></div>
+          <div class="kpi-card"><div class="kpi-label">Test MAE</div><div class="kpi-value">${testMae != null ? testMae + ' pax' : 'N/A'}</div><div class="kpi-sub">Kaggle test set</div></div>
+          <div class="kpi-card ${corrCls}"><div class="kpi-label">Correlation</div><div class="kpi-value">${testCorr != null ? testCorr.toFixed(3) : 'N/A'}</div><div class="kpi-sub">actual vs predicted</div></div>
+          <div class="kpi-card"><div class="kpi-label">This Route MAE</div><div class="kpi-value">${meta.window_mae != null ? meta.window_mae + ' pax' : 'N/A'}</div><div class="kpi-sub">last ${meta.window_days} days</div></div>
+          <div class="kpi-card"><div class="kpi-label">This Route WAPE</div><div class="kpi-value">${meta.window_wape != null ? meta.window_wape + '%' : 'N/A'}</div><div class="kpi-sub">last ${meta.window_days} days</div></div>
         </div>
       `;
       container.appendChild(modelBox);
@@ -3858,7 +3858,7 @@
       try {
         const res = await fetch('/api/clusters');
         if (!res.ok) {
-          document.getElementById('segCards').innerHTML = '<div class="empty-state">Kümeleme verisi bulunamadı. Önce build_passenger_clusters.py çalıştırın.</div>';
+          document.getElementById('segCards').innerHTML = '<div class="empty-state">Clustering data not found. Run build_passenger_clusters.py first.</div>';
           hideLoading();
           return;
         }
@@ -3888,16 +3888,16 @@
             <div class="seg-card-title">${emojis[idx]} ${c.label}</div>
             <div class="seg-card-pct" style="color:${color}">${c.pct}%</div>
           </div>
-          <div class="seg-card-count">${c.size.toLocaleString()} uçuş profili</div>
+          <div class="seg-card-count">${c.size.toLocaleString()} flight profiles</div>
           <div class="seg-card-metrics">
-            <div class="seg-metric">DTD Ort: <strong>${c.avg_dtd_at_purchase}</strong></div>
-            <div class="seg-metric">Doluluk: <strong>${(c.max_load_factor * 100).toFixed(1)}%</strong></div>
-            <div class="seg-metric">Son Dakika: <strong>${c.pct_last_minute}%</strong></div>
-            <div class="seg-metric">Erken: <strong>${c.pct_early_bird}%</strong></div>
+            <div class="seg-metric">DTD Avg: <strong>${c.avg_dtd_at_purchase}</strong></div>
+            <div class="seg-metric">Load Factor: <strong>${(c.max_load_factor * 100).toFixed(1)}%</strong></div>
+            <div class="seg-metric">Last Minute: <strong>${c.pct_last_minute}%</strong></div>
+            <div class="seg-metric">Early: <strong>${c.pct_early_bird}%</strong></div>
             <div class="seg-metric">Business: <strong>${c.is_business_pct}%</strong></div>
-            <div class="seg-metric">Hafta İçi: <strong>${c.is_weekday_pct}%</strong></div>
-            <div class="seg-metric">Sabah: <strong>${c.is_morning_pct}%</strong></div>
-            <div class="seg-metric">Mesafe: <strong>${c.distance_km.toLocaleString()} km</strong></div>
+            <div class="seg-metric">Weekday: <strong>${c.is_weekday_pct}%</strong></div>
+            <div class="seg-metric">Morning: <strong>${c.is_morning_pct}%</strong></div>
+            <div class="seg-metric">Distance: <strong>${c.distance_km.toLocaleString()} km</strong></div>
           </div>
         `;
         container.appendChild(card);
@@ -3947,7 +3947,7 @@
         data: {
           labels,
           datasets: [{
-            label: 'Uçuş Profili Sayısı',
+            label: 'Flight Profile Count',
             data: sizes,
             backgroundColor: colors.map(c => c + '99'),
             borderColor: colors,
@@ -3962,7 +3962,7 @@
             ...chartOpts.plugins,
             legend: { display: false },
             tooltip: {
-              callbacks: { label: ctx => `${ctx.raw.toLocaleString()} uçuş` }
+              callbacks: { label: ctx => `${ctx.raw.toLocaleString()} flights` }
             }
           },
           scales: {
@@ -3976,7 +3976,7 @@
       segCharts.radar = new Chart(document.getElementById('chartClusterRadar').getContext('2d'), {
         type: 'radar',
         data: {
-          labels: ['Son Dakika %', 'Erken Rez %', 'Business %', 'Hafta İçi %', 'Sabah %', 'Doluluk %'],
+          labels: ['Last Minute %', 'Early Booking %', 'Business %', 'Weekday %', 'Morning %', 'Load Factor %'],
           datasets: Object.entries(clusters).map(([id, c], idx) => ({
             label: labels[idx],
             data: [
@@ -4014,8 +4014,8 @@
         data: {
           labels,
           datasets: [
-            { label: 'Son Dakika %', data: pctLastMin, backgroundColor: '#f43f5e99', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 },
-            { label: 'Erken Rezervasyon %', data: pctEarly, backgroundColor: '#10b98199', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
+            { label: 'Last Minute %', data: pctLastMin, backgroundColor: '#f43f5e99', borderColor: '#f43f5e', borderWidth: 1, borderRadius: 4 },
+            { label: 'Early Booking %', data: pctEarly, backgroundColor: '#10b98199', borderColor: '#10b981', borderWidth: 1, borderRadius: 4 },
           ]
         },
         options: {
@@ -4034,8 +4034,8 @@
           labels,
           datasets: [
             { label: 'Business %', data: bisPct, backgroundColor: '#8b5cf699', borderColor: '#8b5cf6', borderWidth: 1, borderRadius: 4 },
-            { label: 'Hafta İçi %', data: wkdPct, backgroundColor: '#3b82f699', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 },
-            { label: 'Sabah Uçuşu %', data: mornPct, backgroundColor: '#f59e0b99', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
+            { label: 'Weekday %', data: wkdPct, backgroundColor: '#3b82f699', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 4 },
+            { label: 'Morning Flight %', data: mornPct, backgroundColor: '#f59e0b99', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
           ]
         },
         options: {
@@ -4127,7 +4127,7 @@
         data: {
           labels,
           datasets: [{
-            label: 'Toplam Yolcu',
+            label: 'Total Passengers',
             data: monthly.map(m => m.total_pax),
             borderColor: '#6366f1', backgroundColor: gradient,
             borderWidth: 2.5, pointRadius: 4, pointHoverRadius: 7,
@@ -4147,7 +4147,7 @@
             ...chartOpts.plugins,
             tooltip: {
               ...chartOpts.plugins.tooltip,
-              callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toLocaleString()} yolcu` }
+              callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toLocaleString()} pax` }
             }
           }
         }
@@ -4217,13 +4217,13 @@
           labels,
           datasets: [
             {
-              type: 'line', label: 'Doluluk Oranı',
+              type: 'line', label: 'Load Factor',
               data: monthly.map(m => (m.avg_load_factor * 100)),
               borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.1)',
               borderWidth: 2, pointRadius: 3, tension: 0.3, fill: true, yAxisID: 'y',
             },
             {
-              type: 'line', label: 'Satış Oranı',
+              type: 'line', label: 'Sales Rate',
               data: monthly.map(m => m.sale_rate_pct),
               borderColor: '#10b981', borderDash: [5, 3],
               borderWidth: 2, pointRadius: 2, tension: 0.3, fill: false, yAxisID: 'y',
@@ -4249,7 +4249,7 @@
         data: {
           labels: dowLabels,
           datasets: [{
-            label: 'Toplam Yolcu',
+            label: 'Total Passengers',
             data: dowData.map(d => d.total_pax),
             backgroundColor: dowColors.map(c => c + '80'),
             borderColor: dowColors,
@@ -4260,7 +4260,7 @@
           ...chartOpts,
           plugins: {
             ...chartOpts.plugins, legend: { display: false },
-            tooltip: { callbacks: { label: ctx => `${ctx.raw.toLocaleString()} yolcu` } }
+            tooltip: { callbacks: { label: ctx => `${ctx.raw.toLocaleString()} pax` } }
           },
           scales: {
             x: { ticks: { color: '#e6edf3', font: { weight: 'bold' } }, grid: { display: false } },
@@ -4337,9 +4337,9 @@
           <div class="route-card-sub">${r.cabin_class} • ${r.region} • ${r.distance_km.toLocaleString()} km</div>
           <div class="route-card-metrics">
             <div class="route-card-metric">Pax: <strong>${r.total_pax}</strong></div>
-            <div class="route-card-metric">Doluluk: <strong style="color:${lfColor}">${r.final_lf}%</strong></div>
-            <div class="route-card-metric">Gelir: <strong>₺${Math.round(r.total_rev).toLocaleString()}</strong></div>
-            <div class="route-card-metric">Fiyat: <strong>₺${r.avg_ticket_price.toLocaleString()}</strong></div>
+            <div class="route-card-metric">Load Factor: <strong style="color:${lfColor}">${r.final_lf}%</strong></div>
+            <div class="route-card-metric">Revenue: <strong>₺${Math.round(r.total_rev).toLocaleString()}</strong></div>
+            <div class="route-card-metric">Price: <strong>₺${r.avg_ticket_price.toLocaleString()}</strong></div>
           </div>
           <div class="route-lf-bar"><div class="fill" style="width:${Math.min(r.final_lf, 100)}%;background:${lfColor}"></div></div>
         `;
@@ -4367,8 +4367,8 @@
         data: {
           labels: rLabels,
           datasets: [
-            { type: 'bar', label: 'Toplam Pax', data: routes.map(r => r.total_pax), backgroundColor: '#6366f180', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
-            { type: 'line', label: 'Doluluk %', data: routes.map(r => r.final_lf), borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#10b981', yAxisID: 'y1' },
+            { type: 'bar', label: 'Total Pax', data: routes.map(r => r.total_pax), backgroundColor: '#6366f180', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+            { type: 'line', label: 'Load Factor %', data: routes.map(r => r.final_lf), borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#10b981', yAxisID: 'y1' },
           ]
         },
         options: {
@@ -4398,8 +4398,8 @@
         options: {
           ...chartOpts,
           scales: {
-            x: { type: 'linear', reverse: true, title: { display: true, text: 'DTD (kalkışa kalan gün)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
-            y: { title: { display: true, text: 'Doluluk %', color: '#94a3b8' }, ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,.1)' }, suggestedMin: 0, suggestedMax: 110 },
+            x: { type: 'linear', reverse: true, title: { display: true, text: 'DTD (days to departure)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Load Factor %', color: '#94a3b8' }, ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,.1)' }, suggestedMin: 0, suggestedMax: 110 },
           }
         }
       });
@@ -4422,7 +4422,7 @@
           ...chartOpts,
           scales: {
             x: { type: 'linear', reverse: true, title: { display: true, text: 'DTD', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
-            y: { title: { display: true, text: 'Birim Fiyat (₺)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true },
+            y: { title: { display: true, text: 'Unit Price (₺)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.1)' }, beginAtZero: true },
           }
         }
       });
@@ -4433,8 +4433,8 @@
         data: {
           labels: rLabels,
           datasets: [
-            { label: 'Ticket Gelir', data: routes.map(r => r.total_ticket_rev), backgroundColor: '#6366f180', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4 },
-            { label: 'Ancillary Gelir', data: routes.map(r => r.total_anc_rev), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
+            { label: 'Ticket Revenue', data: routes.map(r => r.total_ticket_rev), backgroundColor: '#6366f180', borderColor: '#6366f1', borderWidth: 1, borderRadius: 4 },
+            { label: 'Ancillary Revenue', data: routes.map(r => r.total_anc_rev), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', borderWidth: 1, borderRadius: 4 },
           ]
         },
         options: {
@@ -4484,7 +4484,7 @@
         const arrow = t.pax_lift > 0 ? '▲' : t.pax_lift < 0 ? '▼' : '●';
         card.innerHTML = `
           <div class="event-tag-name">${t.label}</div>
-          <div class="event-tag-pct">${t.pct}% veri kapsamı</div>
+          <div class="event-tag-pct">${t.pct}% data coverage</div>
           <div class="event-tag-stats">
             <div class="event-tag-stat">Pax: <strong>${t.avg_pax.toFixed(2)}</strong></div>
             <div class="event-tag-stat">LF: <strong>${t.avg_lf}%</strong></div>
@@ -4516,7 +4516,7 @@
         data: {
           labels: sorted.map(t => t.label),
           datasets: [{
-            label: 'Talep Lift (pax/gün farkı)',
+            label: 'Demand Lift (pax/day delta)',
             data: sorted.map(t => t.pax_lift),
             backgroundColor: sorted.map(t => t.pax_lift >= 0 ? '#10b98180' : '#f43f5e80'),
             borderColor: sorted.map(t => t.pax_lift >= 0 ? '#10b981' : '#f43f5e'),
@@ -4562,7 +4562,7 @@
 
       const monthLabels = months.map(m => {
         const [y, mo] = m.split('-');
-        const mNames = ['', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+        const mNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         return `${mNames[parseInt(mo)]} ${y}`;
       });
 
@@ -4623,24 +4623,24 @@
       const s = riskData.summary;
       document.getElementById('riskSummary').innerHTML = `
         <div class="risk-summary-card">
-          <div class="card-label">Toplam Uçuş</div>
+          <div class="card-label">Total Flights</div>
           <div class="card-value" style="color:var(--accent)">${s.total_flights.toLocaleString()}</div>
-          <div class="card-sub">Ort. Risk: ${s.avg_risk_score}</div>
+          <div class="card-sub">Avg. Risk: ${s.avg_risk_score}</div>
         </div>
         <div class="risk-summary-card price-up">
-          <div class="card-label">📈 Fiyat Artırım</div>
+          <div class="card-label">📈 Price Increase</div>
           <div class="card-value">${s.price_increase.count}</div>
-          <div class="card-sub">Ort. Doluluk: %${s.price_increase.avg_lf}</div>
+          <div class="card-sub">Avg. Load Factor: ${s.price_increase.avg_lf}%</div>
         </div>
         <div class="risk-summary-card price-down">
-          <div class="card-label">📉 Fiyat Düşürme</div>
+          <div class="card-label">📉 Price Decrease</div>
           <div class="card-value">${s.price_decrease.count}</div>
-          <div class="card-sub">Ort. Doluluk: %${s.price_decrease.avg_lf}</div>
+          <div class="card-sub">Avg. Load Factor: ${s.price_decrease.avg_lf}%</div>
         </div>
         <div class="risk-summary-card cancel">
-          <div class="card-label">🚨 İptal Riski</div>
+          <div class="card-label">🚨 Cancel Risk</div>
           <div class="card-value">${s.cancel_risk.count}</div>
-          <div class="card-sub">Ort. Doluluk: %${s.cancel_risk.avg_lf}</div>
+          <div class="card-sub">Avg. Load Factor: ${s.cancel_risk.avg_lf}%</div>
         </div>
       `;
     }
@@ -4677,7 +4677,7 @@
         </tr>`;
       }).join('');
       if (flights.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#64748b;padding:2rem">Bu kategoride uçuş bulunamadı</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#64748b;padding:2rem">No flights found in this category</td></tr>';
       }
     }
 
@@ -4696,7 +4696,7 @@
       riskCharts.dist = new Chart(document.getElementById('chartRiskDist').getContext('2d'), {
         type: 'doughnut',
         data: {
-          labels: ['Fiyat Artırım', 'Fiyat Düşürme', 'İptal Riski'],
+          labels: ['Price Increase', 'Price Decrease', 'Cancel Risk'],
           datasets: [{
             data: [s.price_increase.count, s.price_decrease.count, s.cancel_risk.count],
             backgroundColor: ['#10b98190', '#f59e0b90', '#ef444490'],
@@ -4717,16 +4717,16 @@
         type: 'scatter',
         data: {
           datasets: [
-            { label: 'Fiyat Artırım', data: scatterData.filter(d => d.cat === 'price_increase'), backgroundColor: '#10b98180', borderColor: '#10b981', pointRadius: 3 },
-            { label: 'Fiyat Düşürme', data: scatterData.filter(d => d.cat === 'price_decrease'), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', pointRadius: 3 },
-            { label: 'İptal Riski', data: scatterData.filter(d => d.cat === 'cancel_risk'), backgroundColor: '#ef444480', borderColor: '#ef4444', pointRadius: 3 },
+            { label: 'Price Increase', data: scatterData.filter(d => d.cat === 'price_increase'), backgroundColor: '#10b98180', borderColor: '#10b981', pointRadius: 3 },
+            { label: 'Price Decrease', data: scatterData.filter(d => d.cat === 'price_decrease'), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', pointRadius: 3 },
+            { label: 'Cancel Risk', data: scatterData.filter(d => d.cat === 'cancel_risk'), backgroundColor: '#ef444480', borderColor: '#ef4444', pointRadius: 3 },
           ]
         },
         options: {
           ...chartOpts,
           scales: {
-            x: { title: { display: true, text: 'Doluluk (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
-            y: { title: { display: true, text: 'Risk Skoru', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            x: { title: { display: true, text: 'Load Factor (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Risk Score', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
           },
           plugins: {
             ...chartOpts.plugins,
@@ -4769,7 +4769,7 @@
       try {
         const res = await fetch(`/api/demand-curves?cabin=${demfnCabin}`);
         if (!res.ok) {
-          document.getElementById('demfnSegCards').innerHTML = '<div class="empty-state">Talep fonksiyonları bulunamadı. Önce build_demand_functions.py çalıştırın.</div>';
+          document.getElementById('demfnSegCards').innerHTML = '<div class="empty-state">Demand functions not found. Run build_demand_functions.py first.</div>';
           hideLoading(); return;
         }
         const data = await res.json();
@@ -4797,12 +4797,12 @@
           <div class="demfn-seg-name">${s.id} — ${s.name}</div>
           <div class="demfn-seg-desc">${s.description}</div>
           <div class="demfn-seg-metrics">
-            <div class="demfn-metric">Elastikiyet: <span class="demfn-metric-val">${s.price_elasticity}</span></div>
+            <div class="demfn-metric">Elasticity: <span class="demfn-metric-val">${s.price_elasticity}</span></div>
             <div class="demfn-metric">WTP: <span class="demfn-metric-val">${s.wtp_multiplier.min}-${s.wtp_multiplier.max}x</span></div>
-            <div class="demfn-metric">Booking: <span class="demfn-metric-val">${s.booking_window.min_dtd}-${s.booking_window.max_dtd} gün</span></div>
-            <div class="demfn-metric">Pay: <span class="demfn-metric-val">%${s.base_share_pct}</span></div>
-            <div class="demfn-metric">Optimal Fiyat: <span class="demfn-metric-val">${opt.price_ratio || '-'}x</span></div>
-            <div class="demfn-metric">Optimal Gelir: <span class="demfn-metric-val">$${(opt.revenue || 0).toLocaleString()}</span></div>
+            <div class="demfn-metric">Booking: <span class="demfn-metric-val">${s.booking_window.min_dtd}-${s.booking_window.max_dtd} days</span></div>
+            <div class="demfn-metric">Share: <span class="demfn-metric-val">%${s.base_share_pct}</span></div>
+            <div class="demfn-metric">Optimal Price: <span class="demfn-metric-val">${opt.price_ratio || '-'}x</span></div>
+            <div class="demfn-metric">Optimal Revenue: <span class="demfn-metric-val">$${(opt.revenue || 0).toLocaleString()}</span></div>
           </div>
           <ul class="demfn-seg-chars">
             ${s.characteristics.map(c => `<li>${c}</li>`).join('')}
@@ -4818,18 +4818,18 @@
       const bp = data.base_price || 0;
       card.innerHTML = `
         <div>
-          <div class="demfn-opt-label">Base Fiyat (${demfnCabin})</div>
+          <div class="demfn-opt-label">Base Price (${demfnCabin})</div>
           <div class="demfn-opt-value">$${bp.toLocaleString()}</div>
         </div>
         <div>
-          <div class="demfn-opt-label">Optimal Fiyat Oranı</div>
+          <div class="demfn-opt-label">Optimal Price Ratio</div>
           <div class="demfn-opt-value">${opt.price_ratio || '-'}x</div>
           <div class="demfn-opt-sub">$${(opt.price || 0).toLocaleString()}</div>
         </div>
         <div>
-          <div class="demfn-opt-label">Maksimum Gelir İndeksi</div>
+          <div class="demfn-opt-label">Maximum Revenue Index</div>
           <div class="demfn-opt-value">$${(opt.revenue || 0).toLocaleString()}</div>
-          <div class="demfn-opt-sub">Tüm segmentler toplam</div>
+          <div class="demfn-opt-sub">All segments combined</div>
         </div>
       `;
     }
@@ -4862,8 +4862,8 @@
         options: {
           ...chartOpts,
           scales: {
-            x: { title: { display: true, text: 'Fiyat Oranı (Base×)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 10 }, grid: { color: 'rgba(148,163,184,.08)' } },
-            y: { title: { display: true, text: 'Talep İndeksi', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            x: { title: { display: true, text: 'Price Ratio (Base×)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 10 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Demand Index', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
           },
         },
       });
@@ -4874,7 +4874,7 @@
         data: {
           labels: combinedRev.map(d => `$${d.price.toLocaleString()}`),
           datasets: [{
-            label: 'Toplam Gelir',
+            label: 'Total Revenue',
             data: combinedRev.map(d => d.revenue),
             borderColor: '#06b6d4',
             backgroundColor: 'rgba(6,182,212,.1)',
@@ -4887,8 +4887,8 @@
         options: {
           ...chartOpts,
           scales: {
-            x: { title: { display: true, text: 'Bilet Fiyatı', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,.08)' } },
-            y: { title: { display: true, text: 'Gelir İndeksi', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            x: { title: { display: true, text: 'Ticket Price', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Revenue Index', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
           },
         },
       });
@@ -4911,8 +4911,8 @@
         options: {
           ...chartOpts,
           scales: {
-            x: { title: { display: true, text: 'Kalkışa Gün (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
-            y: { title: { display: true, text: 'Talep Yoğunluğu', color: '#94a3b8' }, stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            x: { title: { display: true, text: 'Days to Departure (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+            y: { title: { display: true, text: 'Demand Intensity', color: '#94a3b8' }, stacked: true, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
           },
         },
       });
@@ -5033,7 +5033,7 @@
         row.forEach(cell => {
           const fc = fcs[cell.best_fare];
           const color = fc ? fc.color : '#333';
-          html += `<div class="fc-hm-cell" style="background:${color}" title="DTD=${cell.dtd}, LF=${cell.lf}%: ${cell.available.join(',')} açık">${cell.best_fare}</div>`;
+          html += `<div class="fc-hm-cell" style="background:${color}" title="DTD=${cell.dtd}, LF=${cell.lf}%: ${cell.available.join(',')} open">${cell.best_fare}</div>`;
         });
       });
       html += '</div>';
@@ -5082,7 +5082,7 @@
       try {
         const res = await fetch('/api/simulation');
         if (!res.ok) {
-          document.getElementById('simInterpretation').innerHTML = 'Simülasyon verisi bulunamadı. Önce run_simulation.py çalıştırın.';
+          document.getElementById('simInterpretation').innerHTML = 'Simulation data not found. Run run_simulation.py first.';
           hideLoading(); return;
         }
         const data = await res.json();
@@ -5101,24 +5101,24 @@
       const cards = document.getElementById('simRoiCards');
       cards.innerHTML = `
         <div class="sim-roi-card blue">
-          <div class="sim-roi-label">Sabit Fiyat Geliri</div>
+          <div class="sim-roi-label">Static Price Revenue</div>
           <div class="sim-roi-value">$${s.total_static_revenue.toLocaleString()}</div>
-          <div class="sim-roi-sub">Baseline senaryo</div>
+          <div class="sim-roi-sub">Baseline scenario</div>
         </div>
         <div class="sim-roi-card purple">
-          <div class="sim-roi-label">Dinamik Fiyat Geliri</div>
+          <div class="sim-roi-label">Dynamic Price Revenue</div>
           <div class="sim-roi-value">$${s.total_dynamic_revenue.toLocaleString()}</div>
-          <div class="sim-roi-sub">Optimizasyon senaryo</div>
+          <div class="sim-roi-sub">Optimization scenario</div>
         </div>
         <div class="sim-roi-card green">
-          <div class="sim-roi-label">Net Katma Değer</div>
+          <div class="sim-roi-label">Net Value Added</div>
           <div class="sim-roi-value">+$${s.total_delta.toLocaleString()}</div>
-          <div class="sim-roi-sub">Ek gelir</div>
+          <div class="sim-roi-sub">Additional revenue</div>
         </div>
         <div class="sim-roi-card cyan">
           <div class="sim-roi-label">ROI</div>
           <div class="sim-roi-value">+${s.total_roi_pct}%</div>
-          <div class="sim-roi-sub">Gelir artışı</div>
+          <div class="sim-roi-sub">Revenue uplift</div>
         </div>
       `;
       document.getElementById('simInterpretation').innerHTML = `💬 <strong>${s.interpretation}</strong>`;
@@ -5178,15 +5178,15 @@
           data: {
             labels,
             datasets: [
-              { label: `Sabit (${curveRoute.route} ${curveRoute.cabin})`, data: sample.map(d => d.cumulative_rev), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
-              { label: `Dinamik (${curveRoute.route} ${curveRoute.cabin})`, data: sampleDyn.map(d => d.cumulative_rev), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+              { label: `Static (${curveRoute.route} ${curveRoute.cabin})`, data: sample.map(d => d.cumulative_rev), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
+              { label: `Dynamic (${curveRoute.route} ${curveRoute.cabin})`, data: sampleDyn.map(d => d.cumulative_rev), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', fill: true, borderWidth: 2, pointRadius: 0, tension: 0.3 },
             ]
           },
           options: {
             ...chartOpts,
             scales: {
-              x: { title: { display: true, text: 'Kalkışa Gün (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.08)' } },
-              y: { title: { display: true, text: 'Kümülatif Gelir ($)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
+              x: { title: { display: true, text: 'Days to Departure (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.08)' } },
+              y: { title: { display: true, text: 'Cumulative Revenue ($)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' } },
             },
           },
         });
@@ -5197,15 +5197,15 @@
           data: {
             labels,
             datasets: [
-              { label: 'Sabit LF', data: sample.map(d => (d.load_factor * 100)), borderColor: '#6366f1', borderWidth: 2, pointRadius: 0, tension: 0.3 },
-              { label: 'Dinamik LF', data: sampleDyn.map(d => (d.load_factor * 100)), borderColor: '#10b981', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+              { label: 'Static LF', data: sample.map(d => (d.load_factor * 100)), borderColor: '#6366f1', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+              { label: 'Dynamic LF', data: sampleDyn.map(d => (d.load_factor * 100)), borderColor: '#10b981', borderWidth: 2, pointRadius: 0, tension: 0.3 },
             ]
           },
           options: {
             ...chartOpts,
             scales: {
-              x: { title: { display: true, text: 'Kalkışa Gün (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.08)' } },
-              y: { title: { display: true, text: 'Doluluk (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' }, min: 0, max: 100 },
+              x: { title: { display: true, text: 'Days to Departure (DTD)', color: '#94a3b8' }, ticks: { color: '#94a3b8', maxTicksLimit: 12 }, grid: { color: 'rgba(148,163,184,.08)' } },
+              y: { title: { display: true, text: 'Load Factor (%)', color: '#94a3b8' }, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,.08)' }, min: 0, max: 100 },
             },
           },
         });
@@ -5360,16 +5360,16 @@
         <span class="score-big" style="color:${sentScoreColor(s)}">${sentFmtScore(s)}</span>
         <span class="sent-alert ${lv}">${sentAlertLabel(lv)}</span>
         <span style="font-size:.7rem;color:var(--text-3);font-family:'JetBrains Mono',monospace">${cd.country||''}</span>
-        <button class="sent-detail-close" onclick="sentCloseDetail()">\u2715 Kapat</button>
+        <button class="sent-detail-close" onclick="sentCloseDetail()">\u2715 Close</button>
       `;
 
       // Detail KPIs
       document.getElementById('sentDetailKpis').innerHTML = `
-        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Bilesik Skor</div><div class="sent-detail-kpi-val" style="color:${sentScoreColor(s)}">${sentFmtScore(s)}</div></div>
-        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Toplam Haber</div><div class="sent-detail-kpi-val">${agg.article_count||0}</div></div>
-        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Pozitif</div><div class="sent-detail-kpi-val" style="color:var(--green)">${agg.positive_count||0}</div></div>
-        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Negatif</div><div class="sent-detail-kpi-val" style="color:var(--red)">${agg.negative_count||0}</div></div>
-        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Notr</div><div class="sent-detail-kpi-val">${agg.neutral_count||0}</div></div>
+        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Composite Score</div><div class="sent-detail-kpi-val" style="color:${sentScoreColor(s)}">${sentFmtScore(s)}</div></div>
+        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Total Articles</div><div class="sent-detail-kpi-val">${agg.article_count||0}</div></div>
+        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Positive</div><div class="sent-detail-kpi-val" style="color:var(--green)">${agg.positive_count||0}</div></div>
+        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Negative</div><div class="sent-detail-kpi-val" style="color:var(--red)">${agg.negative_count||0}</div></div>
+        <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Neutral</div><div class="sent-detail-kpi-val">${agg.neutral_count||0}</div></div>
         <div class="sent-detail-kpi"><div class="sent-detail-kpi-label">Critical Events</div><div class="sent-detail-kpi-val" style="color:var(--orange)">${events.length}</div></div>
       `;
 
@@ -5381,7 +5381,7 @@
       const sCtx = document.getElementById('sentDetailSentChart');
       if (sCtx) sentCharts.sent = new Chart(sCtx, {
         type:'doughnut',
-        data:{labels:['Pozitif','Negatif','Notr'],datasets:[{data:[agg.positive_count||0,agg.negative_count||0,agg.neutral_count||0],backgroundColor:['rgba(63,185,80,.7)','rgba(248,81,73,.7)','rgba(110,118,129,.4)'],borderColor:['#3fb950','#f85149','#6e7681'],borderWidth:1}]},
+        data:{labels:['Positive','Negative','Neutral'],datasets:[{data:[agg.positive_count||0,agg.negative_count||0,agg.neutral_count||0],backgroundColor:['rgba(63,185,80,.7)','rgba(248,81,73,.7)','rgba(110,118,129,.4)'],borderColor:['#3fb950','#f85149','#6e7681'],borderWidth:1}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#8b949e',font:{size:10},padding:12}}},cutout:'55%'}
       });
       const eCtx = document.getElementById('sentDetailEvtChart');
@@ -5418,7 +5418,7 @@
       }
 
       // Articles table
-      document.getElementById('sentDetailTblTitle').textContent = (cfg.label||city) + ' \u2014 Tum Haberler';
+      document.getElementById('sentDetailTblTitle').textContent = (cfg.label||city) + ' \u2014 All Articles';
       document.getElementById('sentDetailTblCount').textContent = articles.length + ' articles analyzed';
 
       const feed = document.getElementById('sentDetailFeed');

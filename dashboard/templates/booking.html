@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>THY — Bilet Satin Al</title>
+<title>THY — Book a Ticket</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -24,7 +24,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .fares-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
 .fare-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:1.2rem;text-align:center;transition:all .2s;position:relative;overflow:hidden}
 .fare-card.closed{opacity:.4;pointer-events:none}
-.fare-card.closed::after{content:'KAPALI';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);font-size:1.2rem;font-weight:800;color:var(--red);opacity:.6;letter-spacing:.1em}
+.fare-card.closed::after{content:'CLOSED';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-15deg);font-size:1.2rem;font-weight:800;color:var(--red);opacity:.6;letter-spacing:.1em}
 .fare-card:not(.closed):hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
 .fare-name{font-size:.85rem;font-weight:700;margin-bottom:.3rem}
 .fare-price{font-size:1.8rem;font-weight:800;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem}
@@ -49,37 +49,37 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 <body>
 <header class="header">
   <h1>TURKISH AIRLINES</h1>
-  <span class="sub">Bilet Satin Alma</span>
+  <span class="sub">Book a Ticket</span>
 </header>
 
 <div class="main">
   <div class="search-card">
     <div class="search-row">
       <div class="field">
-        <label>Nereden</label>
+        <label>From</label>
         <input type="text" value="IST" disabled style="width:80px;background:#f1f5f9"/>
       </div>
       <div class="field">
-        <label>Nereye</label>
+        <label>To</label>
         <select id="destSelect" onchange="onRouteChange()">
-          <option value="">Secin...</option>
+          <option value="">Select...</option>
         </select>
       </div>
       <div class="field">
-        <label>Tarih</label>
+        <label>Date</label>
         <select id="dateSelect" onchange="onDateChange()">
-          <option value="">Once rota secin</option>
+          <option value="">Select a route first</option>
         </select>
       </div>
       <div class="field">
-        <label>Kabin</label>
+        <label>Cabin</label>
         <select id="cabinSelect" onchange="refreshPrices()">
           <option value="economy">Economy</option>
           <option value="business">Business</option>
         </select>
       </div>
       <div class="field">
-        <label>Yolcu</label>
+        <label>Passengers</label>
         <select id="paxSelect" onchange="refreshPrices()">
           <option value="1">1</option>
           <option value="2">2</option>
@@ -87,17 +87,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
           <option value="4">4+</option>
         </select>
       </div>
-      <button class="search-btn" onclick="refreshPrices()">Fiyat Ara</button>
+      <button class="search-btn" onclick="refreshPrices()">Search Prices</button>
     </div>
   </div>
 
   <div id="alertBox" class="alert-box"></div>
 
   <div class="info-bar" id="infoBar" style="display:none">
-    <div class="info-item"><span class="info-label">Rota</span><span class="info-val" id="infoRoute">--</span></div>
-    <div class="info-item"><span class="info-label">Tarih</span><span class="info-val" id="infoDate">--</span></div>
-    <div class="info-item"><span class="info-label">Kalan Koltuk</span><span class="info-val" id="infoSeats">--</span></div>
-    <div class="info-item"><span class="info-label">Doluluk</span><span class="info-val" id="infoLF">--</span></div>
+    <div class="info-item"><span class="info-label">Route</span><span class="info-val" id="infoRoute">--</span></div>
+    <div class="info-item"><span class="info-label">Date</span><span class="info-val" id="infoDate">--</span></div>
+    <div class="info-item"><span class="info-label">Seats Remaining</span><span class="info-val" id="infoSeats">--</span></div>
+    <div class="info-item"><span class="info-label">Load Factor</span><span class="info-val" id="infoLF">--</span></div>
     <div style="flex:1"></div>
     <div class="multipliers" id="multChips"></div>
   </div>
@@ -105,7 +105,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div class="fares-grid" id="faresGrid"></div>
 
   <div class="tracking-info">
-    Bu sayfa egitim amacli bir simulasyon ortamidir. Gercek bilet satisi yapilmamaktadir.
+    This page is an educational simulation environment. No real ticket sales are made.
   </div>
 </div>
 
@@ -139,12 +139,12 @@ async function loadRoutes(){
       if (!dests.has(arr)) dests.set(arr, f.route);
     });
     const sel = document.getElementById('destSelect');
-    sel.innerHTML = '<option value="">Secin...</option>';
+    sel.innerHTML = '<option value="">Select...</option>';
     [...dests.entries()].sort((a,b)=>a[0].localeCompare(b[0])).forEach(([code, route]) => {
       sel.innerHTML += `<option value="${route}">${code} (${route})</option>`;
     });
   } catch(e) {
-    document.getElementById('destSelect').innerHTML = '<option value="">Simulasyon baslatilmadi</option>';
+    document.getElementById('destSelect').innerHTML = '<option value="">Simulation not started</option>';
   }
 }
 
@@ -167,7 +167,7 @@ async function onRouteChange(){
     const sel = document.getElementById('dateSelect');
     sel.innerHTML = dates.length
       ? dates.slice(0, 30).map(d => `<option value="${d}">${d}</option>`).join('')
-      : '<option value="">Musait tarih yok</option>';
+      : '<option value="">No available dates</option>';
   } catch(e) {}
 }
 
@@ -223,14 +223,14 @@ function renderQuote(q, flightKey){
   document.getElementById('infoRoute').textContent = route;
   document.getElementById('infoDate').textContent = flightKey.split('_')[2] || '';
   // Seats info from current prices context
-  document.getElementById('infoSeats').textContent = q.open_fares?.length ? 'Musait' : 'Dolu';
+  document.getElementById('infoSeats').textContent = q.open_fares?.length ? 'Available' : 'Full';
   document.getElementById('infoLF').textContent = '';
 
   // Multiplier chips
   const m = q.multipliers || {};
   const chips = document.getElementById('multChips');
   chips.innerHTML = Object.entries(m).filter(([k])=>k!=='combined').map(([k,v]) => {
-    const label = {supply:'Arz',demand:'Talep',sentiment:'Sentiment',customer:'Musteri'}[k]||k;
+    const label = {supply:'Supply',demand:'Demand',sentiment:'Sentiment',customer:'Customer'}[k]||k;
     const cls = v > 1.02 ? 'mult-up' : v < 0.98 ? 'mult-down' : 'mult-neutral';
     return `<span class="mult-chip ${cls}">${label}: ${v.toFixed(2)}x</span>`;
   }).join('');
@@ -245,7 +245,7 @@ function renderQuote(q, flightKey){
       <div class="fare-name" style="color:${fc.color}">${fc.name}</div>
       <div class="fare-price" style="color:${isOpen?'var(--text)':'var(--text2)'}">$${Math.round(price)}</div>
       <div class="fare-features">${fc.features}</div>
-      ${isOpen ? `<button class="fare-buy" style="background:${fc.color}" onclick="buyTicket('${flightKey}','${fcId}')">Satin Al</button>` : ''}
+      ${isOpen ? `<button class="fare-buy" style="background:${fc.color}" onclick="buyTicket('${flightKey}','${fcId}')">Buy Now</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -272,11 +272,11 @@ async function buyTicket(flightKey, fareClass){
     const alertBox = document.getElementById('alertBox');
     if (result.success) {
       alertBox.className = 'alert-box success';
-      alertBox.innerHTML = `Bilet alindi! <strong>${fareClass} class — $${result.price}</strong>. Kalan koltuk: ${result.seats_remaining}`;
+      alertBox.innerHTML = `Ticket purchased! <strong>${fareClass} class — $${result.price}</strong>. Seats remaining: ${result.seats_remaining}`;
       refreshPrices();
     } else {
       alertBox.className = 'alert-box error';
-      alertBox.textContent = result.error || 'Hata olustu';
+      alertBox.textContent = result.error || 'An error occurred';
     }
   } catch(e) {
     console.error(e);

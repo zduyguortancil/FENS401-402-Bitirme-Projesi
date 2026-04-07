@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Flight Snapshot — Simulasyon</title>
+<title>Flight Snapshot — Simulation</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
@@ -125,9 +125,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 <body>
 <header class="header">
   <a class="logo" href="/"><div class="logo-icon">&#9992;</div><span>Flight Snapshot</span></a>
-  <span class="breadcrumb">/ Simulasyon</span>
+  <span class="breadcrumb">/ Simulation</span>
   <div class="hdr-spacer"></div>
-  <span class="sim-state idle" id="simState">HAZIR</span>
+  <span class="sim-state idle" id="simState">READY</span>
   <span class="sim-clock" id="simClock">--</span>
   <span style="font-size:.7rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;display:none" id="simDTD"></span>
 </header>
@@ -135,34 +135,34 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 <div class="main">
   <!-- Control Bar -->
   <div class="control-bar">
-    <span class="ctrl-label">Rota:</span>
+    <span class="ctrl-label">Route:</span>
     <select class="ctrl-select" id="routeSelect" style="width:160px">
-      <option value="">Rota secin...</option>
-      <option value="__ALL__">Tum Rotalar (50 rota)</option>
-      <option value="IST-LHR">IST &#8594; LHR (Londra)</option>
+      <option value="">Select route...</option>
+      <option value="__ALL__">All Routes (50 routes)</option>
+      <option value="IST-LHR">IST &#8594; LHR (London)</option>
       <option value="IST-CDG">IST &#8594; CDG (Paris)</option>
       <option value="IST-FRA">IST &#8594; FRA (Frankfurt)</option>
-      <option value="IST-FCO">IST &#8594; FCO (Roma)</option>
-      <option value="IST-MXP">IST &#8594; MXP (Milano)</option>
+      <option value="IST-FCO">IST &#8594; FCO (Rome)</option>
+      <option value="IST-MXP">IST &#8594; MXP (Milan)</option>
       <option value="IST-MAD">IST &#8594; MAD (Madrid)</option>
-      <option value="IST-BCN">IST &#8594; BCN (Barselona)</option>
-      <option value="IST-MUC">IST &#8594; MUC (Munih)</option>
+      <option value="IST-BCN">IST &#8594; BCN (Barcelona)</option>
+      <option value="IST-MUC">IST &#8594; MUC (Munich)</option>
       <option value="IST-NCE">IST &#8594; NCE (Nice)</option>
       <option value="IST-MAN">IST &#8594; MAN (Manchester)</option>
       <option value="IST-DXB">IST &#8594; DXB (Dubai)</option>
       <option value="IST-AUH">IST &#8594; AUH (Abu Dhabi)</option>
-      <option value="IST-RUH">IST &#8594; RUH (Riyad)</option>
-      <option value="IST-JED">IST &#8594; JED (Cidde)</option>
+      <option value="IST-RUH">IST &#8594; RUH (Riyadh)</option>
+      <option value="IST-JED">IST &#8594; JED (Jeddah)</option>
       <option value="IST-DOH">IST &#8594; DOH (Doha)</option>
-      <option value="IST-BAH">IST &#8594; BAH (Bahreyn)</option>
-      <option value="IST-KWI">IST &#8594; KWI (Kuveyt)</option>
+      <option value="IST-BAH">IST &#8594; BAH (Bahrain)</option>
+      <option value="IST-KWI">IST &#8594; KWI (Kuwait)</option>
       <option value="IST-AMM">IST &#8594; AMM (Amman)</option>
       <option value="IST-TLV">IST &#8594; TLV (Tel Aviv)</option>
-      <option value="IST-BEY">IST &#8594; BEY (Beyrut)</option>
-      <option value="IST-CAI">IST &#8594; CAI (Kahire)</option>
+      <option value="IST-BEY">IST &#8594; BEY (Beirut)</option>
+      <option value="IST-CAI">IST &#8594; CAI (Cairo)</option>
       <option value="IST-HRG">IST &#8594; HRG (Hurghada)</option>
-      <option value="IST-CMN">IST &#8594; CMN (Kazablanka)</option>
-      <option value="IST-RAK">IST &#8594; RAK (Marakes)</option>
+      <option value="IST-CMN">IST &#8594; CMN (Casablanca)</option>
+      <option value="IST-RAK">IST &#8594; RAK (Marrakech)</option>
       <option value="IST-JNB">IST &#8594; JNB (Johannesburg)</option>
       <option value="IST-CPT">IST &#8594; CPT (Cape Town)</option>
       <option value="IST-NBO">IST &#8594; NBO (Nairobi)</option>
@@ -171,10 +171,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
       <option value="IST-ABV">IST &#8594; ABV (Abuja)</option>
       <option value="IST-NRT">IST &#8594; NRT (Tokyo)</option>
       <option value="IST-KIX">IST &#8594; KIX (Osaka)</option>
-      <option value="IST-ICN">IST &#8594; ICN (Seul)</option>
-      <option value="IST-PEK">IST &#8594; PEK (Pekin)</option>
-      <option value="IST-PVG">IST &#8594; PVG (Sanghay)</option>
-      <option value="IST-SIN">IST &#8594; SIN (Singapur)</option>
+      <option value="IST-ICN">IST &#8594; ICN (Seoul)</option>
+      <option value="IST-PEK">IST &#8594; PEK (Beijing)</option>
+      <option value="IST-PVG">IST &#8594; PVG (Shanghai)</option>
+      <option value="IST-SIN">IST &#8594; SIN (Singapore)</option>
       <option value="IST-BKK">IST &#8594; BKK (Bangkok)</option>
       <option value="IST-HKT">IST &#8594; HKT (Phuket)</option>
       <option value="IST-DEL">IST &#8594; DEL (Delhi)</option>
@@ -190,57 +190,57 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
       <option value="IST-EZE">IST &#8594; EZE (Buenos Aires)</option>
       <option value="IST-GIG">IST &#8594; GIG (Rio de Janeiro)</option>
     </select>
-    <span class="ctrl-label">Kalkis Tarihi:</span>
+    <span class="ctrl-label">Departure Date:</span>
     <input type="date" class="ctrl-input" id="depDate" value="2026-08-15" min="2026-04-01" max="2026-12-31"/>
     <div class="ctrl-sep"></div>
-    <span class="ctrl-label">Hiz:</span>
+    <span class="ctrl-label">Speed:</span>
     <select class="ctrl-select" id="speedSelect">
-      <option value="0.1">Detayli (1 gun = 10dk)</option>
-      <option value="0.2">Izleme (1 gun = 5dk)</option>
-      <option value="360">Yavas (~50sn)</option>
-      <option value="720">Normal (~15sn)</option>
+      <option value="0.1">Detailed (1 day = 10min)</option>
+      <option value="0.2">Watch (1 day = 5min)</option>
+      <option value="360">Slow (~50s)</option>
+      <option value="720">Normal (~15s)</option>
       <option value="1440" selected>Fast (~8sn)</option>
       <option value="4320">Very Fast (~3sn)</option>
     </select>
     <div class="ctrl-sep"></div>
-    <button class="ctrl-btn primary" id="btnStart" onclick="simStart()">Baslat</button>
-    <button class="ctrl-btn warn" id="btnPause" onclick="simPause()" disabled>Duraklat</button>
-    <button class="ctrl-btn primary" id="btnResume" onclick="simResume()" disabled>Devam</button>
+    <button class="ctrl-btn primary" id="btnStart" onclick="simStart()">Start</button>
+    <button class="ctrl-btn warn" id="btnPause" onclick="simPause()" disabled>Pause</button>
+    <button class="ctrl-btn primary" id="btnResume" onclick="simResume()" disabled>Resume</button>
   </div>
 
   <!-- KPIs -->
   <div class="kpi-row" id="kpis">
-    <div class="kpi blue"><div class="kpi-label">Kapasite</div><div class="kpi-val" id="kFlights">349</div><div class="kpi-sub">49 business + 300 economy</div></div>
-    <div class="kpi"><div class="kpi-label">Satilan</div><div class="kpi-val" id="kSold">--</div><div class="kpi-sub">toplam bilet</div></div>
-    <div class="kpi orange"><div class="kpi-label">Ort. Doluluk</div><div class="kpi-val" id="kLF">--</div><div class="kpi-sub">tum ucuslar</div></div>
-    <div class="kpi green"><div class="kpi-label">Motor Geliri</div><div class="kpi-val" id="kRevDyn">--</div><div class="kpi-sub">dinamik fiyat</div></div>
-    <div class="kpi red"><div class="kpi-label">Baseline Gelir</div><div class="kpi-val" id="kRevBase">--</div><div class="kpi-sub">eski formul</div></div>
-    <div class="kpi purple"><div class="kpi-label">Fark</div><div class="kpi-val" id="kDelta">--</div><div class="kpi-sub">motor vs baseline</div></div>
+    <div class="kpi blue"><div class="kpi-label">Capacity</div><div class="kpi-val" id="kFlights">349</div><div class="kpi-sub">49 business + 300 economy</div></div>
+    <div class="kpi"><div class="kpi-label">Sold</div><div class="kpi-val" id="kSold">--</div><div class="kpi-sub">total tickets</div></div>
+    <div class="kpi orange"><div class="kpi-label">Avg. Load Factor</div><div class="kpi-val" id="kLF">--</div><div class="kpi-sub">all flights</div></div>
+    <div class="kpi green"><div class="kpi-label">Engine Revenue</div><div class="kpi-val" id="kRevDyn">--</div><div class="kpi-sub">dynamic pricing</div></div>
+    <div class="kpi red"><div class="kpi-label">Baseline Revenue</div><div class="kpi-val" id="kRevBase">--</div><div class="kpi-sub">old formula</div></div>
+    <div class="kpi purple"><div class="kpi-label">Delta</div><div class="kpi-val" id="kDelta">--</div><div class="kpi-sub">engine vs baseline</div></div>
   </div>
 
   <!-- Seat Map -->
   <div class="seatmap-section">
     <div class="seatmap-header">
-      <span class="chart-title" style="margin:0">Koltuk Haritasi — Boeing 777-300ER</span>
+      <span class="chart-title" style="margin:0">Seat Map — Boeing 777-300ER</span>
       <span class="ctrl-label" id="seatmapFlightLabel" style="font-size:.78rem;color:var(--accent)"></span>
       <select class="ctrl-select" id="seatmapFlight" onchange="loadSeatmap()" style="display:none">
       </select>
       <div class="seatmap-legend">
-        <span class="legend-item"><span class="legend-box" style="background:#1e293b;border:1px solid #334155"></span>Bos</span>
+        <span class="legend-item"><span class="legend-box" style="background:#1e293b;border:1px solid #334155"></span>Empty</span>
         <span class="legend-item"><span class="legend-box" style="background:#94a3b8"></span>V Promo</span>
         <span class="legend-item"><span class="legend-box" style="background:#c9a227"></span>K Discount</span>
         <span class="legend-item"><span class="legend-box" style="background:#6366f1"></span>M Flex</span>
-        <span class="legend-item"><span class="legend-box" style="background:#ef4444"></span>Y Tam Fiyat</span>
+        <span class="legend-item"><span class="legend-box" style="background:#ef4444"></span>Y Full Price</span>
       </div>
     </div>
     <div class="fuselage" id="fuselage" style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap">
       <div class="cabin-section" style="flex-shrink:0">
-        <div class="cabin-label">BUSINESS — 49 Koltuk</div>
+        <div class="cabin-label">BUSINESS — 49 Seats</div>
         <div id="cabinBusiness"></div>
       </div>
       <div style="width:2px;background:var(--border);align-self:stretch;min-height:100px;flex-shrink:0"></div>
       <div class="cabin-section" style="flex-shrink:0">
-        <div class="cabin-label">ECONOMY — 300 Koltuk (Sol: 8-24, Sag: 25-41)</div>
+        <div class="cabin-label">ECONOMY — 300 Seats (Left: 8-24, Right: 25-41)</div>
         <div style="display:flex;gap:1rem;align-items:flex-start">
           <div id="cabinEconomy"></div>
           <div id="cabinEconomy2"></div>
@@ -250,17 +250,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     <!-- BUYUK TARIH GOSTERGESI -->
     <div style="display:flex;align-items:center;gap:1.5rem;margin-top:1rem;padding:1rem 1.2rem;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);flex-wrap:wrap">
       <div style="text-align:center;min-width:180px">
-        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Simulasyon Tarihi</div>
+        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Simulation Date</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent);transition:all .3s" id="animDate">--</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div style="text-align:center;min-width:140px">
-        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Kalkisa Kalan</div>
+        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Days to Departure</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--orange);transition:all .3s" id="animDTD">--</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div style="text-align:center;min-width:100px">
-        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Kalkis Tarihi</div>
+        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Departure Date</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;color:var(--text-2)" id="animDepDate">--</div>
       </div>
       <div style="flex:1"></div>
@@ -279,7 +279,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
   <!-- COMPETITION PANEL -->
   <div class="seatmap-section" id="competitionPanel" style="display:none">
     <div class="seatmap-header">
-      <span class="chart-title" style="margin:0">Rekabet Analizi — 3 Havayolu</span>
+      <span class="chart-title" style="margin:0">Competition Analysis — 3 Airlines</span>
     </div>
     <!-- 3 Ucak Yan Yana -->
     <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start">
@@ -289,33 +289,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
           <span style="font-weight:700;color:#f59e0b;font-size:.9rem">&#9992; Pegasus</span>
           <span style="font-size:.65rem;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:4px">BUDGET</span>
         </div>
-        <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">A321neo — 150 Koltuk (Tek Sinif)</div>
+        <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">A321neo — 150 Seats (Single Class)</div>
         <div id="compPC_seats" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:.6rem"></div>
         <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem">
-          <span class="seatmap-stat">Doluluk: <strong id="compPC_lf">0%</strong></span>
-          <span class="seatmap-stat">Satis: <strong id="compPC_sold">0</strong>/150</span>
-          <span class="seatmap-stat">Fiyat: <strong id="compPC_price">$0</strong></span>
+          <span class="seatmap-stat">Load Factor: <strong id="compPC_lf">0%</strong></span>
+          <span class="seatmap-stat">Sold: <strong id="compPC_sold">0</strong>/150</span>
+          <span class="seatmap-stat">Price: <strong id="compPC_price">$0</strong></span>
         </div>
         <div style="margin-top:.5rem;font-size:.68rem;color:var(--text-3)">
-          Yolcu Kaybi: <strong style="color:#ef4444" id="compPC_lost">0</strong> |
-          Yolcu Kazanimi: <strong style="color:#22c55e" id="compPC_stolen">0</strong>
+          Pax Loss: <strong style="color:#ef4444" id="compPC_lost">0</strong> |
+          Pax Gain: <strong style="color:#22c55e" id="compPC_stolen">0</strong>
         </div>
       </div>
       <!-- THY (Biz) -->
       <div style="flex:1.3;min-width:240px;background:var(--bg-1);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:1rem">
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem">
-          <span style="font-weight:700;color:var(--accent);font-size:.9rem">&#9992; THY (Biz)</span>
-          <span style="font-size:.65rem;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:4px">DINAMIK</span>
+          <span style="font-weight:700;color:var(--accent);font-size:.9rem">&#9992; THY (Us)</span>
+          <span style="font-size:.65rem;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:4px">DYNAMIC</span>
         </div>
         <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">B787 — 300 Economy + 49 Business</div>
         <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem">
           <span class="seatmap-stat">Economy LF: <strong id="compTK_lf_eco">0%</strong></span>
           <span class="seatmap-stat">Business LF: <strong id="compTK_lf_biz">0%</strong></span>
-          <span class="seatmap-stat">Toplam Satis: <strong id="compTK_sold">0</strong></span>
+          <span class="seatmap-stat">Total Sold: <strong id="compTK_sold">0</strong></span>
         </div>
         <!-- Pazar Payi Bar -->
         <div style="margin-top:.8rem">
-          <div style="font-size:.68rem;color:var(--text-3);margin-bottom:4px">Pazar Payi</div>
+          <div style="font-size:.68rem;color:var(--text-3);margin-bottom:4px">Market Share</div>
           <div style="display:flex;height:20px;border-radius:4px;overflow:hidden;border:1px solid var(--border)">
             <div id="msBar_PC" style="background:#f59e0b;transition:width .5s" title="Pegasus"></div>
             <div id="msBar_TK" style="background:var(--accent);transition:width .5s" title="THY"></div>
@@ -337,13 +337,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
         <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">B777-300ER — 280 Eco + 42 Business</div>
         <div id="compEK_seats" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:.6rem"></div>
         <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem">
-          <span class="seatmap-stat">Doluluk: <strong id="compEK_lf">0%</strong></span>
-          <span class="seatmap-stat">Satis: <strong id="compEK_sold">0</strong>/322</span>
-          <span class="seatmap-stat">Fiyat: <strong id="compEK_price">$0</strong></span>
+          <span class="seatmap-stat">Load Factor: <strong id="compEK_lf">0%</strong></span>
+          <span class="seatmap-stat">Sold: <strong id="compEK_sold">0</strong>/322</span>
+          <span class="seatmap-stat">Price: <strong id="compEK_price">$0</strong></span>
         </div>
         <div style="margin-top:.5rem;font-size:.68rem;color:var(--text-3)">
-          Yolcu Kaybi: <strong style="color:#ef4444" id="compEK_lost">0</strong> |
-          Yolcu Kazanimi: <strong style="color:#22c55e" id="compEK_stolen">0</strong>
+          Pax Loss: <strong style="color:#ef4444" id="compEK_lost">0</strong> |
+          Pax Gain: <strong style="color:#22c55e" id="compEK_stolen">0</strong>
         </div>
       </div>
     </div>
@@ -352,17 +352,17 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
   <!-- Flight Table -->
   <div class="tbl-wrap">
     <div class="tbl-header">
-      <span class="tbl-title">Ucus Envanterleri</span>
+      <span class="tbl-title">Flight Inventory</span>
       <span class="tbl-count" id="tblCount"></span>
     </div>
     <div class="tbl-scroll">
       <table class="tbl">
         <thead><tr>
-          <th>Rota</th><th>Kabin</th><th>Kalkis</th><th>DTD</th>
-          <th>Doluluk</th><th>Satilan</th><th>Motor $</th><th>Baseline $</th>
-          <th>Fark %</th><th>Acik Fare</th>
+          <th>Route</th><th>Cabin</th><th>Departure</th><th>DTD</th>
+          <th>Load Factor</th><th>Sold</th><th>Engine $</th><th>Baseline $</th>
+          <th>Delta %</th><th>Open Fares</th>
         </tr></thead>
-        <tbody id="tblBody"><tr><td colspan="10" class="empty">Simulasyon baslatilmadi</td></tr></tbody>
+        <tbody id="tblBody"><tr><td colspan="10" class="empty">Simulation not started</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -370,44 +370,44 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
   <!-- Explainability Panel -->
   <div class="explain-panel" id="explainPanel" style="display:none">
     <div class="explain-header">
-      <span class="explain-title">Aciklanabilirlik Paneli</span>
-      <span class="explain-sub">Sistem kararlarin arkasindaki nedenleri gosterir</span>
+      <span class="explain-title">Explainability Panel</span>
+      <span class="explain-sub">Shows the reasoning behind system decisions</span>
     </div>
     <div class="explain-grid">
 
       <!-- TFT Variable Importance -->
       <div class="explain-card">
-        <div class="explain-card-title">Talep Tahmini Aciklamasi</div>
-        <div class="explain-card-sub">TFT modeli kararlari verirken hangi bilgilere ne kadar bakiyor?</div>
+        <div class="explain-card-title">Demand Forecast Explanation</div>
+        <div class="explain-card-sub">Which inputs does the TFT model rely on most when making decisions?</div>
         <div id="tftStaticBars" class="bar-section">
-          <div class="bar-label-sm">Rota ve Kabin Ozellikleri</div>
+          <div class="bar-label-sm">Route & Cabin Features</div>
           <div id="tftStaticList"></div>
         </div>
         <div id="tftEncoderBars" class="bar-section" style="margin-top:.8rem">
-          <div class="bar-label-sm">Gecmis Veriler (son 60 gun)</div>
+          <div class="bar-label-sm">Historical Data (last 60 days)</div>
           <div id="tftEncoderList"></div>
         </div>
         <div id="tftDecoderBars" class="bar-section" style="margin-top:.8rem">
-          <div class="bar-label-sm">Gelecege Ait Bilgiler</div>
+          <div class="bar-label-sm">Future-Known Information</div>
           <div id="tftDecoderList"></div>
         </div>
       </div>
 
       <!-- Pricing Decomposition -->
       <div class="explain-card">
-        <div class="explain-card-title">Fiyat Ayristirmasi</div>
-        <div class="explain-card-sub">Bu ucusun fiyati hangi faktorlerden olusuyor?</div>
+        <div class="explain-card-title">Price Decomposition</div>
+        <div class="explain-card-sub">What factors make up this flight's price?</div>
         <div id="pricingDecomp">
-          <div class="decomp-placeholder">Simulasyon basladiktan sonra otomatik guncellenir</div>
+          <div class="decomp-placeholder">Auto-updates after simulation starts</div>
         </div>
       </div>
 
       <!-- EMSR-b Fare Class -->
       <div class="explain-card">
-        <div class="explain-card-title">Koltuk Sinifi Durumu</div>
-        <div class="explain-card-sub">Hangi bilet siniflari acik, hangisi neden kapandi?</div>
+        <div class="explain-card-title">Fare Class Status</div>
+        <div class="explain-card-sub">Which fare classes are open, and why did some close?</div>
         <div id="emsrbStatus">
-          <div class="decomp-placeholder">Simulasyon basladiktan sonra otomatik guncellenir</div>
+          <div class="decomp-placeholder">Auto-updates after simulation starts</div>
         </div>
       </div>
 
@@ -523,7 +523,7 @@ function updateSeatmapDropdown(flights) {
   const current = sel.value;
   // Only top 30 most filled flights
   const top = [...flights].sort((a,b) => b.load_factor - a.load_factor).slice(0, 30);
-  sel.innerHTML = '<option value="">Ucus secin...</option>' +
+  sel.innerHTML = '<option value="">Select flight...</option>' +
     top.map(f => `<option value="${f.key}" ${f.key===current?'selected':''}>${f.route} ${f.dep_date} ${f.cabin} (${Math.round(f.load_factor*100)}%)</option>`).join('');
   if (current && !sel.value) sel.value = '';
 }
@@ -552,21 +552,21 @@ async function loadSeatmap() {
       if (i >= seats.length) return;
       const cls = b.is_bot ? b.fare_class : 'HUMAN';
       seats[i].className = seats[i].className.replace('empty', cls);
-      seats[i].title = `${b.fare_class} — $${b.price} (${b.is_bot ? 'Segment '+b.segment : 'INSAN'})`;
+      seats[i].title = `${b.fare_class} — $${b.price} (${b.is_bot ? 'Segment '+b.segment : 'HUMAN'})`;
     });
 
     // Stats
     const fcDist = detail.fare_class_distribution || {};
     const statsEl = document.getElementById('seatmapStats');
     statsEl.innerHTML = `
-      <span class="seatmap-stat">Kapasite: <strong>${capacity}</strong></span>
-      <span class="seatmap-stat">Dolu: <strong>${detail.sold}</strong></span>
-      <span class="seatmap-stat">Doluluk: <strong>${Math.round(detail.load_factor*100)}%</strong></span>
+      <span class="seatmap-stat">Capacity: <strong>${capacity}</strong></span>
+      <span class="seatmap-stat">Sold: <strong>${detail.sold}</strong></span>
+      <span class="seatmap-stat">Load Factor: <strong>${Math.round(detail.load_factor*100)}%</strong></span>
       <span class="seatmap-stat" style="color:#06b6d4">V: <strong>${fcDist.V||0}</strong></span>
       <span class="seatmap-stat" style="color:#f59e0b">K: <strong>${fcDist.K||0}</strong></span>
       <span class="seatmap-stat" style="color:#8b5cf6">M: <strong>${fcDist.M||0}</strong></span>
       <span class="seatmap-stat" style="color:#ef4444">Y: <strong>${fcDist.Y||0}</strong></span>
-      <span class="seatmap-stat">Gelir: <strong>$${Math.round(detail.revenue_dynamic).toLocaleString()}</strong></span>
+      <span class="seatmap-stat">Revenue: <strong>$${Math.round(detail.revenue_dynamic).toLocaleString()}</strong></span>
     `;
   } catch(e) { console.error(e); }
 }
@@ -697,7 +697,7 @@ async function drainSeatQueue() {
         document.getElementById('simClock').textContent = bookDate;
         if (depDate) document.getElementById('animDepDate').textContent = depDate;
         if (dtdVal > 0) {
-          document.getElementById('animDTD').textContent = dtdVal + ' gun';
+          document.getElementById('animDTD').textContent = dtdVal + ' days';
           document.getElementById('simDTD').textContent = 'DTD: ' + dtdVal;
           document.getElementById('animDTD').style.color = dtdVal <= 7 ? 'var(--red)' : dtdVal <= 30 ? 'var(--orange)' : 'var(--accent)';
         }
@@ -706,15 +706,15 @@ async function drainSeatQueue() {
 
     // Seatmap stats
     document.getElementById('seatmapStats').innerHTML = `
-      <span class="seatmap-stat">Toplam: <strong>${animKPI.sold}/349</strong></span>
-      <span class="seatmap-stat">Doluluk: <strong>${Math.round(animKPI.sold/349*100)}%</strong></span>
+      <span class="seatmap-stat">Total: <strong>${animKPI.sold}/349</strong></span>
+      <span class="seatmap-stat">Load Factor: <strong>${Math.round(animKPI.sold/349*100)}%</strong></span>
       <span class="seatmap-stat">Business: <strong>${animKPI.bizSold}/49</strong></span>
       <span class="seatmap-stat">Economy: <strong>${animKPI.ecoSold}/300</strong></span>
       <span class="seatmap-stat" style="color:#94a3b8">V: <strong>${animKPI.fcV}</strong></span>
       <span class="seatmap-stat" style="color:#c9a227">K: <strong>${animKPI.fcK}</strong></span>
       <span class="seatmap-stat" style="color:#6366f1">M: <strong>${animKPI.fcM}</strong></span>
       <span class="seatmap-stat" style="color:#ef4444">Y: <strong>${animKPI.fcY}</strong></span>
-      <span class="seatmap-stat">Gelir: <strong>$${Math.round(animKPI.revDyn).toLocaleString()}</strong></span>
+      <span class="seatmap-stat">Revenue: <strong>$${Math.round(animKPI.revDyn).toLocaleString()}</strong></span>
     `;
 
     await new Promise(r => setTimeout(r, delayMs));
@@ -732,7 +732,7 @@ async function drainSeatQueue() {
       document.getElementById('animDate').textContent = ds;
       document.getElementById('simClock').textContent = ds;
       if (curDTD > 0) {
-        document.getElementById('animDTD').textContent = curDTD + ' gun';
+        document.getElementById('animDTD').textContent = curDTD + ' days';
         document.getElementById('simDTD').textContent = 'DTD: ' + curDTD;
         document.getElementById('animDTD').style.color = curDTD <= 7 ? 'var(--red)' : curDTD <= 30 ? 'var(--orange)' : 'var(--accent)';
       }
@@ -744,8 +744,8 @@ async function drainSeatQueue() {
     document.getElementById('animDate').textContent = depDate;
     document.getElementById('simClock').textContent = depDate;
   }
-  document.getElementById('animDTD').textContent = 'KALKIS!';
-  document.getElementById('simDTD').textContent = 'KALKIS!';
+  document.getElementById('animDTD').textContent = 'DEPARTURE!';
+  document.getElementById('simDTD').textContent = 'DEPARTURE!';
   document.getElementById('animDTD').style.color = 'var(--red)';
   window._countdownRunning = false;
   window._animCompleted = true;
@@ -755,7 +755,7 @@ async function drainSeatQueue() {
   document.getElementById('btnPause').disabled=true;
   document.getElementById('btnResume').disabled=true;
   const stEl2=document.getElementById('simState');
-  stEl2.textContent='TAMAMLANDI';
+  stEl2.textContent='COMPLETED';
   stEl2.className='sim-state completed';
 }
 
@@ -801,7 +801,7 @@ async function animateSeatFill() {
     const cls = b.is_bot ? b.fare_class : 'HUMAN';
     const cabinClass = b.cabin === 'economy' ? ' eco' : ' biz';
     seats[idx].className = `seat${cabinClass} ${cls}`;
-    seats[idx].title = `${b.fare_class} — $${b.price} | DTD:${b.dtd} | ${b.is_bot ? 'Segment '+b.segment : 'INSAN'}`;
+    seats[idx].title = `${b.fare_class} — $${b.price} | DTD:${b.dtd} | ${b.is_bot ? 'Segment '+b.segment : 'HUMAN'}`;
 
     if (b.cabin === 'business') bizSold++; else ecoSold++;
     totalRev += b.price;
@@ -811,15 +811,15 @@ async function animateSeatFill() {
     if (i % 5 === 0 || i === allBookings.length - 1) {
       const total = bizSold + ecoSold;
       statsEl.innerHTML = `
-        <span class="seatmap-stat">Toplam: <strong>${total}/349</strong></span>
-        <span class="seatmap-stat">Doluluk: <strong>${Math.round(total/349*100)}%</strong></span>
+        <span class="seatmap-stat">Total: <strong>${total}/349</strong></span>
+        <span class="seatmap-stat">Load Factor: <strong>${Math.round(total/349*100)}%</strong></span>
         <span class="seatmap-stat">Business: <strong>${bizSold}/49</strong></span>
         <span class="seatmap-stat">Economy: <strong>${ecoSold}/300</strong></span>
         <span class="seatmap-stat" style="color:#06b6d4">V: <strong>${fcCount.V}</strong></span>
         <span class="seatmap-stat" style="color:#f59e0b">K: <strong>${fcCount.K}</strong></span>
         <span class="seatmap-stat" style="color:#8b5cf6">M: <strong>${fcCount.M}</strong></span>
         <span class="seatmap-stat" style="color:#ef4444">Y: <strong>${fcCount.Y}</strong></span>
-        <span class="seatmap-stat">Gelir: <strong>$${Math.round(totalRev).toLocaleString()}</strong></span>
+        <span class="seatmap-stat">Revenue: <strong>$${Math.round(totalRev).toLocaleString()}</strong></span>
       `;
     }
 
@@ -1016,18 +1016,18 @@ async function simStart(){
   const depDate = document.getElementById('depDate').value;
   const speed = parseFloat(document.getElementById('speedSelect').value);
 
-  if(!route){alert('Rota secin');return}
-  if(!depDate){alert('Kalkis tarihi secin');return}
+  if(!route){alert('Select a route');return}
+  if(!depDate){alert('Select a departure date');return}
 
   const isAllRoutes = route === '__ALL__';
-  const routeLabel = isAllRoutes ? 'Tum Rotalar' : route.replace('-',' \u2192 ');
+  const routeLabel = isAllRoutes ? 'All Routes' : route.replace('-',' \u2192 ');
 
   // Sim departure date'i kaydet (DTD hesabi icin)
   window._simDepDate = depDate;
 
   document.getElementById('btnStart').disabled=true;
   document.getElementById('btnPause').disabled=false;
-  document.getElementById('seatmapFlightLabel').textContent = routeLabel + ' | Kalkis: ' + depDate;
+  document.getElementById('seatmapFlightLabel').textContent = routeLabel + ' | Departure: ' + depDate;
 
   simPaused = false;
   window._animCompleted = false;
@@ -1147,7 +1147,7 @@ async function pollStatus(){
 function updateUI(status,flights){
   // State badge — animasyon devam ediyorsa "CALISIYOR" goster
   const stEl=document.getElementById('simState');
-  const stMap={idle:'HAZIR',running:'CALISIYOR',paused:'DURAKLATILDI',completed:'TAMAMLANDI',ready:'HAZIR',initializing:'HAZIRLANIYOR'};
+  const stMap={idle:'READY',running:'RUNNING',paused:'PAUSED',completed:'COMPLETED',ready:'READY',initializing:'INITIALIZING'};
   const displayState = (status.state==='completed' && seatAnimRunning) ? 'running' : status.state;
   stEl.textContent=stMap[displayState]||displayState;
   stEl.className='sim-state '+(displayState==='running'?'running':displayState==='paused'?'paused':displayState==='completed'?'completed':'idle');
@@ -1166,12 +1166,12 @@ function updateUI(status,flights){
       const simD = new Date(simDate);
       const dtdVal = Math.ceil((depD - simD) / 86400000);
       if (dtdVal > 0) {
-        document.getElementById('animDTD').textContent = dtdVal + ' gun';
+        document.getElementById('animDTD').textContent = dtdVal + ' days';
         document.getElementById('simDTD').textContent = `DTD: ${dtdVal}`;
         document.getElementById('animDTD').style.color = dtdVal <= 7 ? 'var(--red)' : dtdVal <= 30 ? 'var(--orange)' : 'var(--accent)';
       } else {
-        document.getElementById('animDTD').textContent = 'KALKIS!';
-        document.getElementById('simDTD').textContent = 'KALKIS!';
+        document.getElementById('animDTD').textContent = 'DEPARTURE!';
+        document.getElementById('simDTD').textContent = 'DEPARTURE!';
         document.getElementById('animDTD').style.color = 'var(--red)';
       }
     }
@@ -1230,10 +1230,10 @@ function updateUI(status,flights){
 
 function renderFlightTable(flights){
   const tbody=document.getElementById('tblBody');
-  if(!flights.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Ucus yok</td></tr>';return}
+  if(!flights.length){tbody.innerHTML='<tr><td colspan="10" class="empty">No flights</td></tr>';return}
   // En yuksek delta'li 50 ucusu goster
   const sorted=[...flights].sort((a,b)=>b.load_factor-a.load_factor).slice(0,50);
-  document.getElementById('tblCount').textContent=flights.length+' ucus (en dolu 50)';
+  document.getElementById('tblCount').textContent=flights.length+' flights (top 50 by LF)';
   window._lastFlights = sorted;
   tbody.innerHTML=sorted.map((f,idx)=>{
     const lfColor=f.load_factor>=0.85?'var(--green)':f.load_factor>=0.5?'var(--orange)':'var(--text-3)';
@@ -1314,15 +1314,15 @@ async function loadTFTInterpretation() {
 
 // Feature isimlerini insanin anlayacagi Turkce'ye cevir
 const FEAT_TR = {
-  'entity_id':'Rota Kimliği','route':'Rota','cabin_class':'Kabin Tipi','direction':'Yon',
-  'total_pax_center':'Ort. Yolcu (normalize)','total_pax_scale':'Yolcu Varyansı',
-  'avg_fare':'Ortalama Bilet Fiyati','relative_time_idx':'Zaman Pozisyonu',
-  'total_pax':'Toplam Yolcu','tag_is_seyahati':'Is Seyahati Etkisi',
-  'connecting_pct':'Baglanti Yolcu Orani','tag_hac_umre':'Hac/Umre Donemi',
-  'late_booking_pct':'Gec Rezervasyon Orani','time_idx':'Zaman Indeksi',
-  'n_flights':'Ucus Sayisi','tag_yaz_tatili':'Yaz Tatili Etkisi',
-  'dep_month':'Kalkis Ayi','dep_dow':'Kalkis Gunu','is_special_period':'Ozel Gun mu',
-  'is_weekend':'Hafta Sonu mu','capacity':'Kapasite','load_factor':'Doluluk',
+  'entity_id':'Route ID','route':'Route','cabin_class':'Cabin Type','direction':'Direction',
+  'total_pax_center':'Avg. Pax (normalized)','total_pax_scale':'Pax Variance',
+  'avg_fare':'Average Fare','relative_time_idx':'Time Position',
+  'total_pax':'Total Passengers','tag_is_seyahati':'Business Travel Effect',
+  'connecting_pct':'Connecting Pax Ratio','tag_hac_umre':'Hajj/Umrah Period',
+  'late_booking_pct':'Late Booking Ratio','time_idx':'Time Index',
+  'n_flights':'Flight Count','tag_yaz_tatili':'Summer Holiday Effect',
+  'dep_month':'Departure Month','dep_dow':'Departure Day','is_special_period':'Special Period',
+  'is_weekend':'Weekend','capacity':'Capacity','load_factor':'Load Factor',
 };
 function trName(f) { return FEAT_TR[f] || f.replace(/_/g, ' '); }
 
@@ -1351,14 +1351,14 @@ function renderTFTBars() {
   const topDec = _tftInterp.decoder_variable_importance?.[0];
   const summary = document.createElement('div');
   summary.style.cssText = 'margin-top:.8rem;padding:.6rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.68rem;color:var(--text-2);line-height:1.5';
-  summary.innerHTML = `<b style="color:var(--text-0)">Ozet:</b> TFT talep tahmininde en cok <b style="color:#58a6ff">${trName(topStatic?.feature)}</b> bilgisine bakiyor — yani her rotanin kendine ozgu talep patterni var. Zaman serisinde <b style="color:#39d2c0">${trName(topEnc?.feature)}</b> en etkili girdi. Gelecek icin <b style="color:#bc8cff">${trName(topDec?.feature)}</b> en belirleyici faktor.`;
+  summary.innerHTML = `<b style="color:var(--text-0)">Summary:</b> The TFT demand forecast relies most on <b style="color:#58a6ff">${trName(topStatic?.feature)}</b> — meaning each route has a unique demand pattern. In the time series, <b style="color:#39d2c0">${trName(topEnc?.feature)}</b> is the most impactful input. For the future, <b style="color:#bc8cff">${trName(topDec?.feature)}</b> is the most determinant factor.`;
   document.getElementById('tftDecoderBars').after(summary);
 }
 
 function updatePricingDecomp(flight) {
   const el = document.getElementById('pricingDecomp');
   if (!flight || !flight.current_prices) {
-    el.innerHTML = '<div class="decomp-placeholder">Simulasyon baslatilmadi</div>';
+    el.innerHTML = '<div class="decomp-placeholder">Simulation not started</div>';
     return;
   }
   const prices = flight.current_prices || {};
@@ -1375,13 +1375,13 @@ function updatePricingDecomp(flight) {
 
     el.innerHTML = `
       <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date} | ${flight.cabin}</div>
-      <div class="decomp-row"><span class="decomp-label">Baz Fiyat</span><span class="decomp-val">${fmt$(last?.baseline_price || 0)}</span></div>
-      <div class="decomp-row"><span class="decomp-label">Arz (supply)</span><span class="decomp-val ${valClass(mults.supply||1)}">${(mults.supply||1).toFixed(3)}x</span></div>
-      <div class="decomp-row"><span class="decomp-label">Talep (demand)</span><span class="decomp-val ${valClass(mults.demand||1)}">${(mults.demand||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Base Price</span><span class="decomp-val">${fmt$(last?.baseline_price || 0)}</span></div>
+      <div class="decomp-row"><span class="decomp-label">Supply</span><span class="decomp-val ${valClass(mults.supply||1)}">${(mults.supply||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Demand</span><span class="decomp-val ${valClass(mults.demand||1)}">${(mults.demand||1).toFixed(3)}x</span></div>
       <div class="decomp-row"><span class="decomp-label">Sentiment</span><span class="decomp-val ${valClass(mults.sentiment||1)}">${(mults.sentiment||1).toFixed(3)}x</span></div>
-      <div class="decomp-row"><span class="decomp-label">Musteri</span><span class="decomp-val ${valClass(mults.customer||1)}">${(mults.customer||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Customer</span><span class="decomp-val ${valClass(mults.customer||1)}">${(mults.customer||1).toFixed(3)}x</span></div>
       <div class="decomp-divider"></div>
-      <div class="decomp-row"><span class="decomp-label"><b>Bilesik</b></span><span class="decomp-val" style="color:var(--accent)">${(mults.combined||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label"><b>Combined</b></span><span class="decomp-val" style="color:var(--accent)">${(mults.combined||1).toFixed(3)}x</span></div>
       <div class="decomp-divider"></div>
       ${['V','K','M','Y'].map(fc => {
         const p = prices[fc] || d.current_prices?.[fc];
@@ -1393,21 +1393,21 @@ function updatePricingDecomp(flight) {
       }).join('')}
       <div class="decomp-divider"></div>
       <div class="decomp-row">
-        <span class="decomp-label" style="font-weight:700;color:var(--text-0)">Yolcu Fiyati</span>
+        <span class="decomp-label" style="font-weight:700;color:var(--text-0)">Passenger Price</span>
         <span class="decomp-val" style="color:var(--green);font-size:.9rem">${fmt$(bestPrice)} (${bestFare})</span>
       </div>
       <div style="margin-top:.6rem;padding:.5rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.66rem;color:var(--text-2);line-height:1.5">
-        <b style="color:var(--text-0)">Yorum:</b>
-        ${mults.supply > 1.3 ? ' Koltuklar hizla doluyor — arz carpani fiyati yukseltiyor.' :
-          mults.supply > 1.1 ? ' Doluluk ortalamanin uzerinde, fiyatlar hafif yukseliyor.' :
-          ' Doluluk dusuk, fiyatlar baz seviyede.'}
-        ${mults.demand > 1.2 ? ' Yuksek sezon/ozel gun etkisiyle talep guclu.' :
-          mults.demand > 1.05 ? ' Talep normal seviyelerde.' :
-          ' Dusuk talep donemi.'}
-        ${mults.sentiment < 0.95 ? ' Destinasyonda olumsuz haber etkisi var.' :
-          mults.sentiment > 1.05 ? ' Destinasyonda olumlu haber etkisi var.' : ''}
-        Yolcu su an <b>${bestFare}</b> sinifinda <b>${fmt$(bestPrice)}</b> oduyor
-        (baz fiyatin <b>${((mults.combined||1)*({'V':0.5,'K':0.75,'M':1,'Y':1.5}[bestFare]||1)*100).toFixed(0)}%</b>'i).
+        <b style="color:var(--text-0)">Commentary:</b>
+        ${mults.supply > 1.3 ? ' Seats are filling fast — supply multiplier is pushing prices up.' :
+          mults.supply > 1.1 ? ' Load factor above average, prices slightly increasing.' :
+          ' Low occupancy, prices at base level.'}
+        ${mults.demand > 1.2 ? ' Strong demand due to peak season/special events.' :
+          mults.demand > 1.05 ? ' Demand at normal levels.' :
+          ' Low demand period.'}
+        ${mults.sentiment < 0.95 ? ' Negative news impact on destination.' :
+          mults.sentiment > 1.05 ? ' Positive news impact on destination.' : ''}
+        Passenger currently pays <b>${fmt$(bestPrice)}</b> in <b>${bestFare}</b> class
+        (<b>${((mults.combined||1)*({'V':0.5,'K':0.75,'M':1,'Y':1.5}[bestFare]||1)*100).toFixed(0)}%</b> of base price).
       </div>
     `;
   }).catch(()=>{
@@ -1429,7 +1429,7 @@ function updatePricingDecomp(flight) {
 function updateEMSRbStatus(flight) {
   const el = document.getElementById('emsrbStatus');
   if (!flight) {
-    el.innerHTML = '<div class="decomp-placeholder">Simulasyon baslatilmadi</div>';
+    el.innerHTML = '<div class="decomp-placeholder">Simulation not started</div>';
     return;
   }
   fetch(`/api/sim/flight/${flight.key}`).then(r=>r.json()).then(d=>{
@@ -1440,10 +1440,10 @@ function updateEMSRbStatus(flight) {
     const remaining = cap - sold;
 
     const fcDefs = [
-      {id:'V', name:'Promosyon', quotaPct:0.15, color:'#94a3b8'},
-      {id:'K', name:'Indirimli', quotaPct:0.25, color:'#c9a227'},
-      {id:'M', name:'Esnek',     quotaPct:0.35, color:'#6366f1'},
-      {id:'Y', name:'Tam Fiyat', quotaPct:1.00, color:'#ef4444'},
+      {id:'V', name:'Promo', quotaPct:0.15, color:'#94a3b8'},
+      {id:'K', name:'Discount', quotaPct:0.25, color:'#c9a227'},
+      {id:'M', name:'Flex',     quotaPct:0.35, color:'#6366f1'},
+      {id:'Y', name:'Full Price', quotaPct:1.00, color:'#ef4444'},
     ];
 
     el.innerHTML = `
@@ -1457,50 +1457,49 @@ function updateEMSRbStatus(flight) {
       if (!isOpen) {
         // Neden kapalı — en spesifik nedeni bul
         if (soldC >= quota && fc.id !== 'Y') {
-          reason = `Kota doldu (${soldC}/${quota})`;
+          reason = `Quota full (${soldC}/${quota})`;
         } else if (fc.id === 'V' && sold/cap > 0.4) {
-          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, V sinifi %40 uzerinde kapanir`;
+          reason = `LF ${(sold/cap*100).toFixed(0)}%, V class closes above 40%`;
         } else if (fc.id === 'K' && sold/cap > 0.6) {
-          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, K sinifi %60 uzerinde kapanir`;
+          reason = `LF ${(sold/cap*100).toFixed(0)}%, K class closes above 60%`;
         } else if (fc.id === 'M' && sold/cap > 0.85) {
-          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, M sinifi %85 uzerinde kapanir`;
+          reason = `LF ${(sold/cap*100).toFixed(0)}%, M class closes above 85%`;
         } else {
-          // DTD kuralina bak
           const dtd = flight.dtd || 0;
-          if (dtd <= 6) reason = `Son ${dtd} gun, sadece Y acik`;
-          else if (dtd <= 13) reason = `Son hafta, V ve K kapali`;
-          else if (dtd <= 29) reason = `Gec donem, V kapali`;
-          else reason = `Donem kurali ile kapali`;
+          if (dtd <= 6) reason = `Last ${dtd} days, only Y open`;
+          else if (dtd <= 13) reason = `Last week, V and K closed`;
+          else if (dtd <= 29) reason = `Late period, V closed`;
+          else reason = `Closed by period rule`;
         }
       }
       const showQuota = fc.id !== 'Y';
       return `<div class="fc-row">
         <span class="fc-badge ${isOpen?'open':'closed'}" style="border:1px solid ${fc.color}">${fc.id}</span>
         <span class="fc-info">${fc.name}${!isOpen ? ` <span style="color:var(--red);font-size:.6rem">${reason}</span>` : ''}</span>
-        <span class="fc-quota">${showQuota ? soldC+'/'+quota : soldC+' satildi'}</span>
+        <span class="fc-quota">${showQuota ? soldC+'/'+quota : soldC+' sold'}</span>
         ${showQuota ? `<div style="width:50px;height:6px;background:var(--bg-3);border-radius:3px;overflow:hidden">
           <div style="width:${pct}%;height:100%;background:${isOpen?'var(--green)':'var(--red)'};border-radius:3px;transition:width .5s"></div>
         </div>` : ''}
       </div>`;
     }).join('') + `
     <div style="margin-top:.5rem;padding-top:.4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-3)">
-      <span>Kapasite: ${cap}</span><span>Satilan: ${sold}</span><span>Kalan: ${remaining}</span><span>Overbooking: ${Math.floor(cap*1.08)}</span>
+      <span>Capacity: ${cap}</span><span>Sold: ${sold}</span><span>Remaining: ${remaining}</span><span>Overbooking: ${Math.floor(cap*1.08)}</span>
     </div>
     <div style="margin-top:.5rem;padding:.5rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.66rem;color:var(--text-2);line-height:1.5">
-      <b style="color:var(--text-0)">Yorum:</b>
+      <b style="color:var(--text-0)">Commentary:</b>
       ${openFares.length === 1 && openFares[0] === 'Y' ?
         (fcSold['Y'] === 0 ?
-          ' Sadece tam fiyat (Y) acik ama henuz alan yok — fiyat yuksek. Sistem kalan ${remaining} koltugu premium yolcular icin koruyor.' :
-          ` Sadece tam fiyat (Y) acik, ${fcSold['Y']} kisi aldi. Ucuz siniflar kapandi, kalan ${remaining} koltuk yuksek fiyatla satilacak.`) :
+          ' Only full price (Y) is open but no purchases yet — price is high. System is protecting the remaining ${remaining} seats for premium passengers.' :
+          ` Only full price (Y) is open, ${fcSold['Y']} purchased. Discount classes closed, remaining ${remaining} seats will sell at high fares.`) :
         openFares.length <= 2 ?
-        ` ${openFares.join(' ve ')} siniflari acik. Diger siniflar doluluk veya kota nedeniyle kapandi.` :
-        ` ${openFares.join(', ')} siniflari acik — erken donem, indirimli siniflar musait.`}
-      ${sold > cap * 0.85 ? ` Ucus %${(sold/cap*100).toFixed(0)} dolu — son koltuklar yuksek fiyatla satilacak.` :
-        sold > cap * 0.6 ? ` Ucus %${(sold/cap*100).toFixed(0)} dolu, sistem dusuk siniflardan koruma yapiyor.` :
-        ` Ucus henuz %${(sold/cap*100).toFixed(0)} dolu — erken asama.`}
+        ` ${openFares.join(' and ')} classes are open. Other classes closed due to load factor or quota.` :
+        ` ${openFares.join(', ')} classes are open — early period, discount classes available.`}
+      ${sold > cap * 0.85 ? ` Flight is ${(sold/cap*100).toFixed(0)}% full — last seats will sell at high fares.` :
+        sold > cap * 0.6 ? ` Flight is ${(sold/cap*100).toFixed(0)}% full, system is protecting lower fare classes.` :
+        ` Flight is only ${(sold/cap*100).toFixed(0)}% full — early stage.`}
     </div>`;
   }).catch(()=>{
-    el.innerHTML = '<div class="decomp-placeholder">Detay yuklenemedi</div>';
+    el.innerHTML = '<div class="decomp-placeholder">Could not load details</div>';
   });
 }
 

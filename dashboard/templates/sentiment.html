@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -186,7 +186,7 @@
   <!-- City Cards -->
   <div class="cities-grid">
     <div class="city-card sel" id="card-istanbul" style="--ca:#58a6ff" onclick="switchCity('istanbul')">
-      <div class="city-card-top"><div class="city-name-row"><span class="city-flag">🇹🇷</span><span class="city-name">İstanbul</span></div><span class="alert-badge low" id="alert-istanbul">—</span></div>
+      <div class="city-card-top"><div class="city-name-row"><span class="city-flag">🇹🇷</span><span class="city-name">Istanbul</span></div><span class="alert-badge low" id="alert-istanbul">—</span></div>
       <div class="city-score-row"><span class="city-score-big" id="score-istanbul" style="color:var(--text-3)">—</span><span class="city-score-lbl">composite score</span></div>
       <div class="bar-wrap"><div class="bar-labels"><span>NEG</span><span>POS</span></div><div class="bar-track"><div class="bar-mid"></div><div class="bar-fill" id="bar-istanbul" style="left:50%;width:0;background:var(--text-3)"></div></div></div>
       <div class="city-pills" id="pills-istanbul"><span class="pill">— articles</span></div>
@@ -200,7 +200,7 @@
       <div class="city-event" id="event-dubai" style="--ca:#d29922">Loading...</div>
     </div>
     <div class="city-card" id="card-london" style="--ca:#bc8cff" onclick="switchCity('london')">
-      <div class="city-card-top"><div class="city-name-row"><span class="city-flag">🇬🇧</span><span class="city-name">Londra</span></div><span class="alert-badge low" id="alert-london">—</span></div>
+      <div class="city-card-top"><div class="city-name-row"><span class="city-flag">🇬🇧</span><span class="city-name">London</span></div><span class="alert-badge low" id="alert-london">—</span></div>
       <div class="city-score-row"><span class="city-score-big" id="score-london" style="color:var(--text-3)">—</span><span class="city-score-lbl">composite score</span></div>
       <div class="bar-wrap"><div class="bar-labels"><span>NEG</span><span>POS</span></div><div class="bar-track"><div class="bar-mid"></div><div class="bar-fill" id="bar-london" style="left:50%;width:0;background:var(--text-3)"></div></div></div>
       <div class="city-pills" id="pills-london"><span class="pill">— articles</span></div>
@@ -236,9 +236,9 @@
   <!-- High Impact -->
   <div class="section-header" style="margin-bottom:.75rem"><div class="table-title">⚡ High Impact Events</div></div>
   <div class="impact-grid">
-    <div><div class="impact-col-title" style="--ca:#58a6ff"><div class="dot"></div>İstanbul</div><div id="impact-istanbul"><div class="loading"><div class="spinner"></div></div></div></div>
+    <div><div class="impact-col-title" style="--ca:#58a6ff"><div class="dot"></div>Istanbul</div><div id="impact-istanbul"><div class="loading"><div class="spinner"></div></div></div></div>
     <div><div class="impact-col-title" style="--ca:#d29922"><div class="dot"></div>Dubai</div><div id="impact-dubai"><div class="loading"><div class="spinner"></div></div></div></div>
-    <div><div class="impact-col-title" style="--ca:#bc8cff"><div class="dot"></div>Londra</div><div id="impact-london"><div class="loading"><div class="spinner"></div></div></div></div>
+    <div><div class="impact-col-title" style="--ca:#bc8cff"><div class="dot"></div>London</div><div id="impact-london"><div class="loading"><div class="spinner"></div></div></div></div>
 
     <div><div class="impact-col-title" style="--ca:#22c55e"><div class="dot"></div>Tel Aviv</div><div id="impact-telaviv"><div class="loading"><div class="spinner"></div></div></div></div>
     <div><div class="impact-col-title" style="--ca:#ef4444"><div class="dot"></div>Beirut</div><div id="impact-beirut"><div class="loading"><div class="spinner"></div></div></div></div>
@@ -246,11 +246,11 @@
   </div>
 
   <!-- Feed -->
-  <div class="section-header" style="margin-bottom:.75rem"><div class="table-title">📰 Haber Detayı</div></div>
+  <div class="section-header" style="margin-bottom:.75rem"><div class="table-title">📰 News Detail</div></div>
   <div class="city-tabs-bar">
-    <button class="city-tab active" id="tab-istanbul" onclick="switchCity('istanbul')">🇹🇷 İstanbul</button>
+    <button class="city-tab active" id="tab-istanbul" onclick="switchCity('istanbul')">🇹🇷 Istanbul</button>
     <button class="city-tab" id="tab-dubai" onclick="switchCity('dubai')">🇦🇪 Dubai</button>
-    <button class="city-tab" id="tab-london" onclick="switchCity('london')">🇬🇧 Londra</button>
+    <button class="city-tab" id="tab-london" onclick="switchCity('london')">🇬🇧 London</button>
     <button class="city-tab" id="tab-telaviv" onclick="switchCity('telaviv')">🇮🇱 Tel Aviv</button>
     <button class="city-tab" id="tab-beirut" onclick="switchCity('beirut')">🇱🇧 Beirut</button>
   </div>
@@ -258,62 +258,62 @@
   <!-- Istanbul Panel -->
   <div class="city-panel active" id="panel-istanbul">
     <div class="charts-grid" style="margin-top:1rem">
-      <div class="chart-card"><div class="chart-title">Sentiment Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cSentIst"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Olay Türü Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cEvtIst"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Sentiment Distribution</div><div class="chart-canvas-wrap"><canvas id="cSentIst"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Event Type Distribution</div><div class="chart-canvas-wrap"><canvas id="cEvtIst"></canvas></div></div>
     </div>
-    <div class="table-section"><div class="table-header"><div class="table-title">İstanbul — Haberler</div><div class="table-count" id="cnt-istanbul"></div></div>
-    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Skor</th><th>Başlık</th><th>Olay</th><th>Tarih</th></tr></thead><tbody id="feed-istanbul"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
+    <div class="table-section"><div class="table-header"><div class="table-title">Istanbul — News</div><div class="table-count" id="cnt-istanbul"></div></div>
+    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Score</th><th>Title</th><th>Event</th><th>Date</th></tr></thead><tbody id="feed-istanbul"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
   </div>
 
   <!-- Dubai Panel -->
   <div class="city-panel" id="panel-dubai">
     <div class="charts-grid" style="margin-top:1rem">
-      <div class="chart-card"><div class="chart-title">Sentiment Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cSentDub"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Olay Türü Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cEvtDub"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Sentiment Distribution</div><div class="chart-canvas-wrap"><canvas id="cSentDub"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Event Type Distribution</div><div class="chart-canvas-wrap"><canvas id="cEvtDub"></canvas></div></div>
     </div>
-    <div class="table-section"><div class="table-header"><div class="table-title">Dubai — Haberler</div><div class="table-count" id="cnt-dubai"></div></div>
-    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Skor</th><th>Başlık</th><th>Olay</th><th>Tarih</th></tr></thead><tbody id="feed-dubai"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
+    <div class="table-section"><div class="table-header"><div class="table-title">Dubai — News</div><div class="table-count" id="cnt-dubai"></div></div>
+    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Score</th><th>Title</th><th>Event</th><th>Date</th></tr></thead><tbody id="feed-dubai"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
   </div>
 
   <!-- London Panel -->
   <div class="city-panel" id="panel-london">
     <div class="charts-grid" style="margin-top:1rem">
-      <div class="chart-card"><div class="chart-title">Sentiment Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cSentLon"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Olay Türü Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cEvtLon"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Sentiment Distribution</div><div class="chart-canvas-wrap"><canvas id="cSentLon"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Event Type Distribution</div><div class="chart-canvas-wrap"><canvas id="cEvtLon"></canvas></div></div>
     </div>
-    <div class="table-section"><div class="table-header"><div class="table-title">Londra — Haberler</div><div class="table-count" id="cnt-london"></div></div>
-    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Skor</th><th>Başlık</th><th>Olay</th><th>Tarih</th></tr></thead><tbody id="feed-london"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
+    <div class="table-section"><div class="table-header"><div class="table-title">London — News</div><div class="table-count" id="cnt-london"></div></div>
+    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Score</th><th>Title</th><th>Event</th><th>Date</th></tr></thead><tbody id="feed-london"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
   </div>
 
   <!-- Tel Aviv Panel -->
   <div class="city-panel" id="panel-telaviv">
     <div class="charts-grid" style="margin-top:1rem">
-      <div class="chart-card"><div class="chart-title">Sentiment Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cSentTlv"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Olay Türü Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cEvtTlv"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Sentiment Distribution</div><div class="chart-canvas-wrap"><canvas id="cSentTlv"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Event Type Distribution</div><div class="chart-canvas-wrap"><canvas id="cEvtTlv"></canvas></div></div>
     </div>
-    <div class="table-section"><div class="table-header"><div class="table-title">Tel Aviv — Haberler</div><div class="table-count" id="cnt-telaviv"></div></div>
-    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Skor</th><th>Başlık</th><th>Olay</th><th>Tarih</th></tr></thead><tbody id="feed-telaviv"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
+    <div class="table-section"><div class="table-header"><div class="table-title">Tel Aviv — News</div><div class="table-count" id="cnt-telaviv"></div></div>
+    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Score</th><th>Title</th><th>Event</th><th>Date</th></tr></thead><tbody id="feed-telaviv"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
   </div>
 
   <!-- Beirut Panel -->
   <div class="city-panel" id="panel-beirut">
     <div class="charts-grid" style="margin-top:1rem">
-      <div class="chart-card"><div class="chart-title">Sentiment Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cSentBey"></canvas></div></div>
-      <div class="chart-card"><div class="chart-title">Olay Türü Dağılımı</div><div class="chart-canvas-wrap"><canvas id="cEvtBey"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Sentiment Distribution</div><div class="chart-canvas-wrap"><canvas id="cSentBey"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Event Type Distribution</div><div class="chart-canvas-wrap"><canvas id="cEvtBey"></canvas></div></div>
     </div>
-    <div class="table-section"><div class="table-header"><div class="table-title">Beirut — Haberler</div><div class="table-count" id="cnt-beirut"></div></div>
-    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Skor</th><th>Başlık</th><th>Olay</th><th>Tarih</th></tr></thead><tbody id="feed-beirut"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
+    <div class="table-section"><div class="table-header"><div class="table-title">Beirut — News</div><div class="table-count" id="cnt-beirut"></div></div>
+    <div class="table-wrap"><div class="scroll-table"><table class="articles-table"><thead><tr><th>Sent.</th><th>Score</th><th>Title</th><th>Event</th><th>Date</th></tr></thead><tbody id="feed-beirut"><tr><td colspan="5"><div class="loading"><div class="spinner"></div>Loading...</div></td></tr></tbody></table></div></div></div>
   </div>
 
 
 </div>
 
 <script>
-const CITIES={istanbul:{label:'İstanbul',flag:'🇹🇷',accent:'#58a6ff',cSent:'cSentIst',cEvt:'cEvtIst'},dubai:{label:'Dubai',flag:'🇦🇪',accent:'#d29922',cSent:'cSentDub',cEvt:'cEvtDub'},london:{label:'Londra',flag:'🇬🇧',accent:'#bc8cff',cSent:'cSentLon',cEvt:'cEvtLon'},telaviv:{label:'Tel Aviv',flag:'🇮🇱',accent:'#22c55e',cSent:'cSentTlv',cEvt:'cEvtTlv'},beirut:{label:'Beirut',flag:'🇱🇧',accent:'#ef4444',cSent:'cSentBey',cEvt:'cEvtBey'}};
+const CITIES={istanbul:{label:'Istanbul',flag:'🇹🇷',accent:'#58a6ff',cSent:'cSentIst',cEvt:'cEvtIst'},dubai:{label:'Dubai',flag:'🇦🇪',accent:'#d29922',cSent:'cSentDub',cEvt:'cEvtDub'},london:{label:'London',flag:'🇬🇧',accent:'#bc8cff',cSent:'cSentLon',cEvt:'cEvtLon'},telaviv:{label:'Tel Aviv',flag:'🇮🇱',accent:'#22c55e',cSent:'cSentTlv',cEvt:'cEvtTlv'},beirut:{label:'Beirut',flag:'🇱🇧',accent:'#ef4444',cSent:'cSentBey',cEvt:'cEvtBey'}};
 let charts={};
 function scoreColor(s){if(s>=.2)return'var(--green)';if(s>=.05)return'#69c47a';if(s>=-.05)return'var(--text-3)';if(s>=-.2)return'#e08040';return'var(--red)';}
 function fmtScore(s){if(s==null)return'—';const v=Math.round(s*100);return(v>0?'+':'')+v;}
-function relTime(iso){if(!iso)return'';try{const d=(Date.now()-new Date(iso).getTime())/1000;if(d<3600)return Math.floor(d/60)+'d önce';if(d<86400)return Math.floor(d/3600)+'s önce';return Math.floor(d/86400)+'g önce';}catch{return'';}}
+function relTime(iso){if(!iso)return'';try{const d=(Date.now()-new Date(iso).getTime())/1000;if(d<3600)return Math.floor(d/60)+'m ago';if(d<86400)return Math.floor(d/3600)+'h ago';return Math.floor(d/86400)+'d ago';}catch{return'';}}
 function alertLabel(l){return{low:'NORMAL',medium:'WARNING',high:'ALERT'}[l]||'—';}
 function loadingBar(on){document.getElementById('loadingBar').classList.toggle('active',on);}
 
@@ -332,8 +332,8 @@ function updateCard(city,data){
   if(cl>=0){bar.style.left='50%';bar.style.width=(cl*50)+'%';bar.style.background='var(--green)';}
   else{bar.style.left=((1+cl)*50)+'%';bar.style.width=(-cl*50)+'%';bar.style.background='var(--red)';}
   const lv=agg.alert_level||'low';const al=document.getElementById('alert-'+city);al.textContent=alertLabel(lv);al.className='alert-badge '+lv;
-  document.getElementById('pills-'+city).innerHTML=`<span class="pill pos">✓ ${agg.positive_count||0} poz</span><span class="pill neg">✗ ${agg.negative_count||0} neg</span><span class="pill">${agg.article_count||0} articles</span>`;
-  document.getElementById('event-'+city).textContent=agg.dominant_event_tr||'Genel Seyahat Haberi';
+  document.getElementById('pills-'+city).innerHTML=`<span class="pill pos">✓ ${agg.positive_count||0} pos</span><span class="pill neg">✗ ${agg.negative_count||0} neg</span><span class="pill">${agg.article_count||0} articles</span>`;
+  document.getElementById('event-'+city).textContent=agg.dominant_event_tr||'General Travel News';
 }
 
 function updateKPIs(all){
@@ -351,16 +351,16 @@ function updateImpact(city,data){
   const events=(data.aggregate||{}).high_impact_events||[];
   const el=document.getElementById('impact-'+city);
   const acc=CITIES[city].accent;
-  if(!events.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div>Yüksek etkili olay yok</div>';return;}
-  el.innerHTML=events.map(ev=>`<div class="impact-card" style="--ca:${acc}"><div class="impact-card-title">${ev.title||''}</div><div class="impact-card-meta"><span class="sent-chip ${ev.sentiment_label}">${ev.sentiment_label==='positive'?'POZİTİF':ev.sentiment_label==='negative'?'NEGATİF':'NÖTR'}</span><span class="event-tag">${ev.event_icon||''} ${ev.event_tr||''}</span><span class="rel-time">${relTime(ev.published_at)}</span></div></div>`).join('');
+  if(!events.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div>No high impact events</div>';return;}
+  el.innerHTML=events.map(ev=>`<div class="impact-card" style="--ca:${acc}"><div class="impact-card-title">${ev.title||''}</div><div class="impact-card-meta"><span class="sent-chip ${ev.sentiment_label}">${ev.sentiment_label==='positive'?'POSITIVE':ev.sentiment_label==='negative'?'NEGATIVE':'NEUTRAL'}</span><span class="event-tag">${ev.event_icon||''} ${ev.event_tr||''}</span><span class="rel-time">${relTime(ev.published_at)}</span></div></div>`).join('');
 }
 
 function updateFeed(city,articles){
   const tb=document.getElementById('feed-'+city);
   const ce=document.getElementById('cnt-'+city);
-  if(!articles||!articles.length){tb.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div>Haber bulunamadı — NEWSAPI_KEY ayarlı mı?</div></td></tr>';if(ce)ce.textContent='0 articles';return;}
+  if(!articles||!articles.length){tb.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div>No news found — is NEWSAPI_KEY configured?</div></td></tr>';if(ce)ce.textContent='0 articles';return;}
   if(ce)ce.textContent=articles.length+' articles';
-  tb.innerHTML=articles.map(a=>`<tr><td><span class="sent-chip ${a.sentiment_label||'neutral'}">${a.sentiment_label==='positive'?'POZ':a.sentiment_label==='negative'?'NEG':'NÖT'}</span></td><td><span class="score-cell" style="color:${scoreColor(a.sentiment_score||0)}">${fmtScore(a.sentiment_score)}</span></td><td class="article-title-cell">${a.url?`<a href="${a.url}" target="_blank" rel="noopener">${a.title||''}</a>`:`<span>${a.title||''}</span>`}<div class="article-source">${a.source||''}</div></td><td><span class="event-tag">${a.event_icon||'📰'} ${a.event_tr||''}</span></td><td class="rel-time">${relTime(a.published_at)}</td></tr>`).join('');
+  tb.innerHTML=articles.map(a=>`<tr><td><span class="sent-chip ${a.sentiment_label||'neutral'}">${a.sentiment_label==='positive'?'POS':a.sentiment_label==='negative'?'NEG':'NEU'}</span></td><td><span class="score-cell" style="color:${scoreColor(a.sentiment_score||0)}">${fmtScore(a.sentiment_score)}</span></td><td class="article-title-cell">${a.url?`<a href="${a.url}" target="_blank" rel="noopener">${a.title||''}</a>`:`<span>${a.title||''}</span>`}<div class="article-source">${a.source||''}</div></td><td><span class="event-tag">${a.event_icon||'📰'} ${a.event_tr||''}</span></td><td class="rel-time">${relTime(a.published_at)}</td></tr>`).join('');
 }
 
 function renderCharts(city,agg){
@@ -369,12 +369,12 @@ function renderCharts(city,agg){
   if(charts[sc])charts[sc].destroy();
   if(charts[ec])charts[ec].destroy();
   const sCtx=document.getElementById(sc);
-  if(sCtx)charts[sc]=new Chart(sCtx,{type:'doughnut',data:{labels:['Positive','Negative','Nötr'],datasets:[{data:[agg.positive_count||0,agg.negative_count||0,agg.neutral_count||0],backgroundColor:['rgba(63,185,80,.7)','rgba(248,81,73,.7)','rgba(110,118,129,.4)'],borderColor:['#3fb950','#f85149','#6e7681'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8b949e',font:{size:11}}}},cutout:'65%'}});
+  if(sCtx)charts[sc]=new Chart(sCtx,{type:'doughnut',data:{labels:['Positive','Negative','Neutral'],datasets:[{data:[agg.positive_count||0,agg.negative_count||0,agg.neutral_count||0],backgroundColor:['rgba(63,185,80,.7)','rgba(248,81,73,.7)','rgba(110,118,129,.4)'],borderColor:['#3fb950','#f85149','#6e7681'],borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#8b949e',font:{size:11}}}},cutout:'65%'}});
   const eCtx=document.getElementById(ec);
   const dist=agg.event_distribution||{};
   const entries=Object.entries(dist).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const C=['#58a6ff','#3fb950','#d29922','#bc8cff','#39d2c0','#f85149'];
-  if(eCtx&&entries.length)charts[ec]=new Chart(eCtx,{type:'bar',data:{labels:entries.map(([k])=>k.replace('general travel news','genel').replace(' or ',' / ')),datasets:[{data:entries.map(([,v])=>v),backgroundColor:C.map(c=>c+'99'),borderColor:C,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6e7681',font:{size:10}},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e',font:{size:10}},grid:{display:false}}}}});
+  if(eCtx&&entries.length)charts[ec]=new Chart(eCtx,{type:'bar',data:{labels:entries.map(([k])=>k.replace('general travel news','general').replace(' or ',' / ')),datasets:[{data:entries.map(([,v])=>v),backgroundColor:C.map(c=>c+'99'),borderColor:C,borderWidth:1,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6e7681',font:{size:10}},grid:{color:'#21262d'}},y:{ticks:{color:'#8b949e',font:{size:10}},grid:{display:false}}}}});
 }
 
 async function checkStatus(){
@@ -382,10 +382,10 @@ async function checkStatus(){
     const r=await fetch('/api/status');const d=await r.json();
     const dot=document.getElementById('statusDot');const txt=document.getElementById('statusText');
     if(d.api_status?.status!=='ok')document.getElementById('apiBanner').classList.add('show');
-    if(d.models_loaded&&d.api_status?.status==='ok'){dot.className='status-dot live';txt.textContent='CANLI';}
-    else if(d.models_loaded){dot.className='status-dot warn';txt.textContent='MODEL HAZIR';}
-    else{dot.className='status-dot warn';txt.textContent='MODEL YÜKLENİYOR';}
-  }catch{document.getElementById('statusDot').className='status-dot err';document.getElementById('statusText').textContent='BAĞLANTI HATASI';}
+    if(d.models_loaded&&d.api_status?.status==='ok'){dot.className='status-dot live';txt.textContent='LIVE';}
+    else if(d.models_loaded){dot.className='status-dot warn';txt.textContent='MODEL READY';}
+    else{dot.className='status-dot warn';txt.textContent='MODEL LOADING';}
+  }catch{document.getElementById('statusDot').className='status-dot err';document.getElementById('statusText').textContent='CONNECTION ERROR';}
 }
 
 async function loadAll(force=false){
@@ -396,7 +396,7 @@ async function loadAll(force=false){
     const data=await r.json();
     Object.entries(data).forEach(([city,cd])=>{updateCard(city,cd);updateImpact(city,cd);updateFeed(city,cd.articles||[]);renderCharts(city,cd.aggregate||{});});
     updateKPIs(data);
-    document.getElementById('lastUpdate').textContent='Son: '+new Date().toLocaleTimeString('tr-TR');
+    document.getElementById('lastUpdate').textContent='Last: '+new Date().toLocaleTimeString('en-US');
   }catch(e){console.error(e);}
   loadingBar(false);btn.disabled=false;btn.textContent='⟳ Refresh';
 }
