@@ -923,6 +923,40 @@ function resetSeatmap() {
   availableSeats.economy = Array.from({length:300},(_,i)=>i).sort(()=>Math.random()-0.5);
 }
 
+// Full refresh — sifirdan tum koltuklari doldur (incremental tracking bypass)
+async function fullRefreshSeatmap() {
+  for (const [cabin, key] of [['business', seatmapFlightKeys.business], ['economy', seatmapFlightKeys.economy]]) {
+    if (!key) continue;
+    try {
+      const res = await fetch('/api/sim/flight/' + encodeURIComponent(key));
+      const detail = await res.json();
+      if (detail.error) continue;
+      const bookings = (detail.bookings || []).filter(b => !b.cancelled);
+      const seats = cabin === 'business' ? seatmapSeats.business : seatmapSeats.economy;
+      // Reset all seats
+      seats.forEach(s => { s.className = cabin === 'business' ? 'seat biz empty' : 'seat eco empty'; s.style.cursor=''; s.title=''; s._booking=null; s.onclick=null; s.innerHTML=''; });
+      // Fill from scratch
+      for (let i = 0; i < bookings.length && i < seats.length; i++) {
+        const b = bookings[i];
+        const cls = b.is_bot ? b.fare_class : 'HUMAN';
+        const cabinClass = cabin === 'business' ? ' biz' : ' eco';
+        seats[i].className = `seat${cabinClass} ${cls}`;
+        seats[i].style.cursor = 'pointer';
+        seats[i].title = `${b.fare_class} — $${b.price} | DTD:${b.dtd} | ${b.is_bot ? 'Seg '+b.segment : 'HUMAN'}`;
+        seats[i]._booking = {...b, cabin, seatIdx: i};
+        seats[i].onclick = function(){ showSeatDetail(this._booking, this); };
+        if (b.is_connecting) {
+          seats[i].innerHTML = '<span style="position:absolute;top:1px;right:1px;font-size:7px;line-height:1;color:#000">&#9992;</span>';
+          seats[i].style.position = 'relative';
+        }
+      }
+      lastSeatCount[cabin] = bookings.length;
+    } catch(e) {}
+  }
+  // Trigger animation from this state
+  loadSeatmapBoth();
+}
+
 // Build on page load
 buildSeatmap();
 
@@ -1170,11 +1204,11 @@ function updateUI(status,flights){
   stEl.textContent=stMap[displayState]||displayState;
   stEl.className='sim-state '+(displayState==='running'?'running':displayState==='paused'?'paused':displayState==='completed'?'completed':'idle');
 
-  // Clock + DTD — animasyon veya countdown devam ediyorsa DOKUNMA
+  // Clock + DTD — animasyon veya countdown veya simülasyon aktif iken poll DTD'ye DOKUNMAZ
+  // Sadece simülasyon tamamen bitip animasyon da bittiyse son degeri yaz
   const simDate = status.clock?.sim_date||'--';
-  if (seatAnimRunning || window._countdownRunning) {
-    // animasyon/countdown kendi hallediyor — poll tarih/DTD'ye dokunmasın
-  } else if (simDate !== '--') {
+  const dtdLocked = seatAnimRunning || window._countdownRunning || status.state === 'running';
+  if (!dtdLocked && simDate !== '--') {
     document.getElementById('simClock').textContent = simDate;
     document.getElementById('animDate').textContent = simDate;
     const depDate = window._simDepDate;
@@ -1195,19 +1229,23 @@ function updateUI(status,flights){
     }
   }
 
-  // Hide loading overlay once we have real data
-  if (window._simLoading && status.state === 'running' && (status.summary?.total_sold > 0 || status.stats?.total_bots > 0)) {
-    window._simLoading = false;
-    document.getElementById('loadingOverlay').style.display='none';
-    document.getElementById('kpis').style.opacity='1';
-    document.getElementById('btnCompetition').style.display='';
+  // Hide loading overlay once we have real data from THIS simulation
+  if (window._simLoading) {
+    if (status.state === 'running' && (status.summary?.total_sold > 0 || status.stats?.total_bots > 0)) {
+      window._simLoading = false;
+      document.getElementById('loadingOverlay').style.display='none';
+      document.getElementById('kpis').style.opacity='1';
+      document.getElementById('btnCompetition').style.display='';
+    } else {
+      // Still loading — don't update any KPIs or tables
+      return;
+    }
   }
 
   // KPIs
   const s=status.summary||{};
   document.getElementById('kFlights').textContent=s.total_capacity||349;
   if(!seatAnimRunning){
-    // Animasyon bitti veya yok — gercek degerleri goster
     document.getElementById('kSold').textContent=(s.total_sold||0).toLocaleString();
     document.getElementById('kLF').textContent=fmtPct(s.avg_load_factor||0);
     document.getElementById('kRevDyn').textContent=fmt$(s.revenue_dynamic||0);
@@ -1217,7 +1255,6 @@ function updateUI(status,flights){
     deltaEl.textContent=(delta>0?'+':'')+delta+'%';
     deltaEl.style.color=delta>=0?'var(--green)':'var(--red)';
   }
-  // Animasyon devam ediyorsa KPI'lar drainSeatQueue icinden guncellenir
 
 
   // Flight table
@@ -1240,10 +1277,10 @@ function updateUI(status,flights){
     document.getElementById('kpis').style.opacity='1';
     document.getElementById('btnCompetition').style.display='';
     window._simLoading = false;
-    // Animasyon henuz baslamadiysa son kez yukle
+    // Animasyon henuz baslamadiysa — tamamen sifirdan doldur (incremental bug fix)
     if (!window._animCompleted && !seatAnimRunning && !window._countdownRunning) {
       if (seatmapFlightKeys.economy || seatmapFlightKeys.business) {
-        loadSeatmapBoth();
+        fullRefreshSeatmap();
       }
     }
     // Poll'u hemen durdurmayalim — animasyon icin biraz bekle
