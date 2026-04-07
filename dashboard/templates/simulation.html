@@ -994,6 +994,7 @@ function updateCompetitionPanel(status) {
   if (pc) {
     document.getElementById('compPC_lf').textContent = pc.avg_lf + '%';
     document.getElementById('compPC_sold').textContent = pc.total_sold.toLocaleString() + '/' + pc.total_capacity.toLocaleString();
+    document.getElementById('compPC_price').textContent = pc.avg_price ? '$' + Math.round(pc.avg_price) : '--';
     document.getElementById('compPC_lost').textContent = (stats.lost_to_PC || 0).toLocaleString();
     document.getElementById('compPC_stolen').textContent = (stats.stolen_from_PC || 0).toLocaleString();
     buildCompetitorSeats('compPC_seats', Math.min(pc.total_capacity, 150), Math.min(pc.total_sold, 150), '#f59e0b');
@@ -1003,6 +1004,7 @@ function updateCompetitionPanel(status) {
   if (ek) {
     document.getElementById('compEK_lf').textContent = ek.avg_lf + '%';
     document.getElementById('compEK_sold').textContent = ek.total_sold.toLocaleString() + '/' + ek.total_capacity.toLocaleString();
+    document.getElementById('compEK_price').textContent = ek.avg_price ? '$' + Math.round(ek.avg_price) : '--';
     document.getElementById('compEK_lost').textContent = (stats.lost_to_EK || 0).toLocaleString();
     document.getElementById('compEK_stolen').textContent = (stats.stolen_from_EK || 0).toLocaleString();
     buildCompetitorSeats('compEK_seats', Math.min(ek.total_capacity, 280), Math.min(ek.total_sold, 280), '#06b6d4');
