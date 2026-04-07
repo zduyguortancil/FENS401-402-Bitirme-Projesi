@@ -31,7 +31,7 @@
       "route_presence": [
         "LHR","FRA","CDG","MUC","FCO","JFK","LAX","ORD","MIA",
         "SIN","BKK","ICN","PEK","PVG","NRT","BOM","DEL","DXB",
-        "DOH","GRU","YYZ","YVR","MAD","BCN"
+        "DOH","AUH","GRU","YYZ","YVR","MAD","BCN"
       ],
       "segment_preference": {
         "A": 0.40, "B": 0.10, "C": 0.25, "D": 0.05, "E": 0.02, "F": 0.20
