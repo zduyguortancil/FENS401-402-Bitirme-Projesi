@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SeatWise — Rekabet Simulasyonu</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg-0:#0a0e14;--bg-1:#0d1117;--bg-2:#161b22;--bg-3:#1c2333;--border:#21262d;--border-light:#30363d;--text-0:#e6edf3;--text-1:#c9d1d9;--text-2:#8b949e;--text-3:#6e7681;--accent:#58a6ff;--green:#3fb950;--green-dim:rgba(63,185,80,.12);--red:#f85149;--red-dim:rgba(248,81,73,.12);--orange:#d29922;--purple:#bc8cff;--radius:8px;--radius-lg:12px;--transition:.2s cubic-bezier(.4,0,.2,1)}
+html{font-size:14px}
+body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);min-height:100vh}
+.header{background:var(--bg-1);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1rem;color:var(--text-0);text-decoration:none}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#39d2c0);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#fff}
+.hdr-spacer{flex:1}
+.nav-link{color:var(--text-2);text-decoration:none;font-size:.8rem;padding:.4rem .8rem;border-radius:6px;transition:all .2s}
+.nav-link:hover{color:var(--text-0);background:var(--bg-2)}
+.main{padding:1.5rem 2rem 3rem;max-width:1800px;margin:0 auto}
+.sim-state{font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.sim-state.idle{background:var(--bg-3);color:var(--text-3)}
+.sim-state.running{background:var(--green-dim);color:var(--green);animation:pulse 1.5s infinite}
+.sim-state.completed{background:rgba(88,166,255,.15);color:var(--accent)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* Airline Cards */
+.airlines-grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:1.2rem;margin-bottom:1.5rem}
+@media(max-width:1200px){.airlines-grid{grid-template-columns:1fr}}
+.airline-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem;position:relative}
+.airline-card.ours{border-color:var(--accent);border-width:2px}
+.airline-header{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.airline-name{font-weight:700;font-size:1rem}
+.airline-badge{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px}
+.airline-meta{font-size:.72rem;color:var(--text-3);margin-bottom:.8rem}
+.airline-kpis{display:flex;gap:1.2rem;flex-wrap:wrap;margin-bottom:.8rem}
+.airline-kpi{font-size:.72rem;color:var(--text-2)}
+.airline-kpi strong{color:var(--text-0);font-family:'JetBrains Mono',monospace;font-size:.82rem}
+.airline-kpi.good strong{color:var(--green)}
+.airline-kpi.bad strong{color:var(--red)}
+
+/* Seat Map */
+.seat-grid{margin:.8rem 0}
+.seat-tbl{border-collapse:separate;border-spacing:2px 2px}
+.seat-tbl td.seat{width:18px;height:18px;border-radius:3px;border:1px solid transparent;cursor:default;text-align:center;font-size:0}
+.seat-tbl td.seat.empty{background:#1e293b;border-color:#334155}
+.seat-tbl td.seat.filled{border-color:rgba(255,255,255,.1)}
+.seat-tbl td.aisle{width:10px}
+.seat-tbl td.rnum{font-size:.55rem;color:var(--text-3);text-align:center;font-family:'JetBrains Mono',monospace;width:16px}
+
+/* Market Share Bar */
+.ms-bar{display:flex;height:28px;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin:.5rem 0}
+.ms-bar div{transition:width .5s;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#000}
+.ms-labels{display:flex;justify-content:space-between;font-size:.7rem;color:var(--text-2);margin-top:4px}
+
+/* Won/Lost Stats */
+.wl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;margin-top:1rem}
+.wl-card{background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem;text-align:center}
+.wl-card .val{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700}
+.wl-card .lbl{font-size:.65rem;color:var(--text-3);margin-top:4px}
+
+/* DTD Clock */
+.dtd-display{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;color:var(--accent);text-align:center;padding:1rem;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:1rem}
+.dtd-display .sub{font-size:.8rem;color:var(--text-3);font-weight:400}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="logo" href="/"><div class="logo-icon">S</div>SeatWise</a>
+  <span style="color:var(--text-3);font-size:.8rem">/</span>
+  <span style="color:var(--text-2);font-size:.8rem">Rekabet Simulasyonu</span>
+  <div class="hdr-spacer"></div>
+  <a class="nav-link" href="/">Dashboard</a>
+  <a class="nav-link" href="/simulation">Simulasyon</a>
+  <a class="nav-link" href="/competition" style="color:var(--accent)">Rekabet</a>
+  <span class="sim-state idle" id="simState">HAZIR</span>
+</div>
+
+<div class="main">
+
+  <!-- DTD + Status -->
+  <div class="dtd-display">
+    <span id="dtdVal">--</span>
+    <div class="sub">Kalkisa Kalan Gun | <span id="simDate">--</span> | <span id="depDateLabel">--</span></div>
+  </div>
+
+  <!-- Market Share Bar -->
+  <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:1.2rem">
+    <div style="font-weight:600;font-size:.85rem;margin-bottom:.6rem;color:var(--text-0)">Pazar Payi</div>
+    <div class="ms-bar">
+      <div id="msBarPC" style="background:#f59e0b">0%</div>
+      <div id="msBarTK" style="background:var(--accent)">0%</div>
+      <div id="msBarEK" style="background:#06b6d4">0%</div>
+    </div>
+    <div class="ms-labels">
+      <span>Pegasus: <strong id="msPCpct">0%</strong></span>
+      <span>THY (Biz): <strong id="msTKpct">0%</strong></span>
+      <span>Emirates: <strong id="msEKpct">0%</strong></span>
+    </div>
+    <!-- Won/Lost -->
+    <div class="wl-grid">
+      <div class="wl-card"><div class="val" style="color:var(--red)" id="wlLostPC">0</div><div class="lbl">Pegasus'a Kaptirdik</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--green)" id="wlStolenPC">0</div><div class="lbl">Pegasus'tan Caldik</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--red)" id="wlLostEK">0</div><div class="lbl">Emirates'e Kaptirdik</div></div>
+      <div class="wl-card"><div class="val" style="color:var(--green)" id="wlStolenEK">0</div><div class="lbl">Emirates'ten Caldik</div></div>
+    </div>
+  </div>
+
+  <!-- 3 Airlines -->
+  <div class="airlines-grid">
+
+    <!-- PEGASUS -->
+    <div class="airline-card" id="cardPC">
+      <div class="airline-header">
+        <span class="airline-name" style="color:#f59e0b">&#9992; Pegasus</span>
+        <span class="airline-badge" style="background:rgba(245,158,11,.15);color:#f59e0b">BUDGET</span>
+        <span class="airline-badge" style="background:var(--bg-3);color:var(--text-3)">SABIT FIYAT</span>
+      </div>
+      <div class="airline-meta">Airbus A321neo — Tek Sinif — 150 Koltuk</div>
+      <div class="airline-kpis">
+        <div class="airline-kpi">Doluluk: <strong id="pcLF">0%</strong></div>
+        <div class="airline-kpi">Satis: <strong id="pcSold">0</strong>/150</div>
+        <div class="airline-kpi">Fiyat: <strong id="pcPrice">$0</strong></div>
+        <div class="airline-kpi">Gelir: <strong id="pcRev">$0</strong></div>
+      </div>
+      <div class="seat-grid" id="pcSeatmap"></div>
+    </div>
+
+    <!-- THY (BIZ) -->
+    <div class="airline-card ours" id="cardTK">
+      <div class="airline-header">
+        <span class="airline-name" style="color:var(--accent)">&#9992; Turkish Airlines (Biz)</span>
+        <span class="airline-badge" style="background:rgba(88,166,255,.15);color:var(--accent)">DINAMIK FIYAT</span>
+      </div>
+      <div class="airline-meta">Boeing 787 — Business (49) + Economy (300) = 349 Koltuk</div>
+      <div class="airline-kpis">
+        <div class="airline-kpi">Eco LF: <strong id="tkLFeco">0%</strong></div>
+        <div class="airline-kpi">Biz LF: <strong id="tkLFbiz">0%</strong></div>
+        <div class="airline-kpi">Satis: <strong id="tkSold">0</strong>/349</div>
+        <div class="airline-kpi">Gelir: <strong id="tkRev">$0</strong></div>
+        <div class="airline-kpi">Delta: <strong id="tkDelta">0%</strong></div>
+      </div>
+      <div class="seat-grid">
+        <div style="font-size:.65rem;color:var(--text-3);margin-bottom:4px">BUSINESS (2-3-2)</div>
+        <div id="tkBizSeatmap"></div>
+        <div style="font-size:.65rem;color:var(--text-3);margin:8px 0 4px">ECONOMY (3-3-3)</div>
+        <div id="tkEcoSeatmap"></div>
+      </div>
+    </div>
+
+    <!-- EMIRATES -->
+    <div class="airline-card" id="cardEK">
+      <div class="airline-header">
+        <span class="airline-name" style="color:#06b6d4">&#9992; Emirates</span>
+        <span class="airline-badge" style="background:rgba(6,182,212,.15);color:#06b6d4">PREMIUM</span>
+        <span class="airline-badge" style="background:var(--bg-3);color:var(--text-3)">SABIT FIYAT</span>
+      </div>
+      <div class="airline-meta">Boeing 777-300ER — Business (42) + Economy (280) = 322 Koltuk</div>
+      <div class="airline-kpis">
+        <div class="airline-kpi">Doluluk: <strong id="ekLF">0%</strong></div>
+        <div class="airline-kpi">Satis: <strong id="ekSold">0</strong>/322</div>
+        <div class="airline-kpi">Fiyat: <strong id="ekPrice">$0</strong></div>
+        <div class="airline-kpi">Gelir: <strong id="ekRev">$0</strong></div>
+      </div>
+      <div class="seat-grid">
+        <div style="font-size:.65rem;color:var(--text-3);margin-bottom:4px">BUSINESS (1-2-1 Herringbone)</div>
+        <div id="ekBizSeatmap"></div>
+        <div style="font-size:.65rem;color:var(--text-3);margin:8px 0 4px">ECONOMY (3-3-3)</div>
+        <div id="ekEcoSeatmap"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── SEAT MAP BUILDERS ────────────────────────────────────
+
+function buildSeatTable(containerId, layout, rows, seatCount, idPrefix) {
+  const el = document.getElementById(containerId);
+  if (!el) return [];
+  // layout: array like ['A','B','|','C','D','E','|','F','G']
+  let html = '<table class="seat-tbl">';
+  let si = 0;
+  const seatEls = [];
+  for (let r = 0; r < rows && si < seatCount; r++) {
+    html += `<tr><td class="rnum">${r+1}</td>`;
+    layout.forEach(c => {
+      if (c === '|') { html += '<td class="aisle"></td>'; return; }
+      if (si >= seatCount) return;
+      html += `<td class="seat empty" id="${idPrefix}${si}"></td>`;
+      si++;
+    });
+    html += '</tr>';
+  }
+  html += '</table>';
+  el.innerHTML = html;
+  for (let i = 0; i < si; i++) {
+    const s = document.getElementById(idPrefix + i);
+    if (s) seatEls.push(s);
+  }
+  return seatEls;
+}
+
+// Pegasus: 3-3 layout, 25 rows = 150 seats
+const pcSeats = buildSeatTable('pcSeatmap',
+  ['A','B','C','|','D','E','F'], 25, 150, 'pc_s');
+
+// THY Business: 2-3-2 layout, 7 rows = 49 seats
+const tkBizSeats = buildSeatTable('tkBizSeatmap',
+  ['A','B','|','C','D','E','|','F','G'], 7, 49, 'tkb_s');
+
+// THY Economy: 3-3-3 layout, 34 rows = 300 seats (compact)
+const tkEcoSeats = buildSeatTable('tkEcoSeatmap',
+  ['A','B','C','|','D','E','F','|','G','H','J'], 34, 300, 'tke_s');
+
+// Emirates Business: 1-2-1 herringbone, 11 rows = 42 seats
+const ekBizSeats = buildSeatTable('ekBizSeatmap',
+  ['A','|','D','E','|','G'], 11, 42, 'ekb_s');  // 4 per row (skip aisle seats in naming)
+
+// Emirates Economy: 3-3-3, 32 rows = 280 seats
+const ekEcoSeats = buildSeatTable('ekEcoSeatmap',
+  ['A','B','C','|','D','E','F','|','G','H','J'], 32, 280, 'eke_s');
+
+// ── FILL SEATS ────────────────────────────────────────
+
+function fillSeats(seatEls, soldCount, color) {
+  seatEls.forEach((s, i) => {
+    if (i < soldCount) {
+      s.className = 'seat filled';
+      s.style.background = color;
+      s.style.borderColor = color;
+    } else {
+      s.className = 'seat empty';
+      s.style.background = '';
+      s.style.borderColor = '';
+    }
+  });
+}
+
+// THY fare class colors
+const FC_COLORS = {V:'#94a3b8', K:'#c9a227', M:'#6366f1', Y:'#ef4444'};
+
+function fillTHYSeats(seatEls, bookings) {
+  // Reset all
+  seatEls.forEach(s => { s.className = 'seat empty'; s.style.background = ''; s.style.borderColor = ''; });
+  // Fill from bookings
+  for (let i = 0; i < bookings.length && i < seatEls.length; i++) {
+    const b = bookings[i];
+    const color = FC_COLORS[b.fare_class] || '#6366f1';
+    seatEls[i].className = 'seat filled';
+    seatEls[i].style.background = color;
+    seatEls[i].style.borderColor = color;
+    seatEls[i].title = `${b.fare_class} - $${b.price} | DTD:${b.dtd} | Seg:${b.segment}`;
+  }
+}
+
+// ── POLLING ────────────────────────────────────────────
+
+let pollTimer = null;
+let lastCompData = null;
+
+async function pollAll() {
+  try {
+    const [stRes, compRes] = await Promise.all([
+      fetch('/api/sim/status'),
+      fetch('/api/sim/competition').catch(() => ({ok:false})),
+    ]);
+    const status = await stRes.json();
+    let comp = null;
+    if (compRes.ok) comp = await compRes.json();
+
+    updatePage(status, comp);
+  } catch(e) { console.error(e); }
+}
+
+function fmt$(v) { return '$' + Math.round(v).toLocaleString(); }
+
+function updatePage(status, comp) {
+  // State
+  const stMap = {idle:'HAZIR',running:'CALISIYOR',paused:'DURAKLATILDI',completed:'TAMAMLANDI',ready:'HAZIR'};
+  const stEl = document.getElementById('simState');
+  stEl.textContent = stMap[status.state] || status.state;
+  stEl.className = 'sim-state ' + (status.state === 'running' ? 'running' : status.state === 'completed' ? 'completed' : 'idle');
+
+  // Clock
+  const simDate = status.clock?.sim_date || '--';
+  document.getElementById('simDate').textContent = simDate;
+
+  // Stats
+  const stats = status.stats || {};
+  const s = status.summary || {};
+
+  // THY KPIs
+  document.getElementById('tkSold').textContent = (s.total_sold || 0).toLocaleString();
+  document.getElementById('tkRev').textContent = fmt$(s.revenue_dynamic || 0);
+  const delta = s.revenue_delta_pct || 0;
+  const deltaEl = document.getElementById('tkDelta');
+  deltaEl.textContent = (delta > 0 ? '+' : '') + delta + '%';
+  deltaEl.style.color = delta >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('tkLFeco').textContent = Math.round((s.avg_load_factor || 0) * 100) + '%';
+  document.getElementById('tkLFbiz').textContent = Math.round((s.avg_load_factor || 0) * 100) + '%';
+
+  // Won/Lost
+  document.getElementById('wlLostPC').textContent = (stats.lost_to_PC || 0).toLocaleString();
+  document.getElementById('wlStolenPC').textContent = (stats.stolen_from_PC || 0).toLocaleString();
+  document.getElementById('wlLostEK').textContent = (stats.lost_to_EK || 0).toLocaleString();
+  document.getElementById('wlStolenEK').textContent = (stats.stolen_from_EK || 0).toLocaleString();
+
+  // Competition data
+  if (comp && comp.competitors) {
+    const pc = comp.competitors.PC;
+    const ek = comp.competitors.EK;
+
+    if (pc) {
+      document.getElementById('pcLF').textContent = pc.avg_lf + '%';
+      document.getElementById('pcSold').textContent = pc.total_sold.toLocaleString();
+      document.getElementById('pcRev').textContent = fmt$(pc.total_revenue);
+      // Fill Pegasus seats
+      fillSeats(pcSeats, Math.min(pc.total_sold, 150), '#f59e0b');
+    }
+
+    if (ek) {
+      document.getElementById('ekLF').textContent = ek.avg_lf + '%';
+      document.getElementById('ekSold').textContent = ek.total_sold.toLocaleString();
+      document.getElementById('ekRev').textContent = fmt$(ek.total_revenue);
+      // Fill Emirates seats — split biz/eco proportionally
+      const ekBizSold = Math.round(ek.total_sold * (42 / 322));
+      const ekEcoSold = ek.total_sold - ekBizSold;
+      fillSeats(ekBizSeats, Math.min(ekBizSold, 42), '#06b6d4');
+      fillSeats(ekEcoSeats, Math.min(ekEcoSold, 280), '#0e7490');
+    }
+
+    // Market share
+    const tkSold = s.total_sold || 0;
+    const pcSold = pc ? pc.total_sold : 0;
+    const ekSold = ek ? ek.total_sold : 0;
+    const total = tkSold + pcSold + ekSold;
+    if (total > 0) {
+      const pcPct = Math.round(pcSold / total * 100);
+      const tkPct = Math.round(tkSold / total * 100);
+      const ekPct = 100 - pcPct - tkPct;
+      document.getElementById('msBarPC').style.width = pcPct + '%';
+      document.getElementById('msBarPC').textContent = pcPct > 5 ? pcPct + '%' : '';
+      document.getElementById('msBarTK').style.width = tkPct + '%';
+      document.getElementById('msBarTK').textContent = tkPct > 5 ? tkPct + '%' : '';
+      document.getElementById('msBarEK').style.width = ekPct + '%';
+      document.getElementById('msBarEK').textContent = ekPct > 5 ? ekPct + '%' : '';
+      document.getElementById('msPCpct').textContent = pcPct + '%';
+      document.getElementById('msTKpct').textContent = tkPct + '%';
+      document.getElementById('msEKpct').textContent = ekPct + '%';
+    }
+  }
+
+  // THY seats — fetch flight detail for booking-level data
+  loadTHYSeats();
+
+  // Stop polling if completed
+  if (status.state === 'completed' && pollTimer) {
+    // One more poll then stop
+    setTimeout(() => { clearInterval(pollTimer); pollTimer = null; }, 2000);
+  }
+}
+
+async function loadTHYSeats() {
+  try {
+    const res = await fetch('/api/sim/flights');
+    const data = await res.json();
+    const flights = data.flights || [];
+    // Get first economy and business flight
+    const eco = flights.find(f => f.cabin === 'economy');
+    const biz = flights.find(f => f.cabin === 'business');
+
+    if (eco) {
+      const detail = await (await fetch('/api/sim/flight/' + encodeURIComponent(eco.key))).json();
+      if (detail.bookings) fillTHYSeats(tkEcoSeats, detail.bookings);
+      document.getElementById('tkLFeco').textContent = Math.round(eco.load_factor * 100) + '%';
+      // Price
+      const depDate = eco.dep_date;
+      document.getElementById('depDateLabel').textContent = 'Kalkis: ' + depDate;
+      if (eco.dtd !== undefined) {
+        document.getElementById('dtdVal').textContent = eco.dtd > 0 ? eco.dtd : 'KALKIS!';
+      }
+    }
+    if (biz) {
+      const detail = await (await fetch('/api/sim/flight/' + encodeURIComponent(biz.key))).json();
+      if (detail.bookings) fillTHYSeats(tkBizSeats, detail.bookings);
+      document.getElementById('tkLFbiz').textContent = Math.round(biz.load_factor * 100) + '%';
+    }
+  } catch(e) {}
+}
+
+// Start polling
+function startPoll() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollAll, 1000);
+  pollAll();
+}
+
+startPoll();
+</script>
+</body>
+</html>

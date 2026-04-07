@@ -1,0 +1,75 @@
+{
+  "total_profiles": 204400,
+  "best_k": 3,
+  "silhouette_score": 0.2065,
+  "silhouette_all": {
+    "3": 0.2065,
+    "4": 0.1371,
+    "5": 0.1435,
+    "6": 0.1378,
+    "7": 0.1477
+  },
+  "features_used": [
+    "avg_dtd_at_purchase",
+    "pct_last_minute",
+    "pct_early_bird",
+    "avg_daily_pax",
+    "max_load_factor",
+    "ff_gold_avg",
+    "ff_elite_avg",
+    "is_business",
+    "is_weekday",
+    "is_morning_flight",
+    "distance_km"
+  ],
+  "clusters": {
+    "0": {
+      "size": 73603,
+      "pct": 36.0,
+      "avg_dtd_at_purchase": 93.1,
+      "pct_last_minute": 2.3,
+      "pct_early_bird": 86.9,
+      "avg_daily_pax": 0.208,
+      "max_load_factor": 0.765,
+      "ff_gold_avg": 0.089,
+      "ff_elite_avg": 0.048,
+      "is_business_pct": 99.9,
+      "is_weekday_pct": 70.3,
+      "is_morning_pct": 27.7,
+      "distance_km": 4363.0,
+      "label": "İş Yolcuları"
+    },
+    "1": {
+      "size": 97356,
+      "pct": 47.6,
+      "avg_dtd_at_purchase": 75.2,
+      "pct_last_minute": 4.5,
+      "pct_early_bird": 80.8,
+      "avg_daily_pax": 1.39,
+      "max_load_factor": 0.839,
+      "ff_gold_avg": 0.089,
+      "ff_elite_avg": 0.048,
+      "is_business_pct": 0.0,
+      "is_weekday_pct": 70.6,
+      "is_morning_pct": 28.0,
+      "distance_km": 4361.0,
+      "label": "Erken Planlayıcılar (Fiyata Duyarlı)"
+    },
+    "2": {
+      "size": 33441,
+      "pct": 16.4,
+      "avg_dtd_at_purchase": 80.9,
+      "pct_last_minute": 7.9,
+      "pct_early_bird": 75.9,
+      "avg_daily_pax": 0.315,
+      "max_load_factor": 0.719,
+      "ff_gold_avg": 0.089,
+      "ff_elite_avg": 0.048,
+      "is_business_pct": 85.8,
+      "is_weekday_pct": 76.6,
+      "is_morning_pct": 29.1,
+      "distance_km": 3941.0,
+      "label": "Yüksek Talep Rotaları"
+    }
+  }
+}

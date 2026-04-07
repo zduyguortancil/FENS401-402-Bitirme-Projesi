@@ -1,0 +1,65 @@
+{
+  "rows": 36996400,
+  "cols": 19,
+  "columns": [
+    "flight_id",
+    "cabin_class",
+    "dtd",
+    "dtd_bucket",
+    "y_pax_sold_today",
+    "pax_sold_cum",
+    "pax_last_7d",
+    "capacity",
+    "remaining_seats",
+    "load_factor",
+    "region",
+    "distance_km",
+    "flight_time_min",
+    "dep_year",
+    "dep_month",
+    "dep_dow",
+    "dep_hour",
+    "ff_gold_pct",
+    "ff_elite_pct"
+  ],
+  "y_stats": {
+    "mean": 0.7884,
+    "median": 0.0,
+    "std": 1.6223,
+    "min": 0.0,
+    "max": 26.0,
+    "zero_rate": 0.7084
+  },
+  "dtd_min": 0,
+  "dtd_max": 180,
+  "year_counts": {
+    "2025": 18484806,
+    "2026": 18499648,
+    "2027": 11946
+  },
+  "cabin_counts": {
+    "business": 18498200,
+    "economy": 18498200
+  },
+  "null_rates": {
+    "flight_id": 0.0,
+    "cabin_class": 0.0,
+    "dtd": 0.0,
+    "dtd_bucket": 0.0,
+    "y_pax_sold_today": 0.0,
+    "pax_sold_cum": 0.0,
+    "pax_last_7d": 0.0,
+    "capacity": 0.0,
+    "remaining_seats": 0.0,
+    "load_factor": 0.0,
+    "region": 0.0,
+    "distance_km": 0.0,
+    "flight_time_min": 0.0,
+    "dep_year": 0.0,
+    "dep_month": 0.0,
+    "dep_dow": 0.0,
+    "dep_hour": 0.0,
+    "ff_gold_pct": 0.0,
+    "ff_elite_pct": 0.0
+  }
+}

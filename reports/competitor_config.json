@@ -1,0 +1,42 @@
+{
+  "competitors": [
+    {
+      "code": "PC",
+      "name": "Pegasus",
+      "type": "budget",
+      "cabins": ["economy"],
+      "capacity": {"economy": 150},
+      "price_range": {"economy": [0.60, 0.75]},
+      "brand_premium": -0.05,
+      "no_show_rate": 0.08,
+      "route_presence": [
+        "LHR","MAN","BCN","FCO","MXP","NCE","MUC","MAD","CDG","FRA",
+        "DXB","JED","CAI","HRG","CMN","RAK","NBO","JNB","CPT","LOS",
+        "BKK","AMM","BEY","TLV","MBA","ABV","BAH","KWI"
+      ],
+      "segment_preference": {
+        "A": 0.05, "B": 0.15, "C": 0.10, "D": 0.50, "E": 0.45, "F": 0.05
+      },
+      "price_ladder": {"60": 1.00, "30": 1.05, "14": 1.10, "7": 1.20, "0": 1.35}
+    },
+    {
+      "code": "EK",
+      "name": "Emirates",
+      "type": "premium",
+      "cabins": ["economy", "business"],
+      "capacity": {"economy": 280, "business": 42},
+      "price_range": {"economy": [1.10, 1.30], "business": [1.10, 1.25]},
+      "brand_premium": 0.10,
+      "no_show_rate": 0.03,
+      "route_presence": [
+        "LHR","FRA","CDG","MUC","FCO","JFK","LAX","ORD","MIA",
+        "SIN","BKK","ICN","PEK","PVG","NRT","BOM","DEL","DXB",
+        "DOH","GRU","YYZ","YVR","MAD","BCN"
+      ],
+      "segment_preference": {
+        "A": 0.40, "B": 0.10, "C": 0.25, "D": 0.05, "E": 0.02, "F": 0.20
+      },
+      "price_ladder": {"60": 1.00, "30": 1.03, "14": 1.08, "7": 1.15, "0": 1.25}
+    }
+  ]
+}

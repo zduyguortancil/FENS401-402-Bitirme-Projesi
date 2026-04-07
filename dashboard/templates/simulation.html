@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Flight Snapshot — Simulasyon</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg-0:#0a0e14;--bg-1:#0d1117;--bg-2:#161b22;--bg-3:#1c2333;--border:#21262d;--border-light:#30363d;--text-0:#e6edf3;--text-1:#c9d1d9;--text-2:#8b949e;--text-3:#6e7681;--accent:#58a6ff;--green:#3fb950;--green-dim:rgba(63,185,80,.12);--red:#f85149;--red-dim:rgba(248,81,73,.12);--orange:#d29922;--purple:#bc8cff;--radius:8px;--radius-lg:12px;--transition:.2s cubic-bezier(.4,0,.2,1)}
+html{font-size:14px}
+body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);min-height:100vh}
+.header{background:var(--bg-1);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:.6rem;font-weight:700;font-size:1rem;color:var(--text-0);text-decoration:none}
+.logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#39d2c0);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#fff}
+.breadcrumb{color:var(--text-3);font-size:.8rem}
+.hdr-spacer{flex:1}
+.sim-clock{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:600;color:var(--accent);background:var(--bg-2);padding:.4rem 1rem;border-radius:8px;border:1px solid var(--border)}
+.sim-state{font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.5px;text-transform:uppercase}
+.sim-state.idle{background:var(--bg-3);color:var(--text-3)}
+.sim-state.running{background:var(--green-dim);color:var(--green);animation:pulse 1.5s infinite}
+.sim-state.paused{background:rgba(210,153,34,.15);color:var(--orange)}
+.sim-state.completed{background:rgba(88,166,255,.15);color:var(--accent)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.main{padding:1.5rem 2rem 3rem;max-width:1600px;margin:0 auto}
+/* Control bar */
+.control-bar{display:flex;align-items:center;gap:.8rem;margin-bottom:1.2rem;flex-wrap:wrap;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.8rem 1.2rem}
+.ctrl-btn{padding:.45rem 1rem;font-size:.78rem;font-weight:600;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:'Inter',sans-serif;transition:all var(--transition)}
+.ctrl-btn.primary{background:linear-gradient(135deg,#1a5c3a,#1e7649);color:var(--green);border-color:rgba(63,185,80,.3)}
+.ctrl-btn.primary:hover{box-shadow:0 0 12px rgba(63,185,80,.3)}
+.ctrl-btn.warn{background:linear-gradient(135deg,#5c4a1a,#76611e);color:var(--orange);border-color:rgba(210,153,34,.3)}
+.ctrl-btn.danger{background:linear-gradient(135deg,#5c1a1a,#761e1e);color:var(--red);border-color:rgba(248,81,73,.3)}
+.ctrl-btn.neutral{background:var(--bg-2);color:var(--text-2)}
+.ctrl-btn:disabled{opacity:.4;cursor:not-allowed}
+.ctrl-label{font-size:.7rem;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.ctrl-select{padding:.4rem .6rem;font-size:.75rem;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text-1);font-family:'Inter',sans-serif;cursor:pointer}
+.ctrl-input{padding:.4rem .6rem;font-size:.75rem;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text-1);font-family:'Inter',sans-serif;width:120px}
+.ctrl-sep{width:1px;height:28px;background:var(--border)}
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem;margin-bottom:1.2rem}
+.kpi{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.8rem 1rem;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0}
+.kpi.green::before{background:var(--green);opacity:1}
+.kpi.red::before{background:var(--red);opacity:1}
+.kpi.blue::before{background:var(--accent);opacity:1}
+.kpi.orange::before{background:var(--orange);opacity:1}
+.kpi.purple::before{background:var(--purple);opacity:1}
+.kpi-label{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600;margin-bottom:.3rem}
+.kpi-val{font-size:1.3rem;font-weight:700;color:var(--text-0);font-family:'JetBrains Mono',monospace}
+.kpi-sub{font-size:.68rem;color:var(--text-2);margin-top:.15rem}
+.kpi.green .kpi-val{color:var(--green)}
+.kpi.red .kpi-val{color:var(--red)}
+.kpi.blue .kpi-val{color:var(--accent)}
+.kpi.orange .kpi-val{color:var(--orange)}
+/* Charts */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
+.chart-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
+.chart-title{font-size:.75rem;font-weight:600;color:var(--text-2);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.05em}
+.chart-wrap{position:relative;height:250px}
+/* Flight table */
+.tbl-wrap{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.2rem}
+.tbl-header{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1rem;border-bottom:1px solid var(--border)}
+.tbl-title{font-size:.82rem;font-weight:600;color:var(--text-0)}
+.tbl-count{font-size:.7rem;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+.tbl-scroll{max-height:400px;overflow-y:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:.75rem}
+.tbl th{background:var(--bg-3);padding:.5rem .6rem;text-align:left;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;font-size:.65rem;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0}
+.tbl td{padding:.4rem .6rem;border-bottom:1px solid var(--border);color:var(--text-1);white-space:nowrap}
+.tbl tr:hover td{background:rgba(88,166,255,.04)}
+.tbl .num{font-family:'JetBrains Mono',monospace;text-align:right}
+.tbl .pos{color:var(--green)}
+.tbl .neg{color:var(--red)}
+.lf-bar{display:inline-block;height:6px;border-radius:3px;min-width:4px;vertical-align:middle;margin-right:4px}
+/* Event feed */
+.feed{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.8rem 1rem;max-height:300px;overflow-y:auto}
+.feed-title{font-size:.75rem;font-weight:600;color:var(--text-2);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em}
+.feed-item{font-size:.72rem;color:var(--text-2);padding:.25rem 0;border-bottom:1px solid var(--border);display:flex;gap:.5rem}
+.feed-item:last-child{border-bottom:none}
+.feed-time{font-family:'JetBrains Mono',monospace;color:var(--text-3);min-width:80px}
+.feed-detail{flex:1}
+.empty{text-align:center;padding:2rem;color:var(--text-3);font-size:.85rem}
+/* Seat Map */
+.seatmap-section{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem;margin-bottom:1.2rem}
+.seatmap-header{display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.seatmap-legend{display:flex;gap:.8rem;flex-wrap:wrap;margin-left:auto}
+.legend-item{display:flex;align-items:center;gap:.3rem;font-size:.65rem;color:var(--text-2)}
+.legend-box{width:12px;height:10px;border-radius:2px;display:inline-block}
+.fuselage{background:var(--bg-3);border:1px solid var(--border);border-radius:20px;padding:1rem 1.5rem;position:relative;overflow:hidden}
+.fuselage::before{content:'';position:absolute;left:0;top:0;bottom:0;width:30px;background:linear-gradient(90deg,var(--bg-1),transparent);border-radius:20px 0 0 20px}
+.fuselage::after{content:'';position:absolute;right:0;top:0;bottom:0;width:20px;background:linear-gradient(-90deg,var(--bg-1),transparent);border-radius:0 20px 20px 0}
+.cabin-section{margin-bottom:.8rem}
+.cabin-section:last-child{margin-bottom:0}
+.cabin-label{font-size:.6rem;font-weight:700;color:var(--text-3);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.4rem;padding-left:2px}
+.seat-tbl{border-collapse:separate;border-spacing:3px 3px}
+.seat-tbl td{padding:0;border:none}
+.seat-tbl td.seat{border-radius:4px;border:1px solid transparent;cursor:default}
+.seat-tbl td.seat{padding:10px 14px}
+.seat-tbl td.seat.eco{padding:7px 9px;border-radius:3px}
+.seat-tbl td.aisle{padding:0 8px}
+.seat-tbl td.aisle.biz{padding:0 10px}
+.seat-tbl td.rnum{padding:0 4px;font-size:.6rem;color:var(--text-3);text-align:center;font-family:'JetBrains Mono',monospace}
+.seat-tbl td.seat.empty{background:#1e293b;border-color:#334155}
+.seat-tbl td.seat.V{background:#94a3b8;border-color:#78909c}
+.seat-tbl td.seat.K{background:#c9a227;border-color:#a68520}
+.seat-tbl td.seat.M{background:#6366f1;border-color:#4f46e5}
+.seat-tbl td.seat.Y{background:#ef4444;border-color:#dc2626}
+.seat-tbl td.seat.HUMAN{background:#fbbf24;border-color:#fff}
+.seatmap-stats{display:flex;gap:1.5rem;margin-top:.8rem;flex-wrap:wrap}
+.seatmap-stat{font-size:.72rem;color:var(--text-2)}
+.seatmap-stat strong{color:var(--text-0);font-family:'JetBrains Mono',monospace}
+.seat-detail{margin-top:1rem;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;animation:fadeUp .2s ease}
+.seat-detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+.seat-detail-title{font-size:.9rem;font-weight:700;color:var(--text-0)}
+.seat-detail-close{background:none;border:1px solid var(--border);color:var(--text-2);width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center}
+.seat-detail-close:hover{border-color:var(--red);color:var(--red)}
+.seat-detail-body{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.6rem}
+.sd-item{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:.5rem .7rem}
+.sd-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600}
+.sd-val{font-size:.95rem;font-weight:700;color:var(--text-0);font-family:'JetBrains Mono',monospace;margin-top:.15rem}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:900px){.charts-row{grid-template-columns:1fr}.main{padding:1rem}}
+</style>
+</head>
+<body>
+<header class="header">
+  <a class="logo" href="/"><div class="logo-icon">&#9992;</div><span>Flight Snapshot</span></a>
+  <span class="breadcrumb">/ Simulasyon</span>
+  <div class="hdr-spacer"></div>
+  <span class="sim-state idle" id="simState">HAZIR</span>
+  <span class="sim-clock" id="simClock">--</span>
+  <span style="font-size:.7rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;display:none" id="simDTD"></span>
+</header>
+
+<div class="main">
+  <!-- Control Bar -->
+  <div class="control-bar">
+    <span class="ctrl-label">Rota:</span>
+    <select class="ctrl-select" id="routeSelect" style="width:160px">
+      <option value="">Rota secin...</option>
+      <option value="__ALL__">Tum Rotalar (50 rota)</option>
+      <option value="IST-LHR">IST &#8594; LHR (Londra)</option>
+      <option value="IST-CDG">IST &#8594; CDG (Paris)</option>
+      <option value="IST-FRA">IST &#8594; FRA (Frankfurt)</option>
+      <option value="IST-FCO">IST &#8594; FCO (Roma)</option>
+      <option value="IST-MXP">IST &#8594; MXP (Milano)</option>
+      <option value="IST-MAD">IST &#8594; MAD (Madrid)</option>
+      <option value="IST-BCN">IST &#8594; BCN (Barselona)</option>
+      <option value="IST-MUC">IST &#8594; MUC (Munih)</option>
+      <option value="IST-NCE">IST &#8594; NCE (Nice)</option>
+      <option value="IST-MAN">IST &#8594; MAN (Manchester)</option>
+      <option value="IST-DXB">IST &#8594; DXB (Dubai)</option>
+      <option value="IST-AUH">IST &#8594; AUH (Abu Dhabi)</option>
+      <option value="IST-RUH">IST &#8594; RUH (Riyad)</option>
+      <option value="IST-JED">IST &#8594; JED (Cidde)</option>
+      <option value="IST-DOH">IST &#8594; DOH (Doha)</option>
+      <option value="IST-BAH">IST &#8594; BAH (Bahreyn)</option>
+      <option value="IST-KWI">IST &#8594; KWI (Kuveyt)</option>
+      <option value="IST-AMM">IST &#8594; AMM (Amman)</option>
+      <option value="IST-TLV">IST &#8594; TLV (Tel Aviv)</option>
+      <option value="IST-BEY">IST &#8594; BEY (Beyrut)</option>
+      <option value="IST-CAI">IST &#8594; CAI (Kahire)</option>
+      <option value="IST-HRG">IST &#8594; HRG (Hurghada)</option>
+      <option value="IST-CMN">IST &#8594; CMN (Kazablanka)</option>
+      <option value="IST-RAK">IST &#8594; RAK (Marakes)</option>
+      <option value="IST-JNB">IST &#8594; JNB (Johannesburg)</option>
+      <option value="IST-CPT">IST &#8594; CPT (Cape Town)</option>
+      <option value="IST-NBO">IST &#8594; NBO (Nairobi)</option>
+      <option value="IST-MBA">IST &#8594; MBA (Mombasa)</option>
+      <option value="IST-LOS">IST &#8594; LOS (Lagos)</option>
+      <option value="IST-ABV">IST &#8594; ABV (Abuja)</option>
+      <option value="IST-NRT">IST &#8594; NRT (Tokyo)</option>
+      <option value="IST-KIX">IST &#8594; KIX (Osaka)</option>
+      <option value="IST-ICN">IST &#8594; ICN (Seul)</option>
+      <option value="IST-PEK">IST &#8594; PEK (Pekin)</option>
+      <option value="IST-PVG">IST &#8594; PVG (Sanghay)</option>
+      <option value="IST-SIN">IST &#8594; SIN (Singapur)</option>
+      <option value="IST-BKK">IST &#8594; BKK (Bangkok)</option>
+      <option value="IST-HKT">IST &#8594; HKT (Phuket)</option>
+      <option value="IST-DEL">IST &#8594; DEL (Delhi)</option>
+      <option value="IST-BOM">IST &#8594; BOM (Mumbai)</option>
+      <option value="IST-JFK">IST &#8594; JFK (New York)</option>
+      <option value="IST-LAX">IST &#8594; LAX (Los Angeles)</option>
+      <option value="IST-MIA">IST &#8594; MIA (Miami)</option>
+      <option value="IST-ORD">IST &#8594; ORD (Chicago)</option>
+      <option value="IST-YYZ">IST &#8594; YYZ (Toronto)</option>
+      <option value="IST-YVR">IST &#8594; YVR (Vancouver)</option>
+      <option value="IST-MEX">IST &#8594; MEX (Mexico City)</option>
+      <option value="IST-GRU">IST &#8594; GRU (Sao Paulo)</option>
+      <option value="IST-EZE">IST &#8594; EZE (Buenos Aires)</option>
+      <option value="IST-GIG">IST &#8594; GIG (Rio de Janeiro)</option>
+    </select>
+    <span class="ctrl-label">Kalkis Tarihi:</span>
+    <input type="date" class="ctrl-input" id="depDate" value="2026-08-15" min="2026-04-01" max="2026-12-31"/>
+    <div class="ctrl-sep"></div>
+    <span class="ctrl-label">Hiz:</span>
+    <select class="ctrl-select" id="speedSelect">
+      <option value="0.1">Detayli (1 gun = 10dk)</option>
+      <option value="0.2">Izleme (1 gun = 5dk)</option>
+      <option value="360">Yavas (~50sn)</option>
+      <option value="720">Normal (~15sn)</option>
+      <option value="1440" selected>Fast (~8sn)</option>
+      <option value="4320">Very Fast (~3sn)</option>
+    </select>
+    <div class="ctrl-sep"></div>
+    <button class="ctrl-btn primary" id="btnStart" onclick="simStart()">Baslat</button>
+    <button class="ctrl-btn warn" id="btnPause" onclick="simPause()" disabled>Duraklat</button>
+    <button class="ctrl-btn primary" id="btnResume" onclick="simResume()" disabled>Devam</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpis">
+    <div class="kpi blue"><div class="kpi-label">Kapasite</div><div class="kpi-val" id="kFlights">349</div><div class="kpi-sub">49 business + 300 economy</div></div>
+    <div class="kpi"><div class="kpi-label">Satilan</div><div class="kpi-val" id="kSold">--</div><div class="kpi-sub">toplam bilet</div></div>
+    <div class="kpi orange"><div class="kpi-label">Ort. Doluluk</div><div class="kpi-val" id="kLF">--</div><div class="kpi-sub">tum ucuslar</div></div>
+    <div class="kpi green"><div class="kpi-label">Motor Geliri</div><div class="kpi-val" id="kRevDyn">--</div><div class="kpi-sub">dinamik fiyat</div></div>
+    <div class="kpi red"><div class="kpi-label">Baseline Gelir</div><div class="kpi-val" id="kRevBase">--</div><div class="kpi-sub">eski formul</div></div>
+    <div class="kpi purple"><div class="kpi-label">Fark</div><div class="kpi-val" id="kDelta">--</div><div class="kpi-sub">motor vs baseline</div></div>
+  </div>
+
+  <!-- Seat Map -->
+  <div class="seatmap-section">
+    <div class="seatmap-header">
+      <span class="chart-title" style="margin:0">Koltuk Haritasi — Boeing 777-300ER</span>
+      <span class="ctrl-label" id="seatmapFlightLabel" style="font-size:.78rem;color:var(--accent)"></span>
+      <select class="ctrl-select" id="seatmapFlight" onchange="loadSeatmap()" style="display:none">
+      </select>
+      <div class="seatmap-legend">
+        <span class="legend-item"><span class="legend-box" style="background:#1e293b;border:1px solid #334155"></span>Bos</span>
+        <span class="legend-item"><span class="legend-box" style="background:#94a3b8"></span>V Promo</span>
+        <span class="legend-item"><span class="legend-box" style="background:#c9a227"></span>K Discount</span>
+        <span class="legend-item"><span class="legend-box" style="background:#6366f1"></span>M Flex</span>
+        <span class="legend-item"><span class="legend-box" style="background:#ef4444"></span>Y Tam Fiyat</span>
+      </div>
+    </div>
+    <div class="fuselage" id="fuselage" style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap">
+      <div class="cabin-section" style="flex-shrink:0">
+        <div class="cabin-label">BUSINESS — 49 Koltuk</div>
+        <div id="cabinBusiness"></div>
+      </div>
+      <div style="width:2px;background:var(--border);align-self:stretch;min-height:100px;flex-shrink:0"></div>
+      <div class="cabin-section" style="flex-shrink:0">
+        <div class="cabin-label">ECONOMY — 300 Koltuk (Sol: 8-24, Sag: 25-41)</div>
+        <div style="display:flex;gap:1rem;align-items:flex-start">
+          <div id="cabinEconomy"></div>
+          <div id="cabinEconomy2"></div>
+        </div>
+      </div>
+    </div>
+    <!-- BUYUK TARIH GOSTERGESI -->
+    <div style="display:flex;align-items:center;gap:1.5rem;margin-top:1rem;padding:1rem 1.2rem;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);flex-wrap:wrap">
+      <div style="text-align:center;min-width:180px">
+        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Simulasyon Tarihi</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--accent);transition:all .3s" id="animDate">--</div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div style="text-align:center;min-width:140px">
+        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Kalkisa Kalan</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--orange);transition:all .3s" id="animDTD">--</div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div style="text-align:center;min-width:100px">
+        <div style="font-size:.55rem;text-transform:uppercase;letter-spacing:.15em;color:var(--text-3);font-weight:600;margin-bottom:.3rem">Kalkis Tarihi</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:500;color:var(--text-2)" id="animDepDate">--</div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="seatmap-stats" id="seatmapStats" style="margin:0"></div>
+    </div>
+    <!-- Koltuk detay popup -->
+    <div class="seat-detail" id="seatDetail" style="display:none">
+      <div class="seat-detail-header">
+        <span class="seat-detail-title" id="sdTitle"></span>
+        <button class="seat-detail-close" onclick="document.getElementById('seatDetail').style.display='none'">&times;</button>
+      </div>
+      <div class="seat-detail-body" id="sdBody"></div>
+    </div>
+  </div>
+
+  <!-- COMPETITION PANEL -->
+  <div class="seatmap-section" id="competitionPanel" style="display:none">
+    <div class="seatmap-header">
+      <span class="chart-title" style="margin:0">Rekabet Analizi — 3 Havayolu</span>
+    </div>
+    <!-- 3 Ucak Yan Yana -->
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start">
+      <!-- Pegasus -->
+      <div style="flex:1;min-width:200px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem">
+          <span style="font-weight:700;color:#f59e0b;font-size:.9rem">&#9992; Pegasus</span>
+          <span style="font-size:.65rem;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:4px">BUDGET</span>
+        </div>
+        <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">A321neo — 150 Koltuk (Tek Sinif)</div>
+        <div id="compPC_seats" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:.6rem"></div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem">
+          <span class="seatmap-stat">Doluluk: <strong id="compPC_lf">0%</strong></span>
+          <span class="seatmap-stat">Satis: <strong id="compPC_sold">0</strong>/150</span>
+          <span class="seatmap-stat">Fiyat: <strong id="compPC_price">$0</strong></span>
+        </div>
+        <div style="margin-top:.5rem;font-size:.68rem;color:var(--text-3)">
+          Kaptirdik: <strong style="color:#ef4444" id="compPC_lost">0</strong> |
+          Caldik: <strong style="color:#22c55e" id="compPC_stolen">0</strong>
+        </div>
+      </div>
+      <!-- THY (Biz) -->
+      <div style="flex:1.3;min-width:240px;background:var(--bg-1);border:2px solid var(--accent);border-radius:var(--radius-lg);padding:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem">
+          <span style="font-weight:700;color:var(--accent);font-size:.9rem">&#9992; THY (Biz)</span>
+          <span style="font-size:.65rem;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:4px">DINAMIK</span>
+        </div>
+        <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">B787 — 300 Economy + 49 Business</div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem">
+          <span class="seatmap-stat">Economy LF: <strong id="compTK_lf_eco">0%</strong></span>
+          <span class="seatmap-stat">Business LF: <strong id="compTK_lf_biz">0%</strong></span>
+          <span class="seatmap-stat">Toplam Satis: <strong id="compTK_sold">0</strong></span>
+        </div>
+        <!-- Pazar Payi Bar -->
+        <div style="margin-top:.8rem">
+          <div style="font-size:.68rem;color:var(--text-3);margin-bottom:4px">Pazar Payi</div>
+          <div style="display:flex;height:20px;border-radius:4px;overflow:hidden;border:1px solid var(--border)">
+            <div id="msBar_PC" style="background:#f59e0b;transition:width .5s" title="Pegasus"></div>
+            <div id="msBar_TK" style="background:var(--accent);transition:width .5s" title="THY"></div>
+            <div id="msBar_EK" style="background:#06b6d4;transition:width .5s" title="Emirates"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-3);margin-top:2px">
+            <span>PC: <strong id="msPC">0%</strong></span>
+            <span>TK: <strong id="msTK">0%</strong></span>
+            <span>EK: <strong id="msEK">0%</strong></span>
+          </div>
+        </div>
+      </div>
+      <!-- Emirates -->
+      <div style="flex:1;min-width:200px;background:var(--bg-1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem">
+          <span style="font-weight:700;color:#06b6d4;font-size:.9rem">&#9992; Emirates</span>
+          <span style="font-size:.65rem;color:var(--text-3);background:var(--bg-2);padding:2px 8px;border-radius:4px">PREMIUM</span>
+        </div>
+        <div style="font-size:.7rem;color:var(--text-2);margin-bottom:.5rem">B777-300ER — 280 Eco + 42 Business</div>
+        <div id="compEK_seats" style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:.6rem"></div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:.72rem">
+          <span class="seatmap-stat">Doluluk: <strong id="compEK_lf">0%</strong></span>
+          <span class="seatmap-stat">Satis: <strong id="compEK_sold">0</strong>/322</span>
+          <span class="seatmap-stat">Fiyat: <strong id="compEK_price">$0</strong></span>
+        </div>
+        <div style="margin-top:.5rem;font-size:.68rem;color:var(--text-3)">
+          Kaptirdik: <strong style="color:#ef4444" id="compEK_lost">0</strong> |
+          Caldik: <strong style="color:#22c55e" id="compEK_stolen">0</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flight Table -->
+  <div class="tbl-wrap">
+    <div class="tbl-header">
+      <span class="tbl-title">Ucus Envanterleri</span>
+      <span class="tbl-count" id="tblCount"></span>
+    </div>
+    <div class="tbl-scroll">
+      <table class="tbl">
+        <thead><tr>
+          <th>Rota</th><th>Kabin</th><th>Kalkis</th><th>DTD</th>
+          <th>Doluluk</th><th>Satilan</th><th>Motor $</th><th>Baseline $</th>
+          <th>Fark %</th><th>Acik Fare</th>
+        </tr></thead>
+        <tbody id="tblBody"><tr><td colspan="10" class="empty">Simulasyon baslatilmadi</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Explainability Panel -->
+  <div class="explain-panel" id="explainPanel" style="display:none">
+    <div class="explain-header">
+      <span class="explain-title">Aciklanabilirlik Paneli</span>
+      <span class="explain-sub">Sistem kararlarin arkasindaki nedenleri gosterir</span>
+    </div>
+    <div class="explain-grid">
+
+      <!-- TFT Variable Importance -->
+      <div class="explain-card">
+        <div class="explain-card-title">Talep Tahmini Aciklamasi</div>
+        <div class="explain-card-sub">TFT modeli kararlari verirken hangi bilgilere ne kadar bakiyor?</div>
+        <div id="tftStaticBars" class="bar-section">
+          <div class="bar-label-sm">Rota ve Kabin Ozellikleri</div>
+          <div id="tftStaticList"></div>
+        </div>
+        <div id="tftEncoderBars" class="bar-section" style="margin-top:.8rem">
+          <div class="bar-label-sm">Gecmis Veriler (son 60 gun)</div>
+          <div id="tftEncoderList"></div>
+        </div>
+        <div id="tftDecoderBars" class="bar-section" style="margin-top:.8rem">
+          <div class="bar-label-sm">Gelecege Ait Bilgiler</div>
+          <div id="tftDecoderList"></div>
+        </div>
+      </div>
+
+      <!-- Pricing Decomposition -->
+      <div class="explain-card">
+        <div class="explain-card-title">Fiyat Ayristirmasi</div>
+        <div class="explain-card-sub">Bu ucusun fiyati hangi faktorlerden olusuyor?</div>
+        <div id="pricingDecomp">
+          <div class="decomp-placeholder">Simulasyon basladiktan sonra otomatik guncellenir</div>
+        </div>
+      </div>
+
+      <!-- EMSR-b Fare Class -->
+      <div class="explain-card">
+        <div class="explain-card-title">Koltuk Sinifi Durumu</div>
+        <div class="explain-card-sub">Hangi bilet siniflari acik, hangisi neden kapandi?</div>
+        <div id="emsrbStatus">
+          <div class="decomp-placeholder">Simulasyon basladiktan sonra otomatik guncellenir</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+</div>
+
+<style>
+/* ── Explainability Panel ── */
+.explain-panel{margin-top:1.2rem}
+.explain-header{margin-bottom:.8rem}
+.explain-title{font-size:.95rem;font-weight:700;color:var(--text-0)}
+.explain-sub{font-size:.7rem;color:var(--text-3);margin-left:.8rem}
+.explain-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem}
+@media(max-width:1200px){.explain-grid{grid-template-columns:1fr}}
+.explain-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;position:relative;overflow:hidden}
+.explain-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--purple));opacity:.6}
+.explain-card-title{font-size:.78rem;font-weight:700;color:var(--text-0);margin-bottom:.15rem}
+.explain-card-sub{font-size:.65rem;color:var(--text-3);margin-bottom:.8rem}
+.bar-section{margin-bottom:.4rem}
+.bar-label-sm{font-size:.62rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem}
+.feat-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.feat-name{font-size:.68rem;color:var(--text-2);min-width:120px;font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feat-bar-bg{flex:1;height:8px;background:var(--bg-3);border-radius:4px;overflow:hidden}
+.feat-bar{height:100%;border-radius:4px;transition:width .6s ease}
+.feat-val{font-size:.62rem;color:var(--text-3);font-family:'JetBrains Mono',monospace;min-width:36px;text-align:right}
+.decomp-placeholder{font-size:.72rem;color:var(--text-3);font-style:italic;text-align:center;padding:2rem 0}
+/* Pricing decomp */
+.decomp-row{display:flex;align-items:center;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)}
+.decomp-row:last-child{border-bottom:none}
+.decomp-label{font-size:.72rem;color:var(--text-2)}
+.decomp-val{font-size:.78rem;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--text-0)}
+.decomp-val.high{color:var(--red)}
+.decomp-val.low{color:var(--green)}
+.decomp-val.neutral{color:var(--text-2)}
+.decomp-divider{border-top:1px dashed var(--border-light);margin:.4rem 0}
+/* EMSR-b */
+.fc-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.45rem}
+.fc-badge{font-size:.7rem;font-weight:700;padding:.2rem .5rem;border-radius:4px;min-width:28px;text-align:center;font-family:'JetBrains Mono',monospace}
+.fc-badge.open{background:var(--green-dim);color:var(--green)}
+.fc-badge.closed{background:var(--red-dim);color:var(--red)}
+.fc-info{font-size:.68rem;color:var(--text-2);flex:1}
+.fc-quota{font-size:.65rem;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+</style>
+
+<script>
+let pollTimer = null;
+let charts = {};
+let revenueHistory = {labels:[], dynamic:[], baseline:[]};
+let lfHistory = {labels:[], values:[]};
+let seatmapSeats = {business: [], economy: []};
+let seatmapFlightKey = null;
+let seatmapFlightKeys = {economy: null, business: null};
+let lastSeatCount = {business: 0, economy: 0};
+let seatAnimQueue = [];
+let seatAnimRunning = false;
+// Rastgele koltuk secimi icin bos koltuk havuzu
+let availableSeats = {business: [], economy: []};
+// Animasyon icin kumulatif KPI takibi
+let animKPI = {sold:0, revDyn:0, revBase:0, fcV:0, fcK:0, fcM:0, fcY:0, bizSold:0, ecoSold:0};
+
+// ── SEAT MAP ─────────────────────────────────────────────
+function buildSeatmap() {
+  const bizEl = document.getElementById('cabinBusiness');
+  const ecoEl = document.getElementById('cabinEconomy');
+  seatmapSeats = {business: [], economy: []};
+
+  // Business: 2-3-2 layout, 7 rows = 49 seats
+  let bh = '<table class="seat-tbl">';
+  let bi = 0;
+  for (let r = 0; r < 7; r++) {
+    bh += `<tr><td class="rnum">${r+1}</td>`;
+    ['A','B','|','C','D','E','|','F','G'].forEach(c => {
+      if (c === '|') { bh += '<td class="aisle biz"></td>'; return; }
+      bh += `<td class="seat biz empty" id="bs${bi}" title="${r+1}${c}"></td>`;
+      bi++;
+    });
+    bh += '</tr>';
+  }
+  bh += '</table>';
+  bizEl.innerHTML = bh;
+
+  // Economy: 3-3-3 layout, 34 rows, cap 300 — 2 sutuna bol (17+17)
+  const ecoEl2 = document.getElementById('cabinEconomy2');
+  let eh1 = '<table class="seat-tbl">';
+  let eh2 = '<table class="seat-tbl">';
+  let ei = 0;
+  for (let r = 0; r < 34; r++) {
+    const rowHtml = `<tr><td class="rnum">${r+8}</td>` +
+      ['A','B','C','|','D','E','F','|','G','H','J'].map(c => {
+        if (c === '|') return '<td class="aisle"></td>';
+        if (ei >= 300) return '';
+        const id = `es${ei}`;
+        ei++;
+        return `<td class="seat eco empty" id="${id}" title="${r+8}${c}"></td>`;
+      }).join('') + '</tr>';
+    if (r < 17) eh1 += rowHtml; else eh2 += rowHtml;
+  }
+  eh1 += '</table>';
+  eh2 += '</table>';
+  ecoEl.innerHTML = eh1;
+  ecoEl2.innerHTML = eh2;
+
+  // DOM referanslarini kaydet
+  for (let i = 0; i < bi; i++) seatmapSeats.business.push(document.getElementById('bs'+i));
+  for (let i = 0; i < ei; i++) seatmapSeats.economy.push(document.getElementById('es'+i));
+}
+
+function updateSeatmapDropdown(flights) {
+  const sel = document.getElementById('seatmapFlight');
+  const current = sel.value;
+  // Only top 30 most filled flights
+  const top = [...flights].sort((a,b) => b.load_factor - a.load_factor).slice(0, 30);
+  sel.innerHTML = '<option value="">Ucus secin...</option>' +
+    top.map(f => `<option value="${f.key}" ${f.key===current?'selected':''}>${f.route} ${f.dep_date} ${f.cabin} (${Math.round(f.load_factor*100)}%)</option>`).join('');
+  if (current && !sel.value) sel.value = '';
+}
+
+async function loadSeatmap() {
+  const key = document.getElementById('seatmapFlight').value;
+  if (!key) { resetSeatmap(); return; }
+  seatmapFlightKey = key;
+
+  try {
+    const res = await fetch('/api/sim/flight/' + encodeURIComponent(key));
+    const detail = await res.json();
+    if (detail.error) return;
+
+    const cabin = detail.cabin;
+    const bookings = detail.bookings || [];
+    const capacity = detail.capacity;
+
+    // Reset all seats
+    const seats = cabin === 'business' ? seatmapSeats.business : seatmapSeats.economy;
+    seats.forEach(s => s.className = s.className.includes('biz') ? 'seat biz empty' : 'seat eco empty');
+
+    // Fill seats based on bookings (in order)
+    bookings.forEach((b, i) => {
+      if (i >= seats.length) return;
+      const cls = b.is_bot ? b.fare_class : 'HUMAN';
+      seats[i].className = seats[i].className.replace('empty', cls);
+      seats[i].title = `${b.fare_class} — $${b.price} (${b.is_bot ? 'Segment '+b.segment : 'INSAN'})`;
+    });
+
+    // Stats
+    const fcDist = detail.fare_class_distribution || {};
+    const statsEl = document.getElementById('seatmapStats');
+    statsEl.innerHTML = `
+      <span class="seatmap-stat">Kapasite: <strong>${capacity}</strong></span>
+      <span class="seatmap-stat">Dolu: <strong>${detail.sold}</strong></span>
+      <span class="seatmap-stat">Doluluk: <strong>${Math.round(detail.load_factor*100)}%</strong></span>
+      <span class="seatmap-stat" style="color:#06b6d4">V: <strong>${fcDist.V||0}</strong></span>
+      <span class="seatmap-stat" style="color:#f59e0b">K: <strong>${fcDist.K||0}</strong></span>
+      <span class="seatmap-stat" style="color:#8b5cf6">M: <strong>${fcDist.M||0}</strong></span>
+      <span class="seatmap-stat" style="color:#ef4444">Y: <strong>${fcDist.Y||0}</strong></span>
+      <span class="seatmap-stat">Gelir: <strong>$${Math.round(detail.revenue_dynamic).toLocaleString()}</strong></span>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+async function loadSeatmapBoth() {
+  // Iki kabini paralel cek
+  const newItems = [];
+  for (const [cabin, key] of [['business', seatmapFlightKeys.business], ['economy', seatmapFlightKeys.economy]]) {
+    if (!key) continue;
+    try {
+      const res = await fetch('/api/sim/flight/' + encodeURIComponent(key));
+      const detail = await res.json();
+      if (detail.error) continue;
+
+      const bookings = detail.bookings || [];
+      const prevCount = lastSeatCount[cabin];
+
+      if (bookings.length > prevCount) {
+        for (let i = prevCount; i < bookings.length; i++) {
+          const seatIdx = availableSeats[cabin].length > 0 ? availableSeats[cabin].pop() : i;
+          newItems.push({cabin, idx: seatIdx, booking: bookings[i]});
+        }
+        lastSeatCount[cabin] = bookings.length;
+      }
+    } catch(e) {}
+  }
+
+  // Fare class onceligi: V -> K -> M -> Y, ayni class icinde timestamp sirali
+  if (newItems.length > 0) {
+    const fcOrder = {V:0, K:1, M:2, Y:3, HUMAN:4};
+    newItems.sort((a, b) => {
+      const fa = fcOrder[a.booking.fare_class] ?? 3;
+      const fb = fcOrder[b.booking.fare_class] ?? 3;
+      if (fa !== fb) return fa - fb;
+      const ta = a.booking.timestamp || '';
+      const tb = b.booking.timestamp || '';
+      if (ta !== tb) return ta.localeCompare(tb);
+      return Math.random() - 0.5;
+    });
+    seatAnimQueue.push(...newItems);
+  }
+
+  // Animasyon baslat
+  if (!seatAnimRunning && seatAnimQueue.length > 0) {
+    drainSeatQueue();
+  }
+}
+
+async function drainSeatQueue() {
+  seatAnimRunning = true;
+  window._countdownRunning = true;
+  const speed = parseFloat(document.getElementById('speedSelect').value) || 4320;
+  const delayMs = speed < 1 ? 2000 : speed < 10 ? 500 : speed >= 14400 ? 15 : speed >= 8640 ? 30 : speed >= 4320 ? 50 : speed >= 1440 ? 80 : 120;
+  const totalCap = 349;
+
+  // Booking'leri timestamp'e gore sirala — monoton artan garanti
+  seatAnimQueue.sort((a, b) => (a.booking.timestamp || '').localeCompare(b.booking.timestamp || ''));
+
+  // Toplam booking sayisi ve kalkis tarihi — DTD'yi lineer interpolasyon ile hesapla
+  const totalBookings = seatAnimQueue.length;
+  const depDate = window._simDepDate;
+  const depD = depDate ? new Date(depDate) : null;
+
+  // En erken ve en gec booking tarihini bul
+  let firstTs = null, lastTs = null;
+  for (const item of seatAnimQueue) {
+    const ts = (item.booking.timestamp || '').substring(0, 10);
+    if (ts) {
+      if (!firstTs) firstTs = ts;
+      lastTs = ts;
+    }
+  }
+
+  // Son goruntulenen DTD — sadece azalan yonde ilerler
+  let displayedDTD = 999;
+
+  let idx = 0;
+  while (seatAnimQueue.length > 0) {
+    while (simPaused) {
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    const item = seatAnimQueue.shift();
+    idx++;
+    const seats = item.cabin === 'business' ? seatmapSeats.business : seatmapSeats.economy;
+    if (item.idx >= seats.length) continue;
+
+    const b = item.booking;
+    const cls = b.is_bot ? b.fare_class : 'HUMAN';
+    const cabinClass = item.cabin === 'economy' ? ' eco' : ' biz';
+    const el = seats[item.idx];
+    el.className = `seat${cabinClass} ${cls}`;
+    el.style.cursor = 'pointer';
+    el.style.position = 'relative';
+    el.title = `${b.fare_class} — $${b.price} | Tikla: detay`;
+    el.innerHTML = b.is_connecting ? '<span style="position:absolute;top:1px;right:1px;font-size:7px;line-height:1;color:#000">&#9992;</span>' : '';
+    el._booking = {...b, cabin: item.cabin, seatIdx: item.idx, seatLabel: el.getAttribute('title')};
+    el.onclick = function(){ showSeatDetail(this._booking, this); };
+
+    // KPI
+    animKPI.sold++;
+    animKPI.revDyn += b.price;
+    animKPI.revBase += (b.baseline_price || b.price);
+    if(item.cabin==='business') animKPI.bizSold++; else animKPI.ecoSold++;
+    if(b.fare_class==='V') animKPI.fcV++;
+    else if(b.fare_class==='K') animKPI.fcK++;
+    else if(b.fare_class==='M') animKPI.fcM++;
+    else if(b.fare_class==='Y') animKPI.fcY++;
+
+    document.getElementById('kSold').textContent = animKPI.sold.toLocaleString();
+    document.getElementById('kLF').textContent = fmtPct(animKPI.sold / totalCap);
+    document.getElementById('kRevDyn').textContent = fmt$(animKPI.revDyn);
+    document.getElementById('kRevBase').textContent = fmt$(animKPI.revBase);
+    const delta = animKPI.revBase > 0 ? ((animKPI.revDyn - animKPI.revBase) / animKPI.revBase * 100) : 0;
+    const deltaEl = document.getElementById('kDelta');
+    deltaEl.textContent = (delta>0?'+':'') + delta.toFixed(1) + '%';
+    deltaEl.style.color = delta >= 0 ? 'var(--green)' : 'var(--red)';
+
+    // DTD — booking timestamp'inden hesapla, SADECE azalan yonde guncelle
+    const bookDate = (b.timestamp || '').substring(0, 10);
+    if (bookDate && depD) {
+      const simD = new Date(bookDate);
+      const dtdVal = Math.ceil((depD - simD) / 86400000);
+      // Sadece DTD azaldiysa guncelle (asla geriye gitme)
+      if (dtdVal < displayedDTD) {
+        displayedDTD = dtdVal;
+        document.getElementById('animDate').textContent = bookDate;
+        document.getElementById('simClock').textContent = bookDate;
+        if (depDate) document.getElementById('animDepDate').textContent = depDate;
+        if (dtdVal > 0) {
+          document.getElementById('animDTD').textContent = dtdVal + ' gun';
+          document.getElementById('simDTD').textContent = 'DTD: ' + dtdVal;
+          document.getElementById('animDTD').style.color = dtdVal <= 7 ? 'var(--red)' : dtdVal <= 30 ? 'var(--orange)' : 'var(--accent)';
+        }
+      }
+    }
+
+    // Seatmap stats
+    document.getElementById('seatmapStats').innerHTML = `
+      <span class="seatmap-stat">Toplam: <strong>${animKPI.sold}/349</strong></span>
+      <span class="seatmap-stat">Doluluk: <strong>${Math.round(animKPI.sold/349*100)}%</strong></span>
+      <span class="seatmap-stat">Business: <strong>${animKPI.bizSold}/49</strong></span>
+      <span class="seatmap-stat">Economy: <strong>${animKPI.ecoSold}/300</strong></span>
+      <span class="seatmap-stat" style="color:#94a3b8">V: <strong>${animKPI.fcV}</strong></span>
+      <span class="seatmap-stat" style="color:#c9a227">K: <strong>${animKPI.fcK}</strong></span>
+      <span class="seatmap-stat" style="color:#6366f1">M: <strong>${animKPI.fcM}</strong></span>
+      <span class="seatmap-stat" style="color:#ef4444">Y: <strong>${animKPI.fcY}</strong></span>
+      <span class="seatmap-stat">Gelir: <strong>$${Math.round(animKPI.revDyn).toLocaleString()}</strong></span>
+    `;
+
+    await new Promise(r => setTimeout(r, delayMs));
+  }
+  seatAnimRunning = false;
+
+  // Koltuklar bitti — kalan gunleri hizli say (son DTD'den 0'a)
+  if (depD && displayedDTD > 0) {
+    let curDTD = displayedDTD;
+    while (curDTD > 0) {
+      curDTD--;
+      const fakeDate = new Date(depD);
+      fakeDate.setDate(fakeDate.getDate() - curDTD);
+      const ds = fakeDate.toISOString().substring(0, 10);
+      document.getElementById('animDate').textContent = ds;
+      document.getElementById('simClock').textContent = ds;
+      if (curDTD > 0) {
+        document.getElementById('animDTD').textContent = curDTD + ' gun';
+        document.getElementById('simDTD').textContent = 'DTD: ' + curDTD;
+        document.getElementById('animDTD').style.color = curDTD <= 7 ? 'var(--red)' : curDTD <= 30 ? 'var(--orange)' : 'var(--accent)';
+      }
+      await new Promise(r => setTimeout(r, 40));
+    }
+  }
+  // Kalkis
+  if (depDate) {
+    document.getElementById('animDate').textContent = depDate;
+    document.getElementById('simClock').textContent = depDate;
+  }
+  document.getElementById('animDTD').textContent = 'KALKIS!';
+  document.getElementById('simDTD').textContent = 'KALKIS!';
+  document.getElementById('animDTD').style.color = 'var(--red)';
+  window._countdownRunning = false;
+  window._animCompleted = true;
+
+  // Animasyon bitti — butonlar + state badge guncelle
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnPause').disabled=true;
+  document.getElementById('btnResume').disabled=true;
+  const stEl2=document.getElementById('simState');
+  stEl2.textContent='TAMAMLANDI';
+  stEl2.className='sim-state completed';
+}
+
+async function animateSeatFill() {
+  // Business ve economy bookings'leri cek
+  const allBookings = [];
+
+  for (const [cabin, key] of Object.entries(seatmapFlightKeys)) {
+    if (!key) continue;
+    try {
+      const res = await fetch('/api/sim/flight/' + encodeURIComponent(key));
+      const detail = await res.json();
+      if (detail.error) continue;
+      (detail.bookings || []).forEach((b, i) => {
+        allBookings.push({...b, cabin, seatIdx: i});
+      });
+    } catch(e) {}
+  }
+
+  // DTD'ye gore sirala (yuksek DTD = erken booking = once dol)
+  allBookings.sort((a, b) => (b.dtd || 0) - (a.dtd || 0));
+
+  // Tum koltuklari bosalt
+  seatmapSeats.business.forEach(s => s.className = 'seat biz empty');
+  seatmapSeats.economy.forEach(s => s.className = 'seat eco empty');
+
+  // Stats guncelleyici
+  let bizSold = 0, ecoSold = 0, totalRev = 0;
+  const fcCount = {V:0, K:0, M:0, Y:0};
+  const statsEl = document.getElementById('seatmapStats');
+
+  // Animasyonlu doldur
+  const speed = parseFloat(document.getElementById('speedSelect').value);
+  // Hiz: ultra=5ms, hizli=15ms, normal=30ms, yavas=50ms
+  const delayMs = speed >= 14400 ? 3 : speed >= 8640 ? 8 : speed >= 4320 ? 15 : speed >= 1440 ? 30 : 50;
+
+  for (let i = 0; i < allBookings.length; i++) {
+    const b = allBookings[i];
+    const seats = b.cabin === 'business' ? seatmapSeats.business : seatmapSeats.economy;
+    const idx = b.seatIdx;
+    if (idx >= seats.length) continue;
+
+    const cls = b.is_bot ? b.fare_class : 'HUMAN';
+    const cabinClass = b.cabin === 'economy' ? ' eco' : ' biz';
+    seats[idx].className = `seat${cabinClass} ${cls}`;
+    seats[idx].title = `${b.fare_class} — $${b.price} | DTD:${b.dtd} | ${b.is_bot ? 'Segment '+b.segment : 'INSAN'}`;
+
+    if (b.cabin === 'business') bizSold++; else ecoSold++;
+    totalRev += b.price;
+    if (fcCount[b.fare_class] !== undefined) fcCount[b.fare_class]++;
+
+    // Her 5 koltukte stats guncelle
+    if (i % 5 === 0 || i === allBookings.length - 1) {
+      const total = bizSold + ecoSold;
+      statsEl.innerHTML = `
+        <span class="seatmap-stat">Toplam: <strong>${total}/349</strong></span>
+        <span class="seatmap-stat">Doluluk: <strong>${Math.round(total/349*100)}%</strong></span>
+        <span class="seatmap-stat">Business: <strong>${bizSold}/49</strong></span>
+        <span class="seatmap-stat">Economy: <strong>${ecoSold}/300</strong></span>
+        <span class="seatmap-stat" style="color:#06b6d4">V: <strong>${fcCount.V}</strong></span>
+        <span class="seatmap-stat" style="color:#f59e0b">K: <strong>${fcCount.K}</strong></span>
+        <span class="seatmap-stat" style="color:#8b5cf6">M: <strong>${fcCount.M}</strong></span>
+        <span class="seatmap-stat" style="color:#ef4444">Y: <strong>${fcCount.Y}</strong></span>
+        <span class="seatmap-stat">Gelir: <strong>$${Math.round(totalRev).toLocaleString()}</strong></span>
+      `;
+    }
+
+    await new Promise(r => setTimeout(r, delayMs));
+  }
+}
+
+function showSeatDetail(booking, el) {
+  const panel = document.getElementById('seatDetail');
+  const segNames = {A:'Corporate Traveler',B:'VFR / Diaspora',C:'MICE / Medical',D:'Leisure (Early)',E:'Student / Budget',F:'Last-Minute',HUMAN:'Manual Booking'};
+  const fcNames = {V:'V — Promo',K:'K — Discount',M:'M — Flex',Y:'Y — Full Fare'};
+  const fcColors = {V:'#94a3b8',K:'#c9a227',M:'#6366f1',Y:'#ef4444'};
+
+  const seg = booking.segment || '?';
+  const segName = segNames[seg] || ('Segment ' + seg);
+  const fcName = fcNames[booking.fare_class] || booking.fare_class;
+  const fcColor = fcColors[booking.fare_class] || 'var(--text-0)';
+  const cabin = booking.cabin === 'business' ? 'Business' : 'Economy';
+  const isHuman = !booking.is_bot;
+  const basePrice = booking.baseline_price || booking.price;
+  const diff = booking.price - basePrice;
+  const diffPct = basePrice > 0 ? ((diff / basePrice) * 100).toFixed(1) : '0';
+
+  const isConn = booking.is_connecting;
+  const routeLabel = el?._booking?.cabin ? '' : '';
+
+  // Baslik: connecting ise rota goster
+  if (isConn && booking.origin) {
+    document.getElementById('sdTitle').innerHTML = `<span style="color:var(--accent)">${booking.origin} → IST → ${(booking.route||'').split('-')[1]||'?'}</span> — <span style="color:${fcColor}">${fcName}</span>`;
+  } else {
+    document.getElementById('sdTitle').innerHTML = `Seat Detail — <span style="color:${fcColor}">${fcName}</span>`;
+  }
+
+  let html = `
+    <div class="sd-item"><div class="sd-label">Passenger Type</div><div class="sd-val">${isHuman ? 'Manual Booking' : segName}</div></div>
+    <div class="sd-item"><div class="sd-label">Routing</div><div class="sd-val">${isConn ? '<span style="color:var(--accent)">'+(booking.origin||'?')+' → IST → dest (Connecting)</span>' : 'Direct (Local)'}</div></div>
+    <div class="sd-item"><div class="sd-label">Cabin</div><div class="sd-val">${cabin}</div></div>
+    <div class="sd-item"><div class="sd-label">Fare Class</div><div class="sd-val" style="color:${fcColor}">${fcName}</div></div>
+    <div class="sd-item"><div class="sd-label">Paid</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.price)}</div></div>
+    <div class="sd-item"><div class="sd-label">Baseline</div><div class="sd-val" style="color:var(--text-2)">$${Math.round(basePrice)}</div></div>
+    <div class="sd-item"><div class="sd-label">Delta</div><div class="sd-val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}$${Math.round(diff)} (${diff>=0?'+':''}${diffPct}%)</div></div>
+    <div class="sd-item"><div class="sd-label">DTD</div><div class="sd-val">${booking.dtd} days</div></div>
+    <div class="sd-item"><div class="sd-label">Booked At</div><div class="sd-val" style="font-size:.75rem">${(booking.timestamp||'').substring(0,16)}</div></div>`;
+
+  // Connecting detaylari
+  if (isConn) {
+    html += `
+    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Origin</div><div class="sd-val" style="color:var(--accent)">${booking.origin || '?'}</div></div>
+    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Total Itinerary</div><div class="sd-val">$${Math.round(booking.total_itinerary_fare || 0)}</div></div>
+    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Leg Contribution</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.leg_contribution || 0)}</div></div>`;
+  }
+
+  document.getElementById('sdBody').innerHTML = html;
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function selectFlightSeatmap(key, cabin, route, depDate) {
+  // Tablodaki ucusa tiklaninca seat map'i o ucusa ayarla
+  resetSeatmap();
+  seatmapFlightKeys = {economy: null, business: null};
+  // Ayni rota + tarih icin her iki kabini bul
+  const routeDatePrefix = route + '_' + depDate;
+  // Bu ucusu set et
+  seatmapFlightKeys[cabin] = key;
+  // Diger kabini de bul (varsa)
+  const otherCabin = cabin === 'economy' ? 'business' : 'economy';
+  const otherKey = key.replace('_' + cabin, '_' + otherCabin);
+  seatmapFlightKeys[otherCabin] = otherKey;
+  document.getElementById('seatmapFlightLabel').textContent = route.replace('-',' \u2192 ') + ' | ' + depDate;
+  // Seat map'i yukle
+  loadSeatmapBoth();
+  document.querySelector('.seatmap-section').scrollIntoView({behavior:'smooth'});
+}
+
+function resetSeatmap() {
+  seatmapSeats.business.forEach(s => { if(s) { s.className = 'seat biz empty'; s.innerHTML = ''; s.onclick = null; s.style.cursor = ''; s._booking = null; } });
+  seatmapSeats.economy.forEach(s => { if(s) { s.className = 'seat eco empty'; s.innerHTML = ''; s.onclick = null; s.style.cursor = ''; s._booking = null; } });
+  document.getElementById('seatmapStats').innerHTML = '';
+  document.getElementById('animDate').textContent = '--';
+  document.getElementById('animDTD').textContent = '';
+  lastSeatCount = {business: 0, economy: 0};
+  seatAnimQueue = [];
+  seatAnimRunning = false;
+  animKPI = {sold:0, revDyn:0, revBase:0, fcV:0, fcK:0, fcM:0, fcY:0, bizSold:0, ecoSold:0};
+  // Bos koltuk havuzunu doldur ve karistir
+  availableSeats.business = Array.from({length:49},(_,i)=>i).sort(()=>Math.random()-0.5);
+  availableSeats.economy = Array.from({length:300},(_,i)=>i).sort(()=>Math.random()-0.5);
+}
+
+// Build on page load
+buildSeatmap();
+
+// ── COMPETITION PANEL ────────────────────────────────────
+function buildCompetitorSeats(containerId, total, soldCount, color) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  // Mini seat grid: each seat is a tiny 6x6 square
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    const filled = i < soldCount;
+    const bg = filled ? color : '#1e293b';
+    const border = filled ? color : '#334155';
+    html += `<div style="width:5px;height:5px;border-radius:1px;background:${bg};border:1px solid ${border}"></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function updateCompetitionPanel(status) {
+  const comp = status.competition;
+  const panel = document.getElementById('competitionPanel');
+  if (!comp || !comp.competitors) {
+    if (panel) panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+
+  const stats = status.stats || {};
+  const pc = comp.competitors.PC;
+  const ek = comp.competitors.EK;
+
+  // Pegasus
+  if (pc) {
+    document.getElementById('compPC_lf').textContent = pc.avg_lf + '%';
+    document.getElementById('compPC_sold').textContent = pc.total_sold.toLocaleString() + '/' + pc.total_capacity.toLocaleString();
+    document.getElementById('compPC_lost').textContent = (stats.lost_to_PC || 0).toLocaleString();
+    document.getElementById('compPC_stolen').textContent = (stats.stolen_from_PC || 0).toLocaleString();
+    buildCompetitorSeats('compPC_seats', Math.min(pc.total_capacity, 150), Math.min(pc.total_sold, 150), '#f59e0b');
+  }
+
+  // Emirates
+  if (ek) {
+    document.getElementById('compEK_lf').textContent = ek.avg_lf + '%';
+    document.getElementById('compEK_sold').textContent = ek.total_sold.toLocaleString() + '/' + ek.total_capacity.toLocaleString();
+    document.getElementById('compEK_lost').textContent = (stats.lost_to_EK || 0).toLocaleString();
+    document.getElementById('compEK_stolen').textContent = (stats.stolen_from_EK || 0).toLocaleString();
+    buildCompetitorSeats('compEK_seats', Math.min(ek.total_capacity, 280), Math.min(ek.total_sold, 280), '#06b6d4');
+  }
+
+  // THY (biz)
+  const s = status.summary || {};
+  document.getElementById('compTK_sold').textContent = (s.total_sold || 0).toLocaleString();
+  // Economy ve business LF'yi flights'tan hesapla (approximate)
+  const ecoLf = s.avg_load_factor ? Math.round(s.avg_load_factor * 100) + '%' : '0%';
+  document.getElementById('compTK_lf_eco').textContent = ecoLf;
+  document.getElementById('compTK_lf_biz').textContent = ecoLf;
+
+  // Pazar payi bar
+  const tkSold = s.total_sold || 0;
+  const pcSold = pc ? pc.total_sold : 0;
+  const ekSold = ek ? ek.total_sold : 0;
+  const total = tkSold + pcSold + ekSold;
+  if (total > 0) {
+    const pcPct = (pcSold / total * 100);
+    const tkPct = (tkSold / total * 100);
+    const ekPct = (ekSold / total * 100);
+    document.getElementById('msBar_PC').style.width = pcPct + '%';
+    document.getElementById('msBar_TK').style.width = tkPct + '%';
+    document.getElementById('msBar_EK').style.width = ekPct + '%';
+    document.getElementById('msPC').textContent = Math.round(pcPct) + '%';
+    document.getElementById('msTK').textContent = Math.round(tkPct) + '%';
+    document.getElementById('msEK').textContent = Math.round(ekPct) + '%';
+  }
+}
+
+// Rotalar HTML'de hardcoded — JS yukleme gereksiz
+
+// Sayfa acildiginda zaten calisan simulasyon varsa otomatik baglan
+(async()=>{
+  try{
+    const r=await fetch('/api/sim/status');
+    const s=await r.json();
+    if(s.state==='running'){
+      document.getElementById('btnStart').disabled=true;
+      document.getElementById('btnPause').disabled=false;
+      document.getElementById('btnResume').disabled=true;
+      startPolling();
+    } else if(s.state==='paused'){
+      document.getElementById('btnStart').disabled=true;
+      document.getElementById('btnPause').disabled=true;
+      document.getElementById('btnResume').disabled=false;
+      startPolling();
+    }
+    // completed ise hicbir sey yapma — yeni baslat bekle
+  }catch(e){}
+})();
+
+function fmt$(v){return '$'+Math.round(v).toLocaleString()}
+function fmtPct(v){return (v*100).toFixed(1)+'%'}
+
+async function simStart(){
+  const route = document.getElementById('routeSelect').value;
+  const depDate = document.getElementById('depDate').value;
+  const speed = parseFloat(document.getElementById('speedSelect').value);
+
+  if(!route){alert('Rota secin');return}
+  if(!depDate){alert('Kalkis tarihi secin');return}
+
+  const isAllRoutes = route === '__ALL__';
+  const routeLabel = isAllRoutes ? 'Tum Rotalar' : route.replace('-',' \u2192 ');
+
+  // Sim departure date'i kaydet (DTD hesabi icin)
+  window._simDepDate = depDate;
+
+  document.getElementById('btnStart').disabled=true;
+  document.getElementById('btnPause').disabled=false;
+  document.getElementById('seatmapFlightLabel').textContent = routeLabel + ' | Kalkis: ' + depDate;
+
+  simPaused = false;
+  window._animCompleted = false;
+  window._countdownRunning = false;
+  window._lastAnimDate = null;
+  resetSeatmap();
+  revenueHistory={labels:[],dynamic:[],baseline:[]};
+  lfHistory={labels:[],values:[]};
+  // Eski KPI'lari sifirla
+  document.getElementById('kFlights').textContent='--';
+  document.getElementById('kSold').textContent='0';
+  document.getElementById('kLF').textContent='0%';
+  document.getElementById('kRevDyn').textContent='$0';
+  document.getElementById('kRevBase').textContent='$0';
+  document.getElementById('kDelta').textContent='0%';
+  document.getElementById('kDelta').style.color='var(--text-2)';
+  document.getElementById('simClock').textContent='--';
+  document.getElementById('animDate').textContent='--';
+  document.getElementById('animDTD').textContent='--';
+  document.getElementById('animDepDate').textContent=depDate;
+
+  const payload = {
+    date_range: [depDate, depDate],
+    speed: speed,
+    routes: isAllRoutes ? null : [route],
+    cabins: ["economy", "business"],
+  };
+
+  const res = await fetch('/api/sim/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const d = await res.json();
+  if(d.error){alert(d.error);document.getElementById('btnStart').disabled=false;return}
+
+  seatmapFlightKeys = {economy: null, business: null};
+
+  // Flight key'leri al — simulasyon bitene kadar bekle, sonra yukle
+  const _waitAndLoad = async () => {
+    // Once key'leri bul
+    for (let attempt = 0; attempt < 20; attempt++) {
+      await new Promise(r => setTimeout(r, 200));
+      try {
+        const fr = await fetch('/api/sim/flights');
+        const fd = await fr.json();
+        const flights = fd.flights || [];
+        flights.forEach(f => {
+          if (f.cabin === 'economy' && !seatmapFlightKeys.economy) seatmapFlightKeys.economy = f.key;
+          if (f.cabin === 'business' && !seatmapFlightKeys.business) seatmapFlightKeys.business = f.key;
+        });
+        // Simulasyon bitmis mi?
+        const sr = await fetch('/api/sim/status');
+        const st = await sr.json();
+        if (st.state === 'completed' && (seatmapFlightKeys.economy || seatmapFlightKeys.business)) {
+          loadSeatmapBoth();
+          break;
+        }
+        // Running ama key var — ilk yukleme yap
+        if (seatmapFlightKeys.economy || seatmapFlightKeys.business) {
+          loadSeatmapBoth();
+          if (st.state === 'completed') break;
+        }
+      } catch(e) {}
+    }
+  };
+  _waitAndLoad();
+
+  startPolling();
+}
+
+let simPaused = false;
+async function simPause(){
+  simPaused = true;
+  await fetch('/api/sim/pause',{method:'POST'});
+  document.getElementById('btnPause').disabled=true;
+  document.getElementById('btnResume').disabled=false;
+}
+
+async function simResume(){
+  simPaused = false;
+  await fetch('/api/sim/resume',{method:'POST'});
+  document.getElementById('btnPause').disabled=false;
+  document.getElementById('btnResume').disabled=true;
+}
+
+async function simJump(){
+  const d=document.getElementById('jumpDate').value;
+  await fetch('/api/sim/jump',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date:d})});
+}
+
+async function simSpeed(){
+  const speed=parseInt(document.getElementById('speedSelect').value);
+  await fetch('/api/sim/speed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({speed})});
+  // Polling araligi sadece simulasyon calisiyorsa guncelle
+  if(pollTimer) startPolling();
+}
+document.getElementById('speedSelect').addEventListener('change',simSpeed);
+
+function startPolling(){
+  if(pollTimer)clearInterval(pollTimer);
+  // Hiza gore polling araligi
+  const speed = parseFloat(document.getElementById('speedSelect').value) || 4320;
+  const interval = speed < 1 ? 5000 : speed >= 14400 ? 200 : speed >= 8640 ? 300 : speed >= 4320 ? 500 : 1000;
+  pollTimer=setInterval(pollStatus, interval);
+  pollStatus();
+}
+
+async function pollStatus(){
+  try{
+    const [statusRes,flightsRes]=await Promise.all([
+      fetch('/api/sim/status'),
+      fetch('/api/sim/flights'),
+    ]);
+    const status=await statusRes.json();
+    const flightsData=await flightsRes.json();
+    updateUI(status,flightsData.flights||[]);
+  }catch(e){console.error(e)}
+}
+
+function updateUI(status,flights){
+  // State badge — animasyon devam ediyorsa "CALISIYOR" goster
+  const stEl=document.getElementById('simState');
+  const stMap={idle:'HAZIR',running:'CALISIYOR',paused:'DURAKLATILDI',completed:'TAMAMLANDI',ready:'HAZIR',initializing:'HAZIRLANIYOR'};
+  const displayState = (status.state==='completed' && seatAnimRunning) ? 'running' : status.state;
+  stEl.textContent=stMap[displayState]||displayState;
+  stEl.className='sim-state '+(displayState==='running'?'running':displayState==='paused'?'paused':displayState==='completed'?'completed':'idle');
+
+  // Clock + DTD — animasyon veya countdown devam ediyorsa DOKUNMA
+  const simDate = status.clock?.sim_date||'--';
+  if (seatAnimRunning || window._countdownRunning) {
+    // animasyon/countdown kendi hallediyor — poll tarih/DTD'ye dokunmasın
+  } else if (simDate !== '--') {
+    document.getElementById('simClock').textContent = simDate;
+    document.getElementById('animDate').textContent = simDate;
+    const depDate = window._simDepDate;
+    if (depDate) {
+      document.getElementById('animDepDate').textContent = depDate;
+      const depD = new Date(depDate);
+      const simD = new Date(simDate);
+      const dtdVal = Math.ceil((depD - simD) / 86400000);
+      if (dtdVal > 0) {
+        document.getElementById('animDTD').textContent = dtdVal + ' gun';
+        document.getElementById('simDTD').textContent = `DTD: ${dtdVal}`;
+        document.getElementById('animDTD').style.color = dtdVal <= 7 ? 'var(--red)' : dtdVal <= 30 ? 'var(--orange)' : 'var(--accent)';
+      } else {
+        document.getElementById('animDTD').textContent = 'KALKIS!';
+        document.getElementById('simDTD').textContent = 'KALKIS!';
+        document.getElementById('animDTD').style.color = 'var(--red)';
+      }
+    }
+  }
+
+  // KPIs — animasyon devam ediyorsa animasyon sayacindan goster
+  const s=status.summary||{};
+  document.getElementById('kFlights').textContent=s.total_capacity||349;
+  if(!seatAnimRunning){
+    // Animasyon bitti veya yok — gercek degerleri goster
+    document.getElementById('kSold').textContent=(s.total_sold||0).toLocaleString();
+    document.getElementById('kLF').textContent=fmtPct(s.avg_load_factor||0);
+    document.getElementById('kRevDyn').textContent=fmt$(s.revenue_dynamic||0);
+    document.getElementById('kRevBase').textContent=fmt$(s.revenue_baseline||0);
+    const delta=s.revenue_delta_pct||0;
+    const deltaEl=document.getElementById('kDelta');
+    deltaEl.textContent=(delta>0?'+':'')+delta+'%';
+    deltaEl.style.color=delta>=0?'var(--green)':'var(--red)';
+  }
+  // Animasyon devam ediyorsa KPI'lar drainSeatQueue icinden guncellenir
+
+
+  // Flight table
+  renderFlightTable(flights);
+
+  // Competition panel
+  updateCompetitionPanel(status);
+
+  // Seat map auto-refresh — sadece simulasyon devam ederken ve animasyon calismiyorken
+  if ((seatmapFlightKeys.economy || seatmapFlightKeys.business)
+      && !seatAnimRunning && !window._countdownRunning && !window._animCompleted
+      && status.state === 'running') {
+    loadSeatmapBoth();
+  }
+
+  // Stop polling if completed
+  if(status.state==='completed'){
+    // Animasyon henuz baslamadiysa son kez yukle
+    if (!window._animCompleted && !seatAnimRunning && !window._countdownRunning) {
+      if (seatmapFlightKeys.economy || seatmapFlightKeys.business) {
+        loadSeatmapBoth();
+      }
+    }
+    // Poll'u hemen durdurmayalim — animasyon icin biraz bekle
+    if (!seatAnimRunning && !window._countdownRunning && window._animCompleted) {
+      clearInterval(pollTimer);
+      pollTimer=null;
+    }
+    if(!seatAnimRunning && !window._countdownRunning && window._animCompleted){
+      document.getElementById('btnStart').disabled=false;
+      document.getElementById('btnPause').disabled=true;
+      document.getElementById('btnResume').disabled=true;
+    }
+  }
+}
+
+function renderFlightTable(flights){
+  const tbody=document.getElementById('tblBody');
+  if(!flights.length){tbody.innerHTML='<tr><td colspan="10" class="empty">Ucus yok</td></tr>';return}
+  // En yuksek delta'li 50 ucusu goster
+  const sorted=[...flights].sort((a,b)=>b.load_factor-a.load_factor).slice(0,50);
+  document.getElementById('tblCount').textContent=flights.length+' ucus (en dolu 50)';
+  window._lastFlights = sorted;
+  tbody.innerHTML=sorted.map((f,idx)=>{
+    const lfColor=f.load_factor>=0.85?'var(--green)':f.load_factor>=0.5?'var(--orange)':'var(--text-3)';
+    const dCls=f.delta_pct>=0?'pos':'neg';
+    const sel = (window._selectedFlightKey === f.key) ? 'background:rgba(88,166,255,.08);' : '';
+    return `<tr style="cursor:pointer;${sel}" onclick="onFlightRowClick('${f.key}','${f.cabin}','${f.route}','${f.dep_date}',${idx})">
+      <td>${f.route}</td>
+      <td>${f.cabin}</td>
+      <td>${f.dep_date}</td>
+      <td class="num">${f.dtd}</td>
+      <td><span class="lf-bar" style="width:${Math.max(f.load_factor*60,4)}px;background:${lfColor}"></span><span class="num">${fmtPct(f.load_factor)}</span></td>
+      <td class="num">${f.sold}/${f.capacity}</td>
+      <td class="num">${fmt$(f.revenue_dynamic)}</td>
+      <td class="num">${fmt$(f.revenue_baseline)}</td>
+      <td class="num ${dCls}">${f.delta_pct>0?'+':''}${f.delta_pct}%</td>
+      <td>${(f.open_fares||[]).join(' ')}</td>
+    </tr>`;
+  }).join('');
+  // Ilk poll'da otomatik olarak ilk ucusu sec (panel icin)
+  if (!window._selectedFlightKey && sorted.length) {
+    onFlightRowClick(sorted[0].key, sorted[0].cabin, sorted[0].route, sorted[0].dep_date, 0);
+  }
+  // Secili ucus varsa paneli guncelle
+  if (window._selectedFlightKey) {
+    const selFlight = sorted.find(f => f.key === window._selectedFlightKey);
+    if (selFlight) autoUpdatePanel(selFlight);
+  }
+}
+
+// ═══════════════════════════════════════════
+// EXPLAINABILITY PANEL
+// ═══════════════════════════════════════════
+
+let _tftInterp = null;
+window._selectedFlightKey = null;
+
+// Tablo satirina tiklandiginda — seatmap'e dokunma, sadece paneli guncelle
+function onFlightRowClick(key, cabin, route, depDate, idx) {
+  window._selectedFlightKey = key;
+  // Seatmap sadece ilk kez veya farkli ucus secildiginde yuklenir
+  if (seatmapFlightKeys[cabin] !== key) {
+    seatmapFlightKeys = {economy: null, business: null};
+    seatmapFlightKeys[cabin] = key;
+    const otherCabin = cabin === 'economy' ? 'business' : 'economy';
+    seatmapFlightKeys[otherCabin] = key.replace('_' + cabin, '_' + otherCabin);
+    document.getElementById('seatmapFlightLabel').textContent = route.replace('-',' \u2192 ') + ' | ' + depDate;
+    window._simDepDate = depDate;
+  }
+  // Paneli guncelle
+  const flight = window._lastFlights?.find(f => f.key === key);
+  if (flight) {
+    updatePricingDecomp(flight);
+    updateEMSRbStatus(flight);
+  }
+  // Satir highlight
+  document.querySelectorAll('#tblBody tr').forEach(tr => tr.style.background = '');
+  const rows = document.querySelectorAll('#tblBody tr');
+  if (rows[idx]) rows[idx].style.background = 'rgba(88,166,255,.08)';
+}
+
+// Otomatik panel guncelleme (her poll'da secili ucus icin)
+function autoUpdatePanel(flight) {
+  if (!flight) return;
+  updatePricingDecomp(flight);
+  updateEMSRbStatus(flight);
+}
+
+async function loadTFTInterpretation() {
+  try {
+    const res = await fetch('/api/tft/interpretation');
+    if (res.ok) {
+      _tftInterp = await res.json();
+      renderTFTBars();
+      document.getElementById('explainPanel').style.display = '';
+    }
+  } catch(e) { console.warn('TFT interp not available:', e); }
+}
+
+// Feature isimlerini insanin anlayacagi Turkce'ye cevir
+const FEAT_TR = {
+  'entity_id':'Rota Kimliği','route':'Rota','cabin_class':'Kabin Tipi','direction':'Yon',
+  'total_pax_center':'Ort. Yolcu (normalize)','total_pax_scale':'Yolcu Varyansı',
+  'avg_fare':'Ortalama Bilet Fiyati','relative_time_idx':'Zaman Pozisyonu',
+  'total_pax':'Toplam Yolcu','tag_is_seyahati':'Is Seyahati Etkisi',
+  'connecting_pct':'Baglanti Yolcu Orani','tag_hac_umre':'Hac/Umre Donemi',
+  'late_booking_pct':'Gec Rezervasyon Orani','time_idx':'Zaman Indeksi',
+  'n_flights':'Ucus Sayisi','tag_yaz_tatili':'Yaz Tatili Etkisi',
+  'dep_month':'Kalkis Ayi','dep_dow':'Kalkis Gunu','is_special_period':'Ozel Gun mu',
+  'is_weekend':'Hafta Sonu mu','capacity':'Kapasite','load_factor':'Doluluk',
+};
+function trName(f) { return FEAT_TR[f] || f.replace(/_/g, ' '); }
+
+function renderTFTBars() {
+  if (!_tftInterp) return;
+  function renderBarList(containerId, items, color, maxItems) {
+    const el = document.getElementById(containerId);
+    if (!el || !items || !items.length) return;
+    const maxVal = items[0].importance || 1;
+    el.innerHTML = items.slice(0, maxItems).map(item => {
+      const pct = Math.max((item.importance / maxVal) * 100, 3);
+      return `<div class="feat-row">
+        <span class="feat-name" title="${item.feature}">${trName(item.feature)}</span>
+        <div class="feat-bar-bg"><div class="feat-bar" style="width:${pct}%;background:${color}"></div></div>
+        <span class="feat-val">${(item.importance*100).toFixed(1)}%</span>
+      </div>`;
+    }).join('');
+  }
+  renderBarList('tftStaticList', _tftInterp.static_variable_importance, '#58a6ff', 5);
+  renderBarList('tftEncoderList', _tftInterp.encoder_variable_importance, '#39d2c0', 6);
+  renderBarList('tftDecoderList', _tftInterp.decoder_variable_importance, '#bc8cff', 5);
+
+  // Ozet yorum ekle
+  const topStatic = _tftInterp.static_variable_importance?.[0];
+  const topEnc = _tftInterp.encoder_variable_importance?.[0];
+  const topDec = _tftInterp.decoder_variable_importance?.[0];
+  const summary = document.createElement('div');
+  summary.style.cssText = 'margin-top:.8rem;padding:.6rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.68rem;color:var(--text-2);line-height:1.5';
+  summary.innerHTML = `<b style="color:var(--text-0)">Ozet:</b> TFT talep tahmininde en cok <b style="color:#58a6ff">${trName(topStatic?.feature)}</b> bilgisine bakiyor — yani her rotanin kendine ozgu talep patterni var. Zaman serisinde <b style="color:#39d2c0">${trName(topEnc?.feature)}</b> en etkili girdi. Gelecek icin <b style="color:#bc8cff">${trName(topDec?.feature)}</b> en belirleyici faktor.`;
+  document.getElementById('tftDecoderBars').after(summary);
+}
+
+function updatePricingDecomp(flight) {
+  const el = document.getElementById('pricingDecomp');
+  if (!flight || !flight.current_prices) {
+    el.innerHTML = '<div class="decomp-placeholder">Simulasyon baslatilmadi</div>';
+    return;
+  }
+  const prices = flight.current_prices || {};
+  const openFares = flight.open_fares || [];
+  const bestFare = openFares[0] || 'Y';
+  const bestPrice = prices[bestFare] || 0;
+
+  // Ucus detayindan multiplier'lari al
+  fetch(`/api/sim/flight/${flight.key}`).then(r=>r.json()).then(d=>{
+    const ph = d.price_history;
+    const last = ph && ph.length ? ph[ph.length-1] : null;
+    const mults = last?.multipliers || {};
+    function valClass(v) { return v > 1.1 ? 'high' : v < 0.95 ? 'low' : 'neutral'; }
+
+    el.innerHTML = `
+      <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date} | ${flight.cabin}</div>
+      <div class="decomp-row"><span class="decomp-label">Baz Fiyat</span><span class="decomp-val">${fmt$(last?.baseline_price || 0)}</span></div>
+      <div class="decomp-row"><span class="decomp-label">Arz (supply)</span><span class="decomp-val ${valClass(mults.supply||1)}">${(mults.supply||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Talep (demand)</span><span class="decomp-val ${valClass(mults.demand||1)}">${(mults.demand||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Sentiment</span><span class="decomp-val ${valClass(mults.sentiment||1)}">${(mults.sentiment||1).toFixed(3)}x</span></div>
+      <div class="decomp-row"><span class="decomp-label">Musteri</span><span class="decomp-val ${valClass(mults.customer||1)}">${(mults.customer||1).toFixed(3)}x</span></div>
+      <div class="decomp-divider"></div>
+      <div class="decomp-row"><span class="decomp-label"><b>Bilesik</b></span><span class="decomp-val" style="color:var(--accent)">${(mults.combined||1).toFixed(3)}x</span></div>
+      <div class="decomp-divider"></div>
+      ${['V','K','M','Y'].map(fc => {
+        const p = prices[fc] || d.current_prices?.[fc];
+        const isOpen = openFares.includes(fc);
+        return `<div class="decomp-row" style="opacity:${isOpen?1:0.35}">
+          <span class="decomp-label">${fc} ${isOpen?'&#9679;':''}</span>
+          <span class="decomp-val">${p ? fmt$(p) : '-'}</span>
+        </div>`;
+      }).join('')}
+      <div class="decomp-divider"></div>
+      <div class="decomp-row">
+        <span class="decomp-label" style="font-weight:700;color:var(--text-0)">Yolcu Fiyati</span>
+        <span class="decomp-val" style="color:var(--green);font-size:.9rem">${fmt$(bestPrice)} (${bestFare})</span>
+      </div>
+      <div style="margin-top:.6rem;padding:.5rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.66rem;color:var(--text-2);line-height:1.5">
+        <b style="color:var(--text-0)">Yorum:</b>
+        ${mults.supply > 1.3 ? ' Koltuklar hizla doluyor — arz carpani fiyati yukseltiyor.' :
+          mults.supply > 1.1 ? ' Doluluk ortalamanin uzerinde, fiyatlar hafif yukseliyor.' :
+          ' Doluluk dusuk, fiyatlar baz seviyede.'}
+        ${mults.demand > 1.2 ? ' Yuksek sezon/ozel gun etkisiyle talep guclu.' :
+          mults.demand > 1.05 ? ' Talep normal seviyelerde.' :
+          ' Dusuk talep donemi.'}
+        ${mults.sentiment < 0.95 ? ' Destinasyonda olumsuz haber etkisi var.' :
+          mults.sentiment > 1.05 ? ' Destinasyonda olumlu haber etkisi var.' : ''}
+        Yolcu su an <b>${bestFare}</b> sinifinda <b>${fmt$(bestPrice)}</b> oduyor
+        (baz fiyatin <b>${((mults.combined||1)*({'V':0.5,'K':0.75,'M':1,'Y':1.5}[bestFare]||1)*100).toFixed(0)}%</b>'i).
+      </div>
+    `;
+  }).catch(()=>{
+    // Fetch hata verirse mevcut veriden goster
+    el.innerHTML = `
+      <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date}</div>
+      ${['V','K','M','Y'].map(fc => {
+        const p = prices[fc];
+        const isOpen = openFares.includes(fc);
+        return `<div class="decomp-row" style="opacity:${isOpen?1:0.35}">
+          <span class="decomp-label">${fc} ${isOpen?'&#9679;':''}</span>
+          <span class="decomp-val">${p ? fmt$(p) : '-'}</span>
+        </div>`;
+      }).join('')}
+    `;
+  });
+}
+
+function updateEMSRbStatus(flight) {
+  const el = document.getElementById('emsrbStatus');
+  if (!flight) {
+    el.innerHTML = '<div class="decomp-placeholder">Simulasyon baslatilmadi</div>';
+    return;
+  }
+  fetch(`/api/sim/flight/${flight.key}`).then(r=>r.json()).then(d=>{
+    const fcSold = d.fare_class_sold || {};
+    const openFares = d.fare_classes_open || flight.open_fares || [];
+    const cap = d.capacity || 300;
+    const sold = d.sold || 0;
+    const remaining = cap - sold;
+
+    const fcDefs = [
+      {id:'V', name:'Promosyon', quotaPct:0.15, color:'#94a3b8'},
+      {id:'K', name:'Indirimli', quotaPct:0.25, color:'#c9a227'},
+      {id:'M', name:'Esnek',     quotaPct:0.35, color:'#6366f1'},
+      {id:'Y', name:'Tam Fiyat', quotaPct:1.00, color:'#ef4444'},
+    ];
+
+    el.innerHTML = `
+      <div style="font-size:.68rem;color:var(--accent);margin-bottom:.6rem;font-weight:600">${flight.route} | ${flight.dep_date} | LF ${fmtPct(flight.load_factor)}</div>
+    ` + fcDefs.map(fc => {
+      const isOpen = openFares.includes(fc.id);
+      const soldC = fcSold[fc.id] || 0;
+      const quota = Math.floor(cap * fc.quotaPct);
+      const pct = quota > 0 ? Math.min(soldC / quota * 100, 100) : 100;
+      let reason = '';
+      if (!isOpen) {
+        // Neden kapalı — en spesifik nedeni bul
+        if (soldC >= quota && fc.id !== 'Y') {
+          reason = `Kota doldu (${soldC}/${quota})`;
+        } else if (fc.id === 'V' && sold/cap > 0.4) {
+          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, V sinifi %40 uzerinde kapanir`;
+        } else if (fc.id === 'K' && sold/cap > 0.6) {
+          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, K sinifi %60 uzerinde kapanir`;
+        } else if (fc.id === 'M' && sold/cap > 0.85) {
+          reason = `Doluluk %${(sold/cap*100).toFixed(0)}, M sinifi %85 uzerinde kapanir`;
+        } else {
+          // DTD kuralina bak
+          const dtd = flight.dtd || 0;
+          if (dtd <= 6) reason = `Son ${dtd} gun, sadece Y acik`;
+          else if (dtd <= 13) reason = `Son hafta, V ve K kapali`;
+          else if (dtd <= 29) reason = `Gec donem, V kapali`;
+          else reason = `Donem kurali ile kapali`;
+        }
+      }
+      const showQuota = fc.id !== 'Y';
+      return `<div class="fc-row">
+        <span class="fc-badge ${isOpen?'open':'closed'}" style="border:1px solid ${fc.color}">${fc.id}</span>
+        <span class="fc-info">${fc.name}${!isOpen ? ` <span style="color:var(--red);font-size:.6rem">${reason}</span>` : ''}</span>
+        <span class="fc-quota">${showQuota ? soldC+'/'+quota : soldC+' satildi'}</span>
+        ${showQuota ? `<div style="width:50px;height:6px;background:var(--bg-3);border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${isOpen?'var(--green)':'var(--red)'};border-radius:3px;transition:width .5s"></div>
+        </div>` : ''}
+      </div>`;
+    }).join('') + `
+    <div style="margin-top:.5rem;padding-top:.4rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:.65rem;color:var(--text-3)">
+      <span>Kapasite: ${cap}</span><span>Satilan: ${sold}</span><span>Kalan: ${remaining}</span><span>Overbooking: ${Math.floor(cap*1.08)}</span>
+    </div>
+    <div style="margin-top:.5rem;padding:.5rem;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.15);border-radius:6px;font-size:.66rem;color:var(--text-2);line-height:1.5">
+      <b style="color:var(--text-0)">Yorum:</b>
+      ${openFares.length === 1 && openFares[0] === 'Y' ?
+        (fcSold['Y'] === 0 ?
+          ' Sadece tam fiyat (Y) acik ama henuz alan yok — fiyat yuksek. Sistem kalan ${remaining} koltugu premium yolcular icin koruyor.' :
+          ` Sadece tam fiyat (Y) acik, ${fcSold['Y']} kisi aldi. Ucuz siniflar kapandi, kalan ${remaining} koltuk yuksek fiyatla satilacak.`) :
+        openFares.length <= 2 ?
+        ` ${openFares.join(' ve ')} siniflari acik. Diger siniflar doluluk veya kota nedeniyle kapandi.` :
+        ` ${openFares.join(', ')} siniflari acik — erken donem, indirimli siniflar musait.`}
+      ${sold > cap * 0.85 ? ` Ucus %${(sold/cap*100).toFixed(0)} dolu — son koltuklar yuksek fiyatla satilacak.` :
+        sold > cap * 0.6 ? ` Ucus %${(sold/cap*100).toFixed(0)} dolu, sistem dusuk siniflardan koruma yapiyor.` :
+        ` Ucus henuz %${(sold/cap*100).toFixed(0)} dolu — erken asama.`}
+    </div>`;
+  }).catch(()=>{
+    el.innerHTML = '<div class="decomp-placeholder">Detay yuklenemedi</div>';
+  });
+}
+
+// Sayfa yuklendiginde TFT'yi yukle
+document.addEventListener('DOMContentLoaded', () => { loadTFTInterpretation(); });
+
+
+</script>
+</body>
+</html>
