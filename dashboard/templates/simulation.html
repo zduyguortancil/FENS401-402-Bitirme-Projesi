@@ -539,14 +539,15 @@ async function loadSeatmap() {
     if (detail.error) return;
 
     const cabin = detail.cabin;
-    const bookings = detail.bookings || [];
+    const allBookings = detail.bookings || [];
+    const bookings = allBookings.filter(b => !b.cancelled);
     const capacity = detail.capacity;
 
     // Reset all seats
     const seats = cabin === 'business' ? seatmapSeats.business : seatmapSeats.economy;
     seats.forEach(s => s.className = s.className.includes('biz') ? 'seat biz empty' : 'seat eco empty');
 
-    // Fill seats based on bookings (in order)
+    // Fill seats based on active bookings only (cancelled filtered out)
     bookings.forEach((b, i) => {
       if (i >= seats.length) return;
       const cls = b.is_bot ? b.fare_class : 'HUMAN';
@@ -580,7 +581,7 @@ async function loadSeatmapBoth() {
       const detail = await res.json();
       if (detail.error) continue;
 
-      const bookings = detail.bookings || [];
+      const bookings = (detail.bookings || []).filter(b => !b.cancelled);
       const prevCount = lastSeatCount[cabin];
 
       if (bookings.length > prevCount) {
@@ -768,7 +769,7 @@ async function animateSeatFill() {
       const res = await fetch('/api/sim/flight/' + encodeURIComponent(key));
       const detail = await res.json();
       if (detail.error) continue;
-      (detail.bookings || []).forEach((b, i) => {
+      (detail.bookings || []).filter(b => !b.cancelled).forEach((b, i) => {
         allBookings.push({...b, cabin, seatIdx: i});
       });
     } catch(e) {}
