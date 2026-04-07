@@ -584,6 +584,7 @@ async function drainSeatQueue() {
     el.innerHTML = b.is_connecting ? '<span style="position:absolute;top:1px;right:1px;font-size:7px;line-height:1;color:#000">&#9992;</span>' : '';
     el._booking = {...b, cabin: item.cabin, seatIdx: item.idx, seatLabel: el.getAttribute('title')};
     el.onclick = function(){ showSeatDetail(this._booking, this); };
+    el.ondblclick = function(){ openPricingPopup(this._booking); };
 
     // KPI
     animKPI.sold++;
@@ -747,7 +748,43 @@ async function animateSeatFill() {
 }
 
 function showSeatDetail(booking, el) {
-  // Yeni pencerede detayli pricing formulation goster
+  // Tek tik: inline panel goster
+  const panel = document.getElementById('seatDetail');
+  const segNames = {A:'Corporate Traveler',B:'VFR / Diaspora',C:'MICE / Medical',D:'Leisure (Early)',E:'Student / Budget',F:'Last-Minute',HUMAN:'Manual Booking'};
+  const fcNames = {V:'V — Promo',K:'K — Discount',M:'M — Flex',Y:'Y — Full Fare'};
+  const fcColors = {V:'#94a3b8',K:'#c9a227',M:'#6366f1',Y:'#ef4444'};
+  const seg = booking.segment || '?';
+  const segName = segNames[seg] || ('Segment ' + seg);
+  const fcName = fcNames[booking.fare_class] || booking.fare_class;
+  const fcColor = fcColors[booking.fare_class] || 'var(--text-0)';
+  const cabin = booking.cabin === 'business' ? 'Business' : 'Economy';
+  const basePrice = booking.baseline_price || booking.price;
+  const diff = booking.price - basePrice;
+  const diffPct = basePrice > 0 ? ((diff / basePrice) * 100).toFixed(1) : '0';
+
+  if (booking.is_connecting && booking.origin) {
+    document.getElementById('sdTitle').innerHTML = `<span style="color:var(--accent)">${booking.origin} → IST → ${(booking.route||'').split('-')[1]||'?'}</span> — <span style="color:${fcColor}">${fcName}</span>`;
+  } else {
+    document.getElementById('sdTitle').innerHTML = `Seat Detail — <span style="color:${fcColor}">${fcName}</span>`;
+  }
+
+  let html = `
+    <div class="sd-item"><div class="sd-label">Passenger</div><div class="sd-val">${!booking.is_bot ? 'Manual' : segName}</div></div>
+    <div class="sd-item"><div class="sd-label">Fare Class</div><div class="sd-val" style="color:${fcColor}">${fcName}</div></div>
+    <div class="sd-item"><div class="sd-label">Paid</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.price)}</div></div>
+    <div class="sd-item"><div class="sd-label">Baseline</div><div class="sd-val">$${Math.round(basePrice)}</div></div>
+    <div class="sd-item"><div class="sd-label">Delta</div><div class="sd-val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}$${Math.round(diff)} (${diffPct}%)</div></div>
+    <div class="sd-item"><div class="sd-label">DTD</div><div class="sd-val">${booking.dtd} days</div></div>
+    <div class="sd-item"><div class="sd-label">LF at Booking</div><div class="sd-val">${booking.load_factor_at_booking ? (booking.load_factor_at_booking*100).toFixed(1)+'%' : '--'}</div></div>
+    <div class="sd-item" style="grid-column:1/-1;text-align:center;padding-top:.5rem;border-top:1px dashed var(--border)"><div class="sd-val" style="font-size:.68rem;color:var(--accent);cursor:pointer" onclick="openPricingPopup(this.closest('.seat-detail')._booking)">Double-click seat for full pricing formula →</div></div>`;
+  document.getElementById('sdBody').innerHTML = html;
+  panel._booking = booking;
+  panel.style.display = 'block';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function openPricingPopup(booking) {
+  // Cift tik veya link: yeni pencerede detayli pricing formulation
   const b = booking;
   const segNames = {A:'Corporate Traveler',B:'VFR / Diaspora',C:'MICE / Medical',D:'Leisure (Early)',E:'Student / Budget',F:'Last-Minute',HUMAN:'Manual Booking'};
   const fcNames = {V:'V — Promo',K:'K — Discount',M:'M — Flex',Y:'Y — Full Fare'};
@@ -890,6 +927,7 @@ async function fullRefreshSeatmap() {
         seats[si].title = `${b.fare_class} — $${b.price} | DTD:${b.dtd} | ${b.is_bot ? 'Seg '+b.segment : 'HUMAN'}`;
         seats[si]._booking = {...b, cabin, seatIdx: si};
         seats[si].onclick = function(){ showSeatDetail(this._booking, this); };
+        seats[si].ondblclick = function(){ openPricingPopup(this._booking); };
       }
       lastSeatCount[cabin] = bookings.length;
     } catch(e) {}
