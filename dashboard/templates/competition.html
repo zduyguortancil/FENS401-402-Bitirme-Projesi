@@ -24,8 +24,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 
 /* Airline Cards */
-.airlines-grid{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:1.2rem;margin-bottom:1.5rem}
-@media(max-width:1200px){.airlines-grid{grid-template-columns:1fr}}
+.airlines-grid{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:1rem;margin-bottom:1.5rem}
+@media(max-width:1400px){.airlines-grid{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:900px){.airlines-grid{grid-template-columns:1fr}}
 .airline-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem;position:relative}
 .airline-card.ours{border-color:var(--accent);border-width:2px}
 .airline-header{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
@@ -39,9 +40,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 .airline-kpi.bad strong{color:var(--red)}
 
 /* Seat Map */
-.seat-grid{margin:.8rem 0}
-.seat-tbl{border-collapse:separate;border-spacing:2px 2px}
-.seat-tbl td.seat{width:18px;height:18px;border-radius:3px;border:1px solid transparent;cursor:default;text-align:center;font-size:0}
+.seat-grid{margin:.8rem 0;max-height:400px;overflow-y:auto}
+.seat-tbl{border-collapse:separate;border-spacing:1px 1px}
+.seat-tbl td.seat{width:14px;height:14px;border-radius:2px;border:1px solid transparent;cursor:default;text-align:center;font-size:0}
 .seat-tbl td.seat.empty{background:#1e293b;border-color:#334155}
 .seat-tbl td.seat.filled{border-color:rgba(255,255,255,.1)}
 .seat-tbl td.aisle{width:10px}

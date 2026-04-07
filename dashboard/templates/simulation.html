@@ -206,7 +206,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     <button class="ctrl-btn primary" id="btnStart" onclick="simStart()">Start</button>
     <button class="ctrl-btn warn" id="btnPause" onclick="simPause()" disabled>Pause</button>
     <button class="ctrl-btn primary" id="btnResume" onclick="simResume()" disabled>Resume</button>
+    <div class="ctrl-sep"></div>
+    <a class="ctrl-btn neutral" href="/competition" target="_blank" id="btnCompetition" style="text-decoration:none;display:none">&#9992; Competition View</a>
   </div>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay" style="display:none;position:relative;margin-bottom:1.2rem">
+    <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;text-align:center">
+      <div style="display:inline-block;width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:.8rem"></div>
+      <div style="font-size:.85rem;color:var(--text-0);font-weight:600">Initializing Simulation...</div>
+      <div style="font-size:.72rem;color:var(--text-3);margin-top:.3rem">Loading flight data and forecast models</div>
+    </div>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
   <!-- KPIs -->
   <div class="kpi-row" id="kpis">
@@ -1029,20 +1041,26 @@ async function simStart(){
   document.getElementById('btnPause').disabled=false;
   document.getElementById('seatmapFlightLabel').textContent = routeLabel + ' | Departure: ' + depDate;
 
+  // Show loading, hide KPIs
+  document.getElementById('loadingOverlay').style.display='';
+  document.getElementById('kpis').style.opacity='0.3';
+  document.getElementById('btnCompetition').style.display='none';
+
   simPaused = false;
   window._animCompleted = false;
   window._countdownRunning = false;
   window._lastAnimDate = null;
+  window._simLoading = true;
   resetSeatmap();
   revenueHistory={labels:[],dynamic:[],baseline:[]};
   lfHistory={labels:[],values:[]};
-  // Eski KPI'lari sifirla
+  // Reset KPIs
   document.getElementById('kFlights').textContent='--';
-  document.getElementById('kSold').textContent='0';
-  document.getElementById('kLF').textContent='0%';
-  document.getElementById('kRevDyn').textContent='$0';
-  document.getElementById('kRevBase').textContent='$0';
-  document.getElementById('kDelta').textContent='0%';
+  document.getElementById('kSold').textContent='--';
+  document.getElementById('kLF').textContent='--';
+  document.getElementById('kRevDyn').textContent='--';
+  document.getElementById('kRevBase').textContent='--';
+  document.getElementById('kDelta').textContent='--';
   document.getElementById('kDelta').style.color='var(--text-2)';
   document.getElementById('simClock').textContent='--';
   document.getElementById('animDate').textContent='--';
@@ -1177,7 +1195,15 @@ function updateUI(status,flights){
     }
   }
 
-  // KPIs — animasyon devam ediyorsa animasyon sayacindan goster
+  // Hide loading overlay once we have real data
+  if (window._simLoading && status.state === 'running' && (status.summary?.total_sold > 0 || status.stats?.total_bots > 0)) {
+    window._simLoading = false;
+    document.getElementById('loadingOverlay').style.display='none';
+    document.getElementById('kpis').style.opacity='1';
+    document.getElementById('btnCompetition').style.display='';
+  }
+
+  // KPIs
   const s=status.summary||{};
   document.getElementById('kFlights').textContent=s.total_capacity||349;
   if(!seatAnimRunning){
@@ -1209,6 +1235,11 @@ function updateUI(status,flights){
 
   // Stop polling if completed
   if(status.state==='completed'){
+    // Ensure loading is hidden and competition button visible
+    document.getElementById('loadingOverlay').style.display='none';
+    document.getElementById('kpis').style.opacity='1';
+    document.getElementById('btnCompetition').style.display='';
+    window._simLoading = false;
     // Animasyon henuz baslamadiysa son kez yukle
     if (!window._animCompleted && !seatAnimRunning && !window._countdownRunning) {
       if (seatmapFlightKeys.economy || seatmapFlightKeys.business) {
