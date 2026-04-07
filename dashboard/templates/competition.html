@@ -122,7 +122,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
         <div class="airline-kpi">Load Factor: <strong id="pcLF">0%</strong></div>
         <div class="airline-kpi">Sold: <strong id="pcSold">0</strong>/150</div>
         <div class="airline-kpi">Price: <strong id="pcPrice">$0</strong></div>
-        <div class="airline-kpi">Revenue: <strong id="pcRev">$0</strong></div>
       </div>
       <div class="seat-grid" id="pcSeatmap"></div>
     </div>
@@ -138,7 +137,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
         <div class="airline-kpi">Eco LF: <strong id="tkLFeco">0%</strong></div>
         <div class="airline-kpi">Biz LF: <strong id="tkLFbiz">0%</strong></div>
         <div class="airline-kpi">Sold: <strong id="tkSold">0</strong>/349</div>
-        <div class="airline-kpi">Revenue: <strong id="tkRev">$0</strong></div>
         <div class="airline-kpi">Delta: <strong id="tkDelta">0%</strong></div>
       </div>
       <div class="seat-grid">
@@ -161,7 +159,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
         <div class="airline-kpi">Load Factor: <strong id="ekLF">0%</strong></div>
         <div class="airline-kpi">Sold: <strong id="ekSold">0</strong>/322</div>
         <div class="airline-kpi">Price: <strong id="ekPrice">$0</strong></div>
-        <div class="airline-kpi">Revenue: <strong id="ekRev">$0</strong></div>
       </div>
       <div class="seat-grid">
         <div style="font-size:.65rem;color:var(--text-3);margin-bottom:4px">BUSINESS (1-2-1 Herringbone)</div>
@@ -223,37 +220,52 @@ const ekBizSeats = buildSeatTable('ekBizSeatmap',
 const ekEcoSeats = buildSeatTable('ekEcoSeatmap',
   ['A','B','C','|','D','E','F','|','G','H','J'], 32, 280, 'eke_s');
 
-// ── FILL SEATS ────────────────────────────────────────
+// ── ANIMATED SEAT FILL ────────────────────────────────
 
-function fillSeats(seatEls, soldCount, color) {
-  seatEls.forEach((s, i) => {
-    if (i < soldCount) {
-      s.className = 'seat filled';
-      s.style.background = color;
-      s.style.borderColor = color;
-    } else {
-      s.className = 'seat empty';
-      s.style.background = '';
-      s.style.borderColor = '';
+// Track how many seats each airline has filled (for incremental animation)
+let lastFilled = {pc: 0, ekBiz: 0, ekEco: 0, tkBiz: 0, tkEco: 0};
+
+// Shuffled index maps — random koltuk atamasi
+function shuffleIndices(n) {
+  const arr = Array.from({length: n}, (_, i) => i);
+  for (let j = arr.length - 1; j > 0; j--) { const k = Math.floor(Math.random()*(j+1)); [arr[j],arr[k]]=[arr[k],arr[j]]; }
+  return arr;
+}
+const pcShuffled = shuffleIndices(150);
+const ekBizShuffled = shuffleIndices(42);
+const ekEcoShuffled = shuffleIndices(280);
+const tkBizShuffled = shuffleIndices(49);
+const tkEcoShuffled = shuffleIndices(300);
+
+function animFillSeats(seatEls, shuffled, prevCount, newCount, color) {
+  // Fill new seats since last update (incremental, random positions)
+  const target = Math.min(newCount, seatEls.length);
+  for (let i = prevCount; i < target; i++) {
+    const si = shuffled[i];
+    if (si < seatEls.length) {
+      seatEls[si].className = 'seat filled';
+      seatEls[si].style.background = color;
+      seatEls[si].style.borderColor = color;
     }
-  });
+  }
+  return target;
 }
 
-// THY fare class colors
 const FC_COLORS = {V:'#94a3b8', K:'#c9a227', M:'#6366f1', Y:'#ef4444'};
 
-function fillTHYSeats(seatEls, bookings) {
-  // Reset all
-  seatEls.forEach(s => { s.className = 'seat empty'; s.style.background = ''; s.style.borderColor = ''; });
-  // Fill from bookings
-  for (let i = 0; i < bookings.length && i < seatEls.length; i++) {
+function animFillTHYSeats(seatEls, shuffled, bookings, prevCount) {
+  const target = Math.min(bookings.length, seatEls.length);
+  for (let i = prevCount; i < target; i++) {
+    const si = shuffled[i];
+    if (si >= seatEls.length) continue;
     const b = bookings[i];
     const color = FC_COLORS[b.fare_class] || '#6366f1';
-    seatEls[i].className = 'seat filled';
-    seatEls[i].style.background = color;
-    seatEls[i].style.borderColor = color;
-    seatEls[i].title = `${b.fare_class} - $${b.price} | DTD:${b.dtd} | Seg:${b.segment}`;
+    seatEls[si].className = 'seat filled';
+    seatEls[si].style.background = color;
+    seatEls[si].style.borderColor = color;
+    seatEls[si].title = `${b.fare_class} - $${b.price} | DTD:${b.dtd} | Seg:${b.segment}`;
   }
+  return target;
 }
 
 // ── POLLING ────────────────────────────────────────────
@@ -278,6 +290,7 @@ async function pollAll() {
 function fmt$(v) { return '$' + Math.round(v).toLocaleString(); }
 
 function updatePage(status, comp) {
+  checkSimReset(status.state);
   // State
   const stMap = {idle:'READY',running:'RUNNING',paused:'PAUSED',completed:'COMPLETED',ready:'READY'};
   const stEl = document.getElementById('simState');
@@ -294,7 +307,6 @@ function updatePage(status, comp) {
 
   // THY KPIs
   document.getElementById('tkSold').textContent = (s.total_sold || 0).toLocaleString();
-  document.getElementById('tkRev').textContent = fmt$(s.revenue_dynamic || 0);
   const delta = s.revenue_delta_pct || 0;
   const deltaEl = document.getElementById('tkDelta');
   deltaEl.textContent = (delta > 0 ? '+' : '') + delta + '%';
@@ -316,20 +328,18 @@ function updatePage(status, comp) {
     if (pc) {
       document.getElementById('pcLF').textContent = pc.avg_lf + '%';
       document.getElementById('pcSold').textContent = pc.total_sold.toLocaleString();
-      document.getElementById('pcRev').textContent = fmt$(pc.total_revenue);
-      // Fill Pegasus seats
-      fillSeats(pcSeats, Math.min(pc.total_sold, 150), '#f59e0b');
+      // Animated Pegasus seats
+      lastFilled.pc = animFillSeats(pcSeats, pcShuffled, lastFilled.pc, pc.total_sold, '#f59e0b');
     }
 
     if (ek) {
       document.getElementById('ekLF').textContent = ek.avg_lf + '%';
       document.getElementById('ekSold').textContent = ek.total_sold.toLocaleString();
-      document.getElementById('ekRev').textContent = fmt$(ek.total_revenue);
-      // Fill Emirates seats — split biz/eco proportionally
+      // Animated Emirates seats — biz/eco proportional split
       const ekBizSold = Math.round(ek.total_sold * (42 / 322));
       const ekEcoSold = ek.total_sold - ekBizSold;
-      fillSeats(ekBizSeats, Math.min(ekBizSold, 42), '#06b6d4');
-      fillSeats(ekEcoSeats, Math.min(ekEcoSold, 280), '#0e7490');
+      lastFilled.ekBiz = animFillSeats(ekBizSeats, ekBizShuffled, lastFilled.ekBiz, ekBizSold, '#06b6d4');
+      lastFilled.ekEco = animFillSeats(ekEcoSeats, ekEcoShuffled, lastFilled.ekEco, ekEcoSold, '#0e7490');
     }
 
     // Market share
@@ -368,15 +378,14 @@ async function loadTHYSeats() {
     const res = await fetch('/api/sim/flights');
     const data = await res.json();
     const flights = data.flights || [];
-    // Get first economy and business flight
     const eco = flights.find(f => f.cabin === 'economy');
     const biz = flights.find(f => f.cabin === 'business');
 
     if (eco) {
       const detail = await (await fetch('/api/sim/flight/' + encodeURIComponent(eco.key))).json();
-      if (detail.bookings) fillTHYSeats(tkEcoSeats, detail.bookings);
+      const activeBookings = (detail.bookings || []).filter(b => !b.cancelled);
+      lastFilled.tkEco = animFillTHYSeats(tkEcoSeats, tkEcoShuffled, activeBookings, lastFilled.tkEco);
       document.getElementById('tkLFeco').textContent = Math.round(eco.load_factor * 100) + '%';
-      // Price
       const depDate = eco.dep_date;
       document.getElementById('depDateLabel').textContent = 'Departure: ' + depDate;
       if (eco.dtd !== undefined) {
@@ -385,10 +394,26 @@ async function loadTHYSeats() {
     }
     if (biz) {
       const detail = await (await fetch('/api/sim/flight/' + encodeURIComponent(biz.key))).json();
-      if (detail.bookings) fillTHYSeats(tkBizSeats, detail.bookings);
+      const activeBookings = (detail.bookings || []).filter(b => !b.cancelled);
+      lastFilled.tkBiz = animFillTHYSeats(tkBizSeats, tkBizShuffled, activeBookings, lastFilled.tkBiz);
       document.getElementById('tkLFbiz').textContent = Math.round(biz.load_factor * 100) + '%';
     }
   } catch(e) {}
+}
+
+// Reset seat states when new sim detected
+let lastSimState = 'idle';
+function checkSimReset(state) {
+  if (lastSimState !== 'running' && state === 'running') {
+    // New sim started — reset all seats and counters
+    lastFilled = {pc: 0, ekBiz: 0, ekEco: 0, tkBiz: 0, tkEco: 0};
+    pcSeats.forEach(s => { s.className = 'seat empty'; s.style.background=''; s.style.borderColor=''; });
+    ekBizSeats.forEach(s => { s.className = 'seat empty'; s.style.background=''; s.style.borderColor=''; });
+    ekEcoSeats.forEach(s => { s.className = 'seat empty'; s.style.background=''; s.style.borderColor=''; });
+    tkBizSeats.forEach(s => { s.className = 'seat empty'; s.style.background=''; s.style.borderColor=''; });
+    tkEcoSeats.forEach(s => { s.className = 'seat empty'; s.style.background=''; s.style.borderColor=''; });
+  }
+  lastSimState = state;
 }
 
 // Start polling
