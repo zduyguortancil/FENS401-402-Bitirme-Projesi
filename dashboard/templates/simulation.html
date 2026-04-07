@@ -784,82 +784,221 @@ function showSeatDetail(booking, el) {
 }
 
 function openPricingPopup(booking) {
-  // Cift tik veya link: yeni pencerede detayli pricing formulation
   const b = booking;
   const segNames = {A:'Corporate Traveler',B:'VFR / Diaspora',C:'MICE / Medical',D:'Leisure (Early)',E:'Student / Budget',F:'Last-Minute',HUMAN:'Manual Booking'};
-  const fcNames = {V:'V — Promo',K:'K — Discount',M:'M — Flex',Y:'Y — Full Fare'};
+  const fcNames = {V:'V \u2014 Promo',K:'K \u2014 Discount',M:'M \u2014 Flex',Y:'Y \u2014 Full Fare'};
+  const fcDescriptions = {
+    V:'Lowest fare. No changes or cancellations. Limited baggage.',
+    K:'Discounted fare. Paid changes only. 1 checked bag.',
+    M:'Standard fare. Free changes. 2 checked bags.',
+    Y:'Full flexibility. Free cancellation and changes. 2 bags + priority.'
+  };
   const fcColors = {V:'#94a3b8',K:'#c9a227',M:'#6366f1',Y:'#ef4444'};
+  const fcMults = {V:0.50, K:0.75, M:1.00, Y:1.50};
   const seg = b.segment || '?';
   const m = b.multipliers || {};
   const cp = b.competitor_prices || {};
   const fcColor = fcColors[b.fare_class] || '#fff';
 
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Booking #${b.dtd}d — ${fcNames[b.fare_class]||b.fare_class}</title>
+  const verify = (b.base_price * b.fc_multiplier * (m.combined||1)).toFixed(2);
+  const revDelta = (b.price - b.baseline_price).toFixed(2);
+  const revDeltaPct = b.baseline_price > 0 ? ((b.price - b.baseline_price)/b.baseline_price*100).toFixed(1) : '0';
+  const wtpPass = (b.personal_wtp||0) >= (b.fc_multiplier||1);
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pricing Analysis \u2014 DTD ${b.dtd}</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter','Segoe UI',sans-serif;background:#0a0e14;color:#c9d1d9;padding:2rem;max-width:700px;margin:0 auto}
-h1{font-size:1.1rem;color:#e6edf3;margin-bottom:.3rem}
-h2{font-size:.85rem;color:#58a6ff;margin:1.5rem 0 .6rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #21262d;padding-bottom:.4rem}
-.sub{font-size:.75rem;color:#6e7681;margin-bottom:1.5rem}
-.row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #161b22;font-size:.82rem}
-.row .lbl{color:#8b949e}.row .val{font-family:'JetBrains Mono',monospace;font-weight:600;color:#e6edf3}
-.row .val.green{color:#3fb950}.row .val.red{color:#f85149}.row .val.accent{color:#58a6ff}.row .val.warn{color:#d29922}
-.formula{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:1rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.8;color:#c9d1d9}
-.formula b{color:#58a6ff}.formula .op{color:#6e7681}.formula .res{color:#3fb950;font-size:.9rem}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;margin-left:.5rem}
-.comp-row{display:flex;align-items:center;gap:1rem;padding:.4rem 0;font-size:.78rem}
-.comp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+body{font-family:'Libre Baskerville','Georgia',serif;background:#fdfdfc;color:#1e1e1e;padding:2.8rem 3.2rem;max-width:780px;margin:0 auto;line-height:1.75;font-size:15px}
+h1{font-family:'IBM Plex Sans',sans-serif;font-size:1.45rem;font-weight:700;color:#0f0f0f;margin-bottom:.3rem;letter-spacing:-.01em}
+.paper-sub{font-family:'IBM Plex Sans',sans-serif;font-size:.82rem;color:#666;margin-bottom:2rem;padding-bottom:.8rem;border-bottom:2.5px solid #1a1a1a}
+h2{font-family:'IBM Plex Sans',sans-serif;font-size:.98rem;font-weight:700;color:#1a1a1a;margin:2.2rem 0 .9rem;counter-increment:section;text-transform:uppercase;letter-spacing:.06em}
+h2::before{content:counter(section) ". ";color:#999;font-weight:600}
+body{counter-reset:section}
+p{margin:.6rem 0;font-size:.93rem;color:#333}
+
+/* Equation blocks */
+.eq{background:#f7f6f3;border-left:3px solid #2563eb;padding:1rem 1.4rem;margin:1.2rem 0;font-family:'IBM Plex Mono',monospace;font-size:.84rem;line-height:2;color:#2a2a2a;border-radius:0 8px 8px 0}
+.eq .v{color:#2563eb;font-weight:600}
+.eq .op{color:#999}
+.eq .result{color:#16a34a;font-weight:700;font-size:.95rem}
+.eq .label{color:#777;font-family:'Libre Baskerville',serif;font-style:italic;font-size:.82rem}
+
+/* Definition blocks */
+.defn{background:#fafaf7;border:1px solid #e5e5e0;border-radius:8px;padding:1.1rem 1.4rem;margin:1.2rem 0;font-family:'IBM Plex Mono',monospace;font-size:.82rem;line-height:2.1;color:#333}
+.defn-title{font-family:'IBM Plex Sans',sans-serif;font-weight:700;font-size:.82rem;color:#555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;display:block}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:1.1rem 0;font-family:'IBM Plex Sans',sans-serif;font-size:.85rem}
+th{text-align:left;font-weight:600;color:#555;padding:.55rem .7rem;border-bottom:2px solid #d4d4d4;text-transform:uppercase;font-size:.75rem;letter-spacing:.05em}
+td{padding:.5rem .7rem;border-bottom:1px solid #eee;color:#333}
+td:last-child{font-family:'IBM Plex Mono',monospace;text-align:right;font-weight:500}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-family:'IBM Plex Mono',monospace;font-weight:600;margin-left:.4rem;letter-spacing:.02em}
+.tag-green{background:#dcfce7;color:#15803d}.tag-amber{background:#fef9c3;color:#854d0e}.tag-blue{background:#dbeafe;color:#1d4ed8}.tag-purple{background:#f3e8ff;color:#7c3aed}.tag-red{background:#fee2e2;color:#b91c1c}
+.pass{color:#16a34a;font-weight:700}.fail{color:#dc2626;font-weight:700}
+
+/* Verdict */
+.verdict{background:#f0f9ff;border:1px solid #bfdbfe;border-radius:8px;padding:1.1rem 1.4rem;margin:1.2rem 0;font-size:.9rem;line-height:1.7}
+.verdict strong{color:#0f172a}
+
+/* Competition table */
+.comp-tbl td:first-child{font-weight:600}
+.comp-tbl .us-row{background:#f0f9ff}
+
+/* Footnote */
+.footnote{font-family:'IBM Plex Sans',sans-serif;font-size:.75rem;color:#999;margin-top:2.5rem;padding-top:1rem;border-top:1px solid #ddd}
 </style></head><body>
-<h1>Pricing Decision — Seat ${b.seatLabel || ''}</h1>
-<div class="sub">${segNames[seg] || seg} | ${b.cabin === 'business' ? 'Business' : 'Economy'} | DTD: ${b.dtd} days | ${(b.timestamp||'').substring(0,16)}</div>
 
-<h2>1. Base Price Calculation</h2>
-<div class="row"><span class="lbl">Route Distance</span><span class="val">${b.cabin} class</span></div>
-<div class="row"><span class="lbl">Base Price (distance regression)</span><span class="val accent">$${b.base_price || '?'}</span></div>
+<h1>Pricing Decision Analysis</h1>
+<div class="paper-sub">Seat ${b.seatLabel || '\u2014'} &nbsp;|&nbsp; ${segNames[seg] || seg} &nbsp;|&nbsp; ${b.cabin === 'business' ? 'Business' : 'Economy'} Cabin &nbsp;|&nbsp; DTD ${b.dtd} &nbsp;|&nbsp; ${(b.timestamp||'').substring(0,16)}</div>
 
-<h2>2. Dynamic Multipliers</h2>
-<div class="row"><span class="lbl">Supply Multiplier <span class="tag" style="background:rgba(63,185,80,.12);color:#3fb950">LF=${(b.load_factor_at_booking*100).toFixed(1)}%</span></span><span class="val">${(m.supply||1).toFixed(4)}x</span></div>
-<div class="row"><span class="lbl">Demand Multiplier <span class="tag" style="background:rgba(210,153,34,.12);color:#d29922">Season+DOW</span></span><span class="val">${(m.demand||1).toFixed(4)}x</span></div>
-<div class="row"><span class="lbl">Sentiment Multiplier <span class="tag" style="background:rgba(88,166,255,.12);color:#58a6ff">GDELT+DeBERTa</span></span><span class="val">${(m.sentiment||1).toFixed(4)}x</span></div>
-<div class="row"><span class="lbl">Customer Multiplier <span class="tag" style="background:rgba(188,140,255,.12);color:#bc8cff">Seg ${seg}</span></span><span class="val">${(m.customer||1).toFixed(4)}x</span></div>
-<div class="row"><span class="lbl">Competitive Multiplier <span class="tag" style="background:rgba(248,81,73,.12);color:#f85149">vs Rivals</span></span><span class="val">${(m.competitive||1).toFixed(4)}x</span></div>
-<div class="row" style="border-bottom:2px solid #58a6ff"><span class="lbl" style="font-weight:700;color:#e6edf3">Combined Multiplier</span><span class="val accent" style="font-size:.95rem">${(m.combined||1).toFixed(4)}x</span></div>
-
-<h2>3. Price Formula</h2>
-<div class="formula">
-<b>Final Price</b> <span class="op">=</span> Base Price <span class="op">×</span> Fare Class Mult <span class="op">×</span> Combined<br>
-<b>$${b.price}</b> <span class="op">=</span> $${b.base_price} <span class="op">×</span> ${b.fc_multiplier}x <span class="op">×</span> ${(m.combined||1).toFixed(4)}x<br><br>
-<span class="op">// Verification:</span> $${b.base_price} × ${b.fc_multiplier} × ${(m.combined||1).toFixed(4)} = <span class="res">$${(b.base_price * b.fc_multiplier * (m.combined||1)).toFixed(2)}</span>
+<h2>Base Price Derivation</h2>
+<p>The base fare is computed through a distance-based regression model calibrated on historical booking data:</p>
+<div class="eq">
+<span class="v">P</span><sub>base</sub> <span class="op">=</span> f(distance) <span class="op">&times;</span> <span class="v">&phi;</span><sub>route</sub><br>
+<span class="label">where f(d) = max(d &times; 0.08, 150) for economy, d &times; 0.35 for business</span><br>
+<span class="v">P</span><sub>base</sub> <span class="op">=</span> <span class="result">\$${b.base_price || '?'}</span>
 </div>
 
-<h2>4. Passenger WTP Decision</h2>
-<div class="row"><span class="lbl">Personal WTP Multiplier</span><span class="val">${b.personal_wtp || '?'}x</span></div>
-<div class="row"><span class="lbl">Max Willing to Pay</span><span class="val">$${b.max_willing || '?'}</span></div>
-<div class="row"><span class="lbl">WTP vs Fare Class (${b.fare_class} = ${b.fc_multiplier}x)</span><span class="val ${(b.personal_wtp||0) >= (b.fc_multiplier||1) ? 'green' : 'red'}">${b.personal_wtp||0} ${(b.personal_wtp||0) >= (b.fc_multiplier||1) ? '≥' : '<'} ${b.fc_multiplier} → ${(b.personal_wtp||0) >= (b.fc_multiplier||1) ? 'CAN AFFORD' : 'CANNOT'}</span></div>
-<div class="row"><span class="lbl">Open Fare Classes at Booking</span><span class="val">${(b.open_fares||[]).join(', ') || '?'}</span></div>
-<div class="row"><span class="lbl">Chosen Fare Class</span><span class="val" style="color:${fcColor}">${fcNames[b.fare_class] || b.fare_class}</span></div>
+<h2>Dynamic Multiplier Decomposition</h2>
+<p>Five independent multiplicative factors adjust the base fare in real time:</p>
+<table>
+<tr><th>Factor</th><th>Data Source</th><th>Value</th></tr>
+<tr><td><span class="v" style="font-family:'IBM Plex Mono',monospace">&alpha;</span><sub>supply</sub> <span class="tag tag-green">LF ${(b.load_factor_at_booking*100).toFixed(1)}%</span></td><td>XGBoost Pickup Model</td><td>${(m.supply||1).toFixed(4)}&times;</td></tr>
+<tr><td><span class="v" style="font-family:'IBM Plex Mono',monospace">&alpha;</span><sub>demand</sub> <span class="tag tag-amber">Season</span></td><td>Seasonality + DOW + Events</td><td>${(m.demand||1).toFixed(4)}&times;</td></tr>
+<tr><td><span class="v" style="font-family:'IBM Plex Mono',monospace">&alpha;</span><sub>sentiment</sub> <span class="tag tag-blue">NLP</span></td><td>GDELT + DeBERTa Pipeline</td><td>${(m.sentiment||1).toFixed(4)}&times;</td></tr>
+<tr><td><span class="v" style="font-family:'IBM Plex Mono',monospace">&alpha;</span><sub>customer</sub> <span class="tag tag-purple">Seg ${seg}</span></td><td>Segment WTP Profile</td><td>${(m.customer||1).toFixed(4)}&times;</td></tr>
+<tr><td><span class="v" style="font-family:'IBM Plex Mono',monospace">&alpha;</span><sub>competitive</sub> <span class="tag tag-red">Rival</span></td><td>Competitor Price Signal</td><td>${(m.competitive||1).toFixed(4)}&times;</td></tr>
+<tr style="border-top:2.5px solid #333"><td style="font-weight:700"><span class="v" style="font-family:'IBM Plex Mono',monospace">A</span><sub>combined</sub></td><td style="font-weight:700">Product of all factors</td><td style="font-weight:700;color:#2563eb">${(m.combined||1).toFixed(4)}&times;</td></tr>
+</table>
 
-<h2>5. Competitor Landscape</h2>
-${Object.keys(cp).length > 0 ? Object.entries(cp).map(([code, price]) =>
-  `<div class="comp-row">
-    <span class="comp-dot" style="background:${code==='PC'?'#f59e0b':'#e879f9'}"></span>
-    <span style="font-weight:600">${code==='PC'?'Pegasus':'Emirates'}</span>
-    <span style="color:#8b949e;flex:1">Fixed Price</span>
-    <span style="font-family:'JetBrains Mono',monospace;font-weight:600">$${price}</span>
-    <span style="font-size:.7rem;color:${price < b.price ? '#f85149' : '#3fb950'}">${price < b.price ? 'CHEAPER' : 'MORE EXPENSIVE'}</span>
-  </div>`).join('') : '<div style="font-size:.78rem;color:#6e7681">No competitors on this route/cabin</div>'}
-<div class="comp-row" style="border-top:1px solid #21262d;padding-top:.5rem;margin-top:.3rem">
-  <span class="comp-dot" style="background:#58a6ff"></span>
-  <span style="font-weight:600;color:#58a6ff">THY (Us)</span>
-  <span style="color:#8b949e;flex:1">Dynamic Price</span>
-  <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#3fb950">$${b.price}</span>
-  <span style="font-size:.7rem;color:#3fb950">CHOSEN ✓</span>
+<h2>Final Price Computation</h2>
+<div class="eq">
+<span class="v">P</span><sub>final</sub> <span class="op">=</span> <span class="v">P</span><sub>base</sub> <span class="op">&times;</span> <span class="v">&mu;</span><sub>fc</sub> <span class="op">&times;</span> <span class="v">A</span><sub>combined</sub><br>
+<span class="v">P</span><sub>final</sub> <span class="op">=</span> \$${b.base_price} <span class="op">&times;</span> ${b.fc_multiplier} <span class="op">&times;</span> ${(m.combined||1).toFixed(4)}<br>
+<span class="v">P</span><sub>final</sub> <span class="op">=</span> <span class="result">\$${verify}</span> <span class="label">&nbsp; (recorded: \$${b.price})</span>
 </div>
 
-<h2>6. Revenue Impact</h2>
-<div class="row"><span class="lbl">Dynamic Price (Engine)</span><span class="val green">$${b.price}</span></div>
-<div class="row"><span class="lbl">Baseline Price (Old Formula)</span><span class="val" style="color:#8b949e">$${b.baseline_price}</span></div>
-<div class="row"><span class="lbl">Revenue Delta</span><span class="val ${b.price >= b.baseline_price ? 'green' : 'red'}">${b.price >= b.baseline_price ? '+' : ''}$${(b.price - b.baseline_price).toFixed(2)} (${b.baseline_price > 0 ? ((b.price - b.baseline_price)/b.baseline_price*100).toFixed(1) : 0}%)</span></div>
+<h2>Fare Class Architecture</h2>
+<p>The RM system manages a four-tier nested fare class hierarchy. Each class has three independent closure triggers:</p>
+
+<div class="defn">
+<span class="defn-title">Closure Conditions</span>
+(1) <span class="v">LF</span><sub>max</sub> &ge; <span class="v">&tau;</span><sub>class</sub> &mdash; <span class="label">load factor exceeds threshold</span><br>
+(2) <span class="v">n</span><sub>sold</sub> &ge; <span class="v">Q</span><sub>class</sub> &mdash; <span class="label">class quota exhausted (Q = quota% &times; capacity)</span><br>
+(3) DTD outside booking window &mdash; <span class="label">time-based restriction</span><br>
+<br>
+<span class="defn-title">Nesting Rule</span>
+If class closes, all lower-priced classes close automatically.
+</div>
+
+<table>
+<tr><th>Class</th><th>Multiplier</th><th>LF Threshold</th><th>Quota</th><th>DTD Window</th><th>Status</th></tr>
+${['V','K','M','Y'].map(fc => {
+  const thresholds = {V:'40%', K:'70%', M:'85%', Y:'100%'};
+  const quotas = {V:'10%', K:'40%', M:'75%', Y:'100%'};
+  const dtdWindows = {V:'60+', K:'14 \u2013 999', M:'7 \u2013 999', Y:'0 \u2013 29'};
+  const isOpen = (b.open_fares||[]).includes(fc);
+  const isChosen = b.fare_class === fc;
+  const statusTag = isChosen
+    ? '<span class="tag tag-green">SELECTED</span>'
+    : isOpen ? '<span class="tag tag-blue">OPEN</span>'
+    : '<span class="tag tag-red">CLOSED</span>';
+  const rowStyle = isChosen
+    ? ' style="background:#f0fdf4;font-weight:600"'
+    : !isOpen ? ' style="color:#aaa"' : '';
+  return '<tr' + rowStyle + '>' +
+    '<td style="color:' + fcColors[fc] + ';font-weight:700;font-family:IBM Plex Mono,monospace">' + fc + '</td>' +
+    '<td>' + fcMults[fc].toFixed(2) + 'x</td>' +
+    '<td>' + thresholds[fc] + '</td>' +
+    '<td>' + quotas[fc] + '</td>' +
+    '<td>' + dtdWindows[fc] + '</td>' +
+    '<td>' + statusTag + '</td></tr>';
+}).join('')}
+</table>
+
+<p style="font-size:.84rem;color:#666;font-family:'IBM Plex Sans',sans-serif">
+At booking time: LF = ${(b.load_factor_at_booking*100).toFixed(1)}%, DTD = ${b.dtd}.
+Open fare set = { ${(b.open_fares||[]).join(', ') || 'none'} }.
+</p>
+
+<h2>Fare Class Selection Algorithm</h2>
+<p>The passenger draws a personal willingness-to-pay (WTP) multiplier from their segment distribution. Because both sides of the affordability constraint share the factor P<sub>base</sub> &times; A<sub>combined</sub>, the test simplifies:</p>
+
+<div class="eq">
+<span class="v">P</span><sub>max</sub> <span class="op">=</span> <span class="v">P</span><sub>base</sub> &times; <span class="v">A</span> &times; <span class="v">&omega;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<span class="v">P</span><sub>fare</sub> <span class="op">=</span> <span class="v">P</span><sub>base</sub> &times; <span class="v">A</span> &times; <span class="v">&mu;</span><sub>fc</sub><br>
+<br>
+<span class="label">Affordability test:</span> &nbsp;
+<span class="v">P</span><sub>max</sub> &ge; <span class="v">P</span><sub>fare</sub>
+&nbsp;&hArr;&nbsp;
+<span class="v">&omega;</span> &ge; <span class="v">&mu;</span><sub>fc</sub>
+&nbsp;&nbsp;
+<span class="label">(base &times; A cancels on both sides)</span>
+</div>
+
+<div class="defn">
+<span class="defn-title">Selection Procedure</span>
+<b>Input:</b> Open classes = { ${(b.open_fares||[]).join(', ')} }, &omega; = ${b.personal_wtp||'?'}<br>
+<b>Rule:</b> Iterate from most expensive to cheapest. Select the first class where &omega; &ge; &mu;.<br>
+<br>
+${(b.open_fares||[]).slice().reverse().map(fc => {
+  const affordable = (b.personal_wtp||0) >= fcMults[fc];
+  const isChosen = b.fare_class === fc;
+  return '<span style="color:#888">test</span> ' +
+    '<span class="v">' + fc + '</span>: ' +
+    '&omega; = ' + (b.personal_wtp||'?') + ' ' +
+    (affordable ? '&ge;' : '&lt;') + ' ' +
+    fcMults[fc].toFixed(2) + ' = &mu;<sub>' + fc + '</sub>' +
+    ' &rarr; ' +
+    (affordable
+      ? '<span class="pass">PASS</span>'
+      : '<span class="fail">FAIL</span>') +
+    (isChosen ? ' &larr; <span class="result">highest affordable, selected</span>' : '') +
+    '<br>';
+}).join('')}
+<br>
+<b>Result:</b> <span class="result">${b.fare_class}</span> at &mu; = ${b.fc_multiplier}
+</div>
+
+<table>
+<tr><th>Parameter</th><th>Description</th><th>Value</th></tr>
+<tr><td style="font-family:'IBM Plex Mono',monospace"><span class="v">&omega;</span></td><td>Personal WTP multiplier (Segment ${seg})</td><td>${b.personal_wtp || '?'}x</td></tr>
+<tr><td style="font-family:'IBM Plex Mono',monospace">P<sub>max</sub></td><td>Maximum willing to pay (P<sub>base</sub> &times; A &times; &omega;)</td><td>\$${b.max_willing || '?'}</td></tr>
+<tr><td style="font-family:'IBM Plex Mono',monospace"><span class="v">&mu;</span><sub>fc</sub></td><td>Fare class multiplier for ${b.fare_class}</td><td>${b.fc_multiplier}x</td></tr>
+<tr><td>Open classes</td><td>Available at DTD = ${b.dtd}</td><td>${(b.open_fares||[]).join(', ') || 'none'}</td></tr>
+<tr><td style="font-weight:700">Selected</td><td>${fcDescriptions[b.fare_class] || ''}</td><td style="color:${fcColor};font-weight:700;font-size:.95rem">${fcNames[b.fare_class] || b.fare_class}</td></tr>
+</table>
+
+<h2>Competitive Landscape</h2>
+${Object.keys(cp).length > 0 ? `<table class="comp-tbl">
+<tr><th>Airline</th><th>Pricing Model</th><th>Price</th></tr>
+${Object.entries(cp).map(([code, price]) =>
+  '<tr><td>' + (code==='PC'?'Pegasus':'Emirates') + '</td><td>Static (DTD ladder)</td><td>\\$' + price + ' <span class="tag ' + (price < b.price ? 'tag-red' : 'tag-green') + '">' + (price < b.price ? 'cheaper' : 'pricier') + '</span></td></tr>'
+).join('')}
+<tr class="us-row" style="border-top:2.5px solid #2563eb"><td style="color:#2563eb">THY (Dynamic)</td><td>RM Engine</td><td style="color:#16a34a;font-weight:700">\$${b.price}</td></tr>
+</table>` : '<p style="color:#999">No competing airlines on this route/cabin combination.</p>'}
+
+<h2>Revenue Impact</h2>
+<table>
+<tr><th>Metric</th><th>Description</th><th>Value</th></tr>
+<tr><td>Dynamic price</td><td>RM engine output</td><td class="pass">\$${b.price}</td></tr>
+<tr><td>Baseline price</td><td>Static pricing (legacy)</td><td>\$${b.baseline_price}</td></tr>
+<tr><td>&Delta; Revenue</td><td>Dynamic vs. baseline</td><td class="${b.price >= b.baseline_price ? 'pass' : 'fail'}">${b.price >= b.baseline_price ? '+' : ''}\$${revDelta} (${revDeltaPct}%)</td></tr>
+</table>
+
+<div class="verdict">
+<strong>Summary:</strong> A ${segNames[seg]||seg} passenger booked at DTD ${b.dtd} when load factor was ${(b.load_factor_at_booking*100).toFixed(1)}%.
+The engine priced fare class ${b.fare_class} at <strong>\$${b.price}</strong> (${revDelta >= 0 ? '+' : ''}\$${revDelta} vs. baseline),
+driven primarily by ${m.supply > 1.1 ? 'supply-side pressure' : m.demand > 1.05 ? 'seasonal demand uplift' : m.sentiment < 0.97 ? 'negative market sentiment' : 'near-baseline market conditions'}.
+${Object.keys(cp).length > 0 ? 'Competitor fares: ' + Object.entries(cp).map(([c,p]) => (c==='PC'?'Pegasus':'Emirates')+' \\$'+p).join(', ') + '.' : ''}
+</div>
+
+<div class="footnote">
+SeatWise Revenue Management System &mdash; Pricing Decision Report<br>
+Simulation timestamp: ${(b.timestamp||'').substring(0,19)} &nbsp;|&nbsp; Fare multipliers: V = 0.50, K = 0.75, M = 1.00, Y = 1.50
+</div>
 
 </body></html>`;
 
@@ -1326,17 +1465,10 @@ function renderFlightTable(flights){
   }
 }
 
-// ═══════════════════════════════════════════
-// EXPLAINABILITY PANEL
-// ═══════════════════════════════════════════
-
-let _tftInterp = null;
 window._selectedFlightKey = null;
 
-// Tablo satirina tiklandiginda — seatmap'e dokunma, sadece paneli guncelle
 function onFlightRowClick(key, cabin, route, depDate, idx) {
   window._selectedFlightKey = key;
-  // Seatmap sadece ilk kez veya farkli ucus secildiginde yuklenir
   if (seatmapFlightKeys[cabin] !== key) {
     seatmapFlightKeys = {economy: null, business: null};
     seatmapFlightKeys[cabin] = key;
@@ -1345,24 +1477,11 @@ function onFlightRowClick(key, cabin, route, depDate, idx) {
     document.getElementById('seatmapFlightLabel').textContent = route.replace('-',' \u2192 ') + ' | ' + depDate;
     window._simDepDate = depDate;
   }
-  // Paneli guncelle
-  const flight = window._lastFlights?.find(f => f.key === key);
-  if (flight) {
-    updatePricingDecomp(flight);
-    updateEMSRbStatus(flight);
-  }
-  // Satir highlight
   document.querySelectorAll('#tblBody tr').forEach(tr => tr.style.background = '');
   const rows = document.querySelectorAll('#tblBody tr');
   if (rows[idx]) rows[idx].style.background = 'rgba(88,166,255,.08)';
 }
 
-// Otomatik panel guncelleme (her poll'da secili ucus icin)
-function autoUpdatePanel(flight) {
-  if (!flight) return;
-  updatePricingDecomp(flight);
-  updateEMSRbStatus(flight);
-}
 
 async function loadTFTInterpretation() {
   try {
