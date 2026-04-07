@@ -584,46 +584,33 @@ async function loadSeatmap() {
 }
 
 async function loadSeatmapBoth() {
-  // Iki kabini paralel cek
-  const newItems = [];
+  // Tum bookingleri tek seferde cek ve TIMESTAMP sirasina koy
+  const allItems = [];
   for (const [cabin, key] of [['business', seatmapFlightKeys.business], ['economy', seatmapFlightKeys.economy]]) {
     if (!key) continue;
     try {
       const res = await fetch('/api/sim/flight/' + encodeURIComponent(key));
       const detail = await res.json();
       if (detail.error) continue;
-
       const bookings = (detail.bookings || []).filter(b => !b.cancelled);
-      const prevCount = lastSeatCount[cabin];
-
-      if (bookings.length > prevCount) {
-        for (let i = prevCount; i < bookings.length; i++) {
-          const seatIdx = availableSeats[cabin].length > 0 ? availableSeats[cabin].pop() : i;
-          newItems.push({cabin, idx: seatIdx, booking: bookings[i]});
+      // Her booking'e sirali index ver (koltuklara 0,1,2... seklinde atanacak)
+      bookings.forEach((b, i) => {
+        if (i < (cabin === 'business' ? 49 : 300)) {
+          allItems.push({cabin, idx: i, booking: b});
         }
-        lastSeatCount[cabin] = bookings.length;
-      }
+      });
+      lastSeatCount[cabin] = bookings.length;
     } catch(e) {}
   }
 
-  // Fare class onceligi: V -> K -> M -> Y, ayni class icinde timestamp sirali
-  if (newItems.length > 0) {
-    const fcOrder = {V:0, K:1, M:2, Y:3, HUMAN:4};
-    newItems.sort((a, b) => {
-      const fa = fcOrder[a.booking.fare_class] ?? 3;
-      const fb = fcOrder[b.booking.fare_class] ?? 3;
-      if (fa !== fb) return fa - fb;
-      const ta = a.booking.timestamp || '';
-      const tb = b.booking.timestamp || '';
-      if (ta !== tb) return ta.localeCompare(tb);
-      return Math.random() - 0.5;
-    });
-    seatAnimQueue.push(...newItems);
-  }
+  // TIMESTAMP sirasina gor — DTD dogal olarak azalir
+  allItems.sort((a, b) => (a.booking.timestamp || '').localeCompare(b.booking.timestamp || ''));
 
-  // Animasyon baslat
-  if (!seatAnimRunning && seatAnimQueue.length > 0) {
-    drainSeatQueue();
+  if (allItems.length > 0) {
+    seatAnimQueue = allItems;
+    if (!seatAnimRunning) {
+      drainSeatQueue();
+    }
   }
 }
 
@@ -953,8 +940,21 @@ async function fullRefreshSeatmap() {
       lastSeatCount[cabin] = bookings.length;
     } catch(e) {}
   }
-  // Trigger animation from this state
-  loadSeatmapBoth();
+  // Mark animation as complete — seats are already filled directly
+  window._animCompleted = true;
+  window._countdownRunning = false;
+  seatAnimRunning = false;
+  // Show final DTD
+  if (window._simDepDate) {
+    document.getElementById('animDate').textContent = window._simDepDate;
+    document.getElementById('simClock').textContent = window._simDepDate;
+    document.getElementById('animDTD').textContent = 'DEPARTURE!';
+    document.getElementById('simDTD').textContent = 'DEPARTURE!';
+    document.getElementById('animDTD').style.color = 'var(--red)';
+  }
+  document.getElementById('btnStart').disabled = false;
+  document.getElementById('btnPause').disabled = true;
+  document.getElementById('btnResume').disabled = true;
 }
 
 // Build on page load
@@ -1085,6 +1085,7 @@ async function simStart(){
   window._countdownRunning = false;
   window._lastAnimDate = null;
   window._simLoading = true;
+  window._simLoadingSkips = 0;
   resetSeatmap();
   revenueHistory={labels:[],dynamic:[],baseline:[]};
   lfHistory={labels:[],values:[]};
@@ -1229,17 +1230,18 @@ function updateUI(status,flights){
     }
   }
 
-  // Hide loading overlay once we have real data from THIS simulation
-  if (window._simLoading) {
-    if (status.state === 'running' && (status.summary?.total_sold > 0 || status.stats?.total_bots > 0)) {
+  // Loading gate — block ALL UI updates until fresh sim data arrives + 2 extra cycles
+  if (window._simLoading || window._simLoadingSkips > 0) {
+    if (window._simLoading && status.state === 'running' && status.stats?.total_bots > 5) {
+      // Transition: loading done, but skip 2 more cycles to flush stale data
       window._simLoading = false;
+      window._simLoadingSkips = 2;
       document.getElementById('loadingOverlay').style.display='none';
       document.getElementById('kpis').style.opacity='1';
       document.getElementById('btnCompetition').style.display='';
-    } else {
-      // Still loading — don't update any KPIs or tables
-      return;
     }
+    if (window._simLoadingSkips > 0) window._simLoadingSkips--;
+    return;
   }
 
   // KPIs
@@ -1263,12 +1265,8 @@ function updateUI(status,flights){
   // Competition panel
   updateCompetitionPanel(status);
 
-  // Seat map auto-refresh — sadece simulasyon devam ederken ve animasyon calismiyorken
-  if ((seatmapFlightKeys.economy || seatmapFlightKeys.business)
-      && !seatAnimRunning && !window._countdownRunning && !window._animCompleted
-      && status.state === 'running') {
-    loadSeatmapBoth();
-  }
+  // Seat map auto-refresh disabled — _waitAndLoad handles initial load,
+  // fullRefreshSeatmap handles completed state
 
   // Stop polling if completed
   if(status.state==='completed'){
