@@ -379,53 +379,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     </div>
   </div>
 
-  <!-- Explainability Panel -->
-  <div class="explain-panel" id="explainPanel" style="display:none">
-    <div class="explain-header">
-      <span class="explain-title">Explainability Panel</span>
-      <span class="explain-sub">Shows the reasoning behind system decisions</span>
-    </div>
-    <div class="explain-grid">
-
-      <!-- TFT Variable Importance -->
-      <div class="explain-card">
-        <div class="explain-card-title">Demand Forecast Explanation</div>
-        <div class="explain-card-sub">Which inputs does the TFT model rely on most when making decisions?</div>
-        <div id="tftStaticBars" class="bar-section">
-          <div class="bar-label-sm">Route & Cabin Features</div>
-          <div id="tftStaticList"></div>
-        </div>
-        <div id="tftEncoderBars" class="bar-section" style="margin-top:.8rem">
-          <div class="bar-label-sm">Historical Data (last 60 days)</div>
-          <div id="tftEncoderList"></div>
-        </div>
-        <div id="tftDecoderBars" class="bar-section" style="margin-top:.8rem">
-          <div class="bar-label-sm">Future-Known Information</div>
-          <div id="tftDecoderList"></div>
-        </div>
-      </div>
-
-      <!-- Pricing Decomposition -->
-      <div class="explain-card">
-        <div class="explain-card-title">Price Decomposition</div>
-        <div class="explain-card-sub">What factors make up this flight's price?</div>
-        <div id="pricingDecomp">
-          <div class="decomp-placeholder">Auto-updates after simulation starts</div>
-        </div>
-      </div>
-
-      <!-- EMSR-b Fare Class -->
-      <div class="explain-card">
-        <div class="explain-card-title">Fare Class Status</div>
-        <div class="explain-card-sub">Which fare classes are open, and why did some close?</div>
-        <div id="emsrbStatus">
-          <div class="decomp-placeholder">Auto-updates after simulation starts</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
 
 </div>
 
@@ -831,54 +784,88 @@ async function animateSeatFill() {
 }
 
 function showSeatDetail(booking, el) {
-  const panel = document.getElementById('seatDetail');
+  // Yeni pencerede detayli pricing formulation goster
+  const b = booking;
   const segNames = {A:'Corporate Traveler',B:'VFR / Diaspora',C:'MICE / Medical',D:'Leisure (Early)',E:'Student / Budget',F:'Last-Minute',HUMAN:'Manual Booking'};
   const fcNames = {V:'V — Promo',K:'K — Discount',M:'M — Flex',Y:'Y — Full Fare'};
   const fcColors = {V:'#94a3b8',K:'#c9a227',M:'#6366f1',Y:'#ef4444'};
+  const seg = b.segment || '?';
+  const m = b.multipliers || {};
+  const cp = b.competitor_prices || {};
+  const fcColor = fcColors[b.fare_class] || '#fff';
 
-  const seg = booking.segment || '?';
-  const segName = segNames[seg] || ('Segment ' + seg);
-  const fcName = fcNames[booking.fare_class] || booking.fare_class;
-  const fcColor = fcColors[booking.fare_class] || 'var(--text-0)';
-  const cabin = booking.cabin === 'business' ? 'Business' : 'Economy';
-  const isHuman = !booking.is_bot;
-  const basePrice = booking.baseline_price || booking.price;
-  const diff = booking.price - basePrice;
-  const diffPct = basePrice > 0 ? ((diff / basePrice) * 100).toFixed(1) : '0';
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Booking #${b.dtd}d — ${fcNames[b.fare_class]||b.fare_class}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','Segoe UI',sans-serif;background:#0a0e14;color:#c9d1d9;padding:2rem;max-width:700px;margin:0 auto}
+h1{font-size:1.1rem;color:#e6edf3;margin-bottom:.3rem}
+h2{font-size:.85rem;color:#58a6ff;margin:1.5rem 0 .6rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid #21262d;padding-bottom:.4rem}
+.sub{font-size:.75rem;color:#6e7681;margin-bottom:1.5rem}
+.row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #161b22;font-size:.82rem}
+.row .lbl{color:#8b949e}.row .val{font-family:'JetBrains Mono',monospace;font-weight:600;color:#e6edf3}
+.row .val.green{color:#3fb950}.row .val.red{color:#f85149}.row .val.accent{color:#58a6ff}.row .val.warn{color:#d29922}
+.formula{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:1rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.8;color:#c9d1d9}
+.formula b{color:#58a6ff}.formula .op{color:#6e7681}.formula .res{color:#3fb950;font-size:.9rem}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;margin-left:.5rem}
+.comp-row{display:flex;align-items:center;gap:1rem;padding:.4rem 0;font-size:.78rem}
+.comp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+</style></head><body>
+<h1>Pricing Decision — Seat ${b.seatLabel || ''}</h1>
+<div class="sub">${segNames[seg] || seg} | ${b.cabin === 'business' ? 'Business' : 'Economy'} | DTD: ${b.dtd} days | ${(b.timestamp||'').substring(0,16)}</div>
 
-  const isConn = booking.is_connecting;
-  const routeLabel = el?._booking?.cabin ? '' : '';
+<h2>1. Base Price Calculation</h2>
+<div class="row"><span class="lbl">Route Distance</span><span class="val">${b.cabin} class</span></div>
+<div class="row"><span class="lbl">Base Price (distance regression)</span><span class="val accent">$${b.base_price || '?'}</span></div>
 
-  // Baslik: connecting ise rota goster
-  if (isConn && booking.origin) {
-    document.getElementById('sdTitle').innerHTML = `<span style="color:var(--accent)">${booking.origin} → IST → ${(booking.route||'').split('-')[1]||'?'}</span> — <span style="color:${fcColor}">${fcName}</span>`;
-  } else {
-    document.getElementById('sdTitle').innerHTML = `Seat Detail — <span style="color:${fcColor}">${fcName}</span>`;
-  }
+<h2>2. Dynamic Multipliers</h2>
+<div class="row"><span class="lbl">Supply Multiplier <span class="tag" style="background:rgba(63,185,80,.12);color:#3fb950">LF=${(b.load_factor_at_booking*100).toFixed(1)}%</span></span><span class="val">${(m.supply||1).toFixed(4)}x</span></div>
+<div class="row"><span class="lbl">Demand Multiplier <span class="tag" style="background:rgba(210,153,34,.12);color:#d29922">Season+DOW</span></span><span class="val">${(m.demand||1).toFixed(4)}x</span></div>
+<div class="row"><span class="lbl">Sentiment Multiplier <span class="tag" style="background:rgba(88,166,255,.12);color:#58a6ff">GDELT+DeBERTa</span></span><span class="val">${(m.sentiment||1).toFixed(4)}x</span></div>
+<div class="row"><span class="lbl">Customer Multiplier <span class="tag" style="background:rgba(188,140,255,.12);color:#bc8cff">Seg ${seg}</span></span><span class="val">${(m.customer||1).toFixed(4)}x</span></div>
+<div class="row"><span class="lbl">Competitive Multiplier <span class="tag" style="background:rgba(248,81,73,.12);color:#f85149">vs Rivals</span></span><span class="val">${(m.competitive||1).toFixed(4)}x</span></div>
+<div class="row" style="border-bottom:2px solid #58a6ff"><span class="lbl" style="font-weight:700;color:#e6edf3">Combined Multiplier</span><span class="val accent" style="font-size:.95rem">${(m.combined||1).toFixed(4)}x</span></div>
 
-  let html = `
-    <div class="sd-item"><div class="sd-label">Passenger Type</div><div class="sd-val">${isHuman ? 'Manual Booking' : segName}</div></div>
-    <div class="sd-item"><div class="sd-label">Routing</div><div class="sd-val">${isConn ? '<span style="color:var(--accent)">'+(booking.origin||'?')+' → IST → dest (Connecting)</span>' : 'Direct (Local)'}</div></div>
-    <div class="sd-item"><div class="sd-label">Cabin</div><div class="sd-val">${cabin}</div></div>
-    <div class="sd-item"><div class="sd-label">Fare Class</div><div class="sd-val" style="color:${fcColor}">${fcName}</div></div>
-    <div class="sd-item"><div class="sd-label">Paid</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.price)}</div></div>
-    <div class="sd-item"><div class="sd-label">Baseline</div><div class="sd-val" style="color:var(--text-2)">$${Math.round(basePrice)}</div></div>
-    <div class="sd-item"><div class="sd-label">Delta</div><div class="sd-val" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'+':''}$${Math.round(diff)} (${diff>=0?'+':''}${diffPct}%)</div></div>
-    <div class="sd-item"><div class="sd-label">DTD</div><div class="sd-val">${booking.dtd} days</div></div>
-    <div class="sd-item"><div class="sd-label">Booked At</div><div class="sd-val" style="font-size:.75rem">${(booking.timestamp||'').substring(0,16)}</div></div>`;
+<h2>3. Price Formula</h2>
+<div class="formula">
+<b>Final Price</b> <span class="op">=</span> Base Price <span class="op">×</span> Fare Class Mult <span class="op">×</span> Combined<br>
+<b>$${b.price}</b> <span class="op">=</span> $${b.base_price} <span class="op">×</span> ${b.fc_multiplier}x <span class="op">×</span> ${(m.combined||1).toFixed(4)}x<br><br>
+<span class="op">// Verification:</span> $${b.base_price} × ${b.fc_multiplier} × ${(m.combined||1).toFixed(4)} = <span class="res">$${(b.base_price * b.fc_multiplier * (m.combined||1)).toFixed(2)}</span>
+</div>
 
-  // Connecting detaylari
-  if (isConn) {
-    html += `
-    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Origin</div><div class="sd-val" style="color:var(--accent)">${booking.origin || '?'}</div></div>
-    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Total Itinerary</div><div class="sd-val">$${Math.round(booking.total_itinerary_fare || 0)}</div></div>
-    <div class="sd-item" style="border-left:3px solid var(--accent);padding-left:8px"><div class="sd-label">Leg Contribution</div><div class="sd-val" style="color:var(--green)">$${Math.round(booking.leg_contribution || 0)}</div></div>`;
-  }
+<h2>4. Passenger WTP Decision</h2>
+<div class="row"><span class="lbl">Personal WTP Multiplier</span><span class="val">${b.personal_wtp || '?'}x</span></div>
+<div class="row"><span class="lbl">Max Willing to Pay</span><span class="val">$${b.max_willing || '?'}</span></div>
+<div class="row"><span class="lbl">WTP vs Fare Class (${b.fare_class} = ${b.fc_multiplier}x)</span><span class="val ${(b.personal_wtp||0) >= (b.fc_multiplier||1) ? 'green' : 'red'}">${b.personal_wtp||0} ${(b.personal_wtp||0) >= (b.fc_multiplier||1) ? '≥' : '<'} ${b.fc_multiplier} → ${(b.personal_wtp||0) >= (b.fc_multiplier||1) ? 'CAN AFFORD' : 'CANNOT'}</span></div>
+<div class="row"><span class="lbl">Open Fare Classes at Booking</span><span class="val">${(b.open_fares||[]).join(', ') || '?'}</span></div>
+<div class="row"><span class="lbl">Chosen Fare Class</span><span class="val" style="color:${fcColor}">${fcNames[b.fare_class] || b.fare_class}</span></div>
 
-  document.getElementById('sdBody').innerHTML = html;
+<h2>5. Competitor Landscape</h2>
+${Object.keys(cp).length > 0 ? Object.entries(cp).map(([code, price]) =>
+  `<div class="comp-row">
+    <span class="comp-dot" style="background:${code==='PC'?'#f59e0b':'#e879f9'}"></span>
+    <span style="font-weight:600">${code==='PC'?'Pegasus':'Emirates'}</span>
+    <span style="color:#8b949e;flex:1">Fixed Price</span>
+    <span style="font-family:'JetBrains Mono',monospace;font-weight:600">$${price}</span>
+    <span style="font-size:.7rem;color:${price < b.price ? '#f85149' : '#3fb950'}">${price < b.price ? 'CHEAPER' : 'MORE EXPENSIVE'}</span>
+  </div>`).join('') : '<div style="font-size:.78rem;color:#6e7681">No competitors on this route/cabin</div>'}
+<div class="comp-row" style="border-top:1px solid #21262d;padding-top:.5rem;margin-top:.3rem">
+  <span class="comp-dot" style="background:#58a6ff"></span>
+  <span style="font-weight:600;color:#58a6ff">THY (Us)</span>
+  <span style="color:#8b949e;flex:1">Dynamic Price</span>
+  <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#3fb950">$${b.price}</span>
+  <span style="font-size:.7rem;color:#3fb950">CHOSEN ✓</span>
+</div>
 
-  panel.style.display = 'block';
-  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+<h2>6. Revenue Impact</h2>
+<div class="row"><span class="lbl">Dynamic Price (Engine)</span><span class="val green">$${b.price}</span></div>
+<div class="row"><span class="lbl">Baseline Price (Old Formula)</span><span class="val" style="color:#8b949e">$${b.baseline_price}</span></div>
+<div class="row"><span class="lbl">Revenue Delta</span><span class="val ${b.price >= b.baseline_price ? 'green' : 'red'}">${b.price >= b.baseline_price ? '+' : ''}$${(b.price - b.baseline_price).toFixed(2)} (${b.baseline_price > 0 ? ((b.price - b.baseline_price)/b.baseline_price*100).toFixed(1) : 0}%)</span></div>
+
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=740,height=900,scrollbars=yes');
+  w.document.write(html);
+  w.document.close();
 }
 
 function selectFlightSeatmap(key, cabin, route, depDate) {

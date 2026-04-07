@@ -903,6 +903,15 @@ class SimulationEngine:
         inv["revenue_dynamic"] += chosen_price
         inv["revenue_baseline"] += baseline
 
+        # Multiplier detaylarini kaydet (explainability)
+        mults = quote.get("multipliers", {})
+        comp_prices_snap = {}
+        if self.competitor_manager:
+            for cc, comp in self.competitor_manager.competitors.items():
+                cp = comp._price_cache.get(key)
+                if cp:
+                    comp_prices_snap[cc] = round(cp, 2)
+
         booking_record = {
             "timestamp": self.clock.now().isoformat(),
             "dtd": dtd,
@@ -912,6 +921,14 @@ class SimulationEngine:
             "baseline_price": round(baseline, 2),
             "is_bot": True,
             "is_connecting": is_connecting,
+            "base_price": round(base_price, 2),
+            "fc_multiplier": fc_mult,
+            "multipliers": {k: round(v, 4) for k, v in mults.items()},
+            "personal_wtp": round(personal_wtp, 3),
+            "max_willing": round(max_willing, 2),
+            "open_fares": list(open_fares),
+            "load_factor_at_booking": round(inv["load_factor"], 4),
+            "competitor_prices": comp_prices_snap,
         }
         if od_info:
             booking_record["origin"] = od_info["origin"]
