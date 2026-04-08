@@ -641,6 +641,50 @@ async function drainSeatQueue() {
   }
   seatAnimRunning = false;
 
+  // Sim hala devam ediyorsa: countdown + finalize calistirma, polling'e izin ver
+  // (multi-batch animasyon — yeni bookingler geldikce drainSeatQueue tekrar cagrilir)
+  let _simDoneCheck = false;
+  try {
+    const _r = await fetch('/api/sim/status');
+    const _s = await _r.json();
+    _simDoneCheck = (_s.state === 'completed');
+  } catch(e) {}
+  if (!_simDoneCheck) {
+    window._countdownRunning = false;
+    return;
+  }
+
+  // Sim gercekten bitti — animasyon sirasinda kacan bookingleri yakala
+  // (polling seatAnimRunning=true iken loadSeatmapBoth cagiramadigi icin
+  //  yeni bookingler queue'ye girmemis olabilir — burada inline diff-fill yapariz)
+  for (const [_cabin, _key] of [['business', seatmapFlightKeys.business], ['economy', seatmapFlightKeys.economy]]) {
+    if (!_key) continue;
+    try {
+      const _res = await fetch('/api/sim/flight/' + encodeURIComponent(_key));
+      const _detail = await _res.json();
+      if (_detail.error) continue;
+      const _bookings = (_detail.bookings || []).filter(b => !b.cancelled);
+      const _seats = _cabin === 'business' ? seatmapSeats.business : seatmapSeats.economy;
+      const _cabinClass = _cabin === 'business' ? ' biz' : ' eco';
+      const _prevCount = lastSeatCount[_cabin];
+      for (let _i = _prevCount; _i < _bookings.length && _i < _seats.length; _i++) {
+        const _maxSeats = _cabin === 'business' ? 49 : 300;
+        const _seatIdx = availableSeats[_cabin].length > 0 ? availableSeats[_cabin].pop() : -1;
+        if (_seatIdx < 0 || _seatIdx >= _maxSeats) continue;
+        const _b = _bookings[_i];
+        const _cls = _b.is_bot ? _b.fare_class : 'HUMAN';
+        const _el = _seats[_seatIdx];
+        _el.className = `seat${_cabinClass} ${_cls}`;
+        _el.style.cursor = 'pointer';
+        _el.title = `${_b.fare_class} — $${_b.price} | DTD:${_b.dtd}`;
+        _el._booking = {..._b, cabin: _cabin, seatIdx: _seatIdx};
+        _el.onclick = function(){ showSeatDetail(this._booking, this); };
+        _el.ondblclick = function(){ openPricingPopup(this._booking); };
+      }
+      lastSeatCount[_cabin] = _bookings.length;
+    } catch(e) {}
+  }
+
   // Koltuklar bitti — kalan gunleri hizli say (son DTD'den 0'a)
   if (depD && displayedDTD > 0) {
     let curDTD = displayedDTD;
