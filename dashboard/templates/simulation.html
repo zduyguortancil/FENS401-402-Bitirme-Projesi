@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Flight Snapshot — Simulation</title>
+<title>Seatwise Dashboard — Simulation</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
@@ -124,7 +124,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 </head>
 <body>
 <header class="header">
-  <a class="logo" href="/"><div class="logo-icon">&#9992;</div><span>Flight Snapshot</span></a>
+  <a class="logo" href="/"><img src="/static/logo.png" alt="Seatwise" style="height:28px;border-radius:4px" /><span>Seatwise Dashboard</span></a>
   <span class="breadcrumb">/ Simulation</span>
   <div class="hdr-spacer"></div>
   <span class="sim-state idle" id="simState">READY</span>
@@ -208,6 +208,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
     <button class="ctrl-btn primary" id="btnResume" onclick="simResume()" disabled>Resume</button>
     <div class="ctrl-sep"></div>
     <a class="ctrl-btn neutral" href="/competition" target="_blank" id="btnCompetition" style="text-decoration:none;display:none">&#9992; Competition View</a>
+    <button class="ctrl-btn neutral" id="btnReport" onclick="downloadReport()" style="display:none">Generate Report</button>
   </div>
 
   <!-- LOADING OVERLAY -->
@@ -714,10 +715,11 @@ async function drainSeatQueue() {
   window._countdownRunning = false;
   window._animCompleted = true;
 
-  // Animasyon bitti — butonlar + state badge guncelle
+  // Animasyon bitti — butonlar + state badge + report guncelle
   document.getElementById('btnStart').disabled=false;
   document.getElementById('btnPause').disabled=true;
   document.getElementById('btnResume').disabled=true;
+  document.getElementById('btnReport').style.display='';
   const stEl2=document.getElementById('simState');
   stEl2.textContent='COMPLETED';
   stEl2.className='sim-state completed';
@@ -1040,7 +1042,7 @@ ${Object.keys(cp).length > 0 ? 'Competitor fares: ' + Object.entries(cp).map(([c
 </div>
 
 <div class="footnote">
-SeatWise Revenue Management System &mdash; Pricing Decision Report<br>
+Seatwise Revenue Management System &mdash; Pricing Decision Report<br>
 Simulation timestamp: ${(b.timestamp||'').substring(0,19)} &nbsp;|&nbsp; Fare multipliers: V = 0.50, K = 0.75, M = 1.00, Y = 1.50
 </div>
 
@@ -1232,6 +1234,22 @@ function updateCompetitionPanel(status) {
 function fmt$(v){return '$'+Math.round(v).toLocaleString()}
 function fmtPct(v){return (v*100).toFixed(1)+'%'}
 
+async function downloadReport(){
+  const btn = document.getElementById('btnReport');
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/sim/report/pdf');
+    if (!res.ok) { const err = await res.json(); alert(err.error || 'Report generation failed'); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'Seatwise_Simulation_Report.pdf'; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) { alert('Report generation failed: ' + e.message); }
+  finally { btn.textContent = 'Generate Report'; btn.disabled = false; }
+}
+
 async function simStart(){
   const route = document.getElementById('routeSelect').value;
   const depDate = document.getElementById('depDate').value;
@@ -1257,6 +1275,7 @@ async function simStart(){
 
   simPaused = false;
   window._animCompleted = false;
+  document.getElementById('btnReport').style.display='none';
   window._countdownRunning = false;
   window._lastAnimDate = null;
   window._simLoading = true;
@@ -1321,6 +1340,17 @@ async function simStart(){
   _waitAndLoad();
 
   startPolling();
+
+  // Fallback: 8 saniye sonra completed mi kontrol et, buton goster
+  setTimeout(async () => {
+    try {
+      const r = await fetch('/api/sim/status');
+      const s = await r.json();
+      if (s.state === 'completed') {
+        document.getElementById('btnReport').style.display = '';
+      }
+    } catch(e) {}
+  }, 8000);
 }
 
 let simPaused = false;
@@ -1454,6 +1484,7 @@ function updateUI(status,flights){
     document.getElementById('loadingOverlay').style.display='none';
     document.getElementById('kpis').style.opacity='1';
     document.getElementById('btnCompetition').style.display='';
+    document.getElementById('btnReport').style.display='';
     window._simLoading = false;
     // Animasyon henuz baslamadiysa — tamamen sifirdan doldur (incremental bug fix)
     if (!window._animCompleted && !seatAnimRunning && !window._countdownRunning) {
@@ -1470,6 +1501,7 @@ function updateUI(status,flights){
       document.getElementById('btnStart').disabled=false;
       document.getElementById('btnPause').disabled=true;
       document.getElementById('btnResume').disabled=true;
+      document.getElementById('btnReport').style.display='';
     }
   }
 }

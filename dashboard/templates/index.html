@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flight Snapshot — Dashboard</title>
+  <title>Seatwise Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
@@ -203,14 +203,14 @@
       position: absolute;
       top: calc(100% + 4px);
       left: 0;
-      right: 0;
+      min-width: 320px;
       background: var(--bg-2);
       border: 1px solid var(--border-light);
       border-radius: var(--radius);
-      max-height: 260px;
+      max-height: 300px;
       overflow-y: auto;
       box-shadow: var(--shadow);
-      z-index: 50;
+      z-index: 200;
       display: none;
     }
 
@@ -350,19 +350,21 @@
     }
 
     .date-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
+      background: #1e293b;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
       border-radius: var(--radius);
       padding: .45rem 1.2rem;
       font-size: .82rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background var(--transition);
+      transition: all var(--transition);
     }
 
     .date-btn:hover {
-      background: var(--accent-hover, #7c4dff);
+      background: #2d3748;
+      color: #e6edf3;
+      border-color: #58a6ff;
     }
 
     .search-section.compact .date-picker-row {
@@ -927,7 +929,7 @@
       font-family: 'Inter', sans-serif;
       white-space: nowrap;
     }
-    .nav-btn:first-of-type { margin-left: auto; }
+    /* spacer div handles right-alignment */
     .nav-btn:hover {
       background: var(--bg-hover);
       color: var(--text-1);
@@ -938,6 +940,72 @@
       color: var(--accent);
       border-color: rgba(88, 166, 255, .35);
     }
+
+    .ana-item {
+      padding: .5rem .9rem;
+      font-size: .75rem;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all .15s;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Inter', sans-serif;
+    }
+    .ana-item:last-child { border-bottom: none; }
+    .ana-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-0);
+    }
+    .ana-item.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* Brief cards */
+    .brief-card {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: .85rem 1rem;
+      position: relative;
+      overflow: hidden;
+      font-size: .75rem;
+    }
+    .brief-card-accent {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: .4;
+    }
+    .brief-card-title {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .5rem;
+    }
+    .brief-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .3rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .brief-row:last-child { border-bottom: none; }
+    .brief-badge {
+      font-size: .6rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .brief-mono {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .72rem;
+      font-weight: 600;
+    }
+    @keyframes spin { to { transform: rotate(360deg) } }
 
     .seg-panel {
       display: none;
@@ -1397,7 +1465,7 @@
     .sent-panel.show { display: block; }
     .sent-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
     .sent-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-0); letter-spacing: -.02em; }
-    .sent-badge { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-size: .65rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
+    .sent-badge { background: var(--bg-3); color: var(--text-2); border: 1px solid var(--border); font-size: .65rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .5px; }
 
     .sent-api-warn { background: var(--orange-dim); border: 1px solid rgba(210,153,34,.35); border-radius: var(--radius); padding: .75rem 1rem; margin-bottom: 1rem; font-size: .82rem; color: var(--orange); display: none; }
     .sent-api-warn.show { display: flex; align-items: flex-start; gap: .6rem; }
@@ -2272,23 +2340,42 @@
   </div>
 
   <!-- HEADER -->
-  <header class="header">
+  <header class="header" style="flex-wrap:wrap;height:auto;padding:.5rem 2rem;gap:.5rem">
     <a class="logo" href="/" style="text-decoration:none;color:inherit;cursor:pointer">
-      <div class="logo-icon">✈</div>
-      <span>Flight Snapshot</span>
+      <img src="/static/logo.png" alt="Seatwise" style="height:28px;border-radius:4px" />
+      <span>Seatwise Dashboard</span>
     </a>
-    <div class="breadcrumb" id="breadcrumb">
-      <span>Dashboard</span>
+    <!-- Search bar in header -->
+    <div class="search-box" style="flex:1;min-width:250px;max-width:420px;margin:0 .5rem;position:relative">
+      <span class="search-icon">&#x2315;</span>
+      <input type="text" class="search-input" id="searchInput"
+        placeholder="Flight no or airport code (e.g. TK1234, IST)" autocomplete="off" spellcheck="false" />
+      <div class="dropdown" id="dropdown"></div>
     </div>
-    <button class="nav-btn" id="segBtn" onclick="toggleSegmentation()">Segments</button>
-    <button class="nav-btn" id="trendBtn" onclick="toggleTrends()">Trend</button>
-    <button class="nav-btn" id="routesBtn" onclick="toggleRoutes()">Routes</button>
-    <button class="nav-btn" id="eventsBtn" onclick="toggleEvents()">Events</button>
-    <button class="nav-btn" id="fcBtn" onclick="toggleFareClasses()">Fare Class</button>
-    <button class="nav-btn" id="simBtn" onclick="window.location.href='/simulation'">Simulation</button>
-    <button class="nav-btn" id="demfnBtn" onclick="toggleDemandFunctions()">Demand Fn.</button>
-    <button class="nav-btn" id="riskBtn" onclick="toggleRisk()">Risk</button>
-    <button class="nav-btn" id="sentBtn" onclick="toggleSentiment()">Sentiment</button>
+    <div style="display:flex;gap:.4rem;align-items:center">
+      <input type="date" class="date-input" id="datePicker" lang="en-US" style="font-size:.78rem;padding:.35rem .5rem" />
+      <button class="date-btn" id="dateSearchBtn" onclick="searchByDate()">Search</button>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;gap:.3rem;align-items:center;flex-wrap:wrap">
+      <!-- Analytics dropdown -->
+      <div style="position:relative" id="analyticsDropWrap">
+        <button class="nav-btn" id="analyticsBtn" onclick="toggleAnalyticsMenu()" style="display:flex;align-items:center;gap:4px">
+          Analytics <span style="font-size:.55rem;opacity:.6">&#9660;</span>
+        </button>
+        <div id="analyticsMenu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;min-width:160px;background:var(--bg-2);border:1px solid var(--border-light);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.4);z-index:200;overflow:hidden">
+          <div class="ana-item" onclick="toggleSegmentation();closeAnalytics()" id="segBtn">Segments</div>
+          <div class="ana-item" onclick="toggleTrends();closeAnalytics()" id="trendBtn">Trend</div>
+          <div class="ana-item" onclick="toggleRoutes();closeAnalytics()" id="routesBtn">Routes</div>
+          <div class="ana-item" onclick="toggleEvents();closeAnalytics()" id="eventsBtn">Events</div>
+          <div class="ana-item" onclick="toggleFareClasses();closeAnalytics()" id="fcBtn">Fare Class</div>
+          <div class="ana-item" onclick="toggleDemandFunctions();closeAnalytics()" id="demfnBtn">Demand Fn.</div>
+          <div class="ana-item" onclick="toggleRisk();closeAnalytics()" id="riskBtn">Risk</div>
+          <div class="ana-item" onclick="toggleSentiment();closeAnalytics()" id="sentBtn">Sentiment</div>
+        </div>
+      </div>
+      <button class="nav-btn" id="simBtn" onclick="window.location.href='/simulation'" style="margin-right:.2rem">Simulation</button>
+    </div>
   </header>
 
   <!-- MAIN -->
@@ -2648,7 +2735,7 @@
       <div class="sent-header">
         <h2>Sentiment Intelligence</h2>
         <span class="sent-badge">51 CITIES</span>
-        <span class="sent-badge" style="background:linear-gradient(135deg,#065f46,#047857);color:#34d399">LIVE</span>
+        <span class="sent-badge" style="color:var(--green);border-color:rgba(63,185,80,.3)">LIVE</span>
         <div style="flex:1"></div>
         <input type="text" placeholder="Search city..." id="sentSearch" oninput="sentApplyFilter()" style="width:170px;padding:.35rem .7rem;font-size:.75rem;background:var(--bg-2);border:1px solid var(--border);border-radius:6px;color:var(--text-1);outline:none;font-family:'Inter',sans-serif" />
         <button class="seg-close-btn" onclick="toggleSentiment()">&#10005; Close</button>
@@ -2687,20 +2774,56 @@
       </div>
     </div>
 
-    <!-- SEARCH -->
-    <div class="search-section" id="searchSection">
-      <div class="search-title">Flight Snapshot Explorer</div>
-      <div class="search-subtitle">Enter a flight number to explore trip data</div>
-      <div class="search-box">
-        <span class="search-icon">⌕</span>
-        <input type="text" class="search-input" id="searchInput"
-          placeholder="Flight no or airport code (e.g. TK1234, IST)" autocomplete="off" spellcheck="false" />
-        <div class="dropdown" id="dropdown"></div>
+    <!-- DAILY INSIGHT BOARD -->
+    <div id="insightBoard" style="padding:1.2rem 2rem 2rem">
+      <!-- Loading skeleton -->
+      <div id="briefLoading" style="text-align:center;padding:3rem 0">
+        <div style="display:inline-flex;align-items:center;gap:.6rem;color:var(--text-3);font-size:.82rem">
+          <div style="width:16px;height:16px;border:2px solid var(--border-light);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></div>
+          Loading operations brief...
+        </div>
       </div>
-      <div class="date-picker-row">
-        <label for="datePicker" class="date-label">Search by Date:</label>
-        <input type="date" class="date-input" id="datePicker" />
-        <button class="date-btn" id="dateSearchBtn" onclick="searchByDate()">Search</button>
+
+      <!-- Content (hidden until loaded) -->
+      <div id="briefContent" style="display:none">
+
+        <!-- Header -->
+        <div style="display:flex;align-items:baseline;gap:.8rem;margin-bottom:1rem">
+          <span style="font-size:1.05rem;font-weight:700;color:var(--text-0)" id="briefDate"></span>
+          <span style="font-size:.7rem;color:var(--text-3);border-left:1px solid var(--border);padding-left:.8rem">Daily Operations Brief</span>
+        </div>
+
+        <!-- KPI row -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:.55rem;margin-bottom:1rem" id="briefKpis"></div>
+
+        <!-- Row 2: Flights to Watch + Top Routes -->
+        <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:.7rem;margin-bottom:.7rem">
+          <div class="brief-card">
+            <div class="brief-card-accent" style="background:var(--accent)"></div>
+            <div class="brief-card-title">Flights to Watch</div>
+            <div id="briefFlights"></div>
+          </div>
+          <div class="brief-card">
+            <div class="brief-card-accent" style="background:var(--green)"></div>
+            <div class="brief-card-title">Top Performing Routes</div>
+            <div id="briefTopRoutes"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Sentiment + Region Performance -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem">
+          <div class="brief-card">
+            <div class="brief-card-accent" style="background:var(--red)"></div>
+            <div class="brief-card-title">Sentiment Alerts</div>
+            <div id="briefSentiment"></div>
+          </div>
+          <div class="brief-card">
+            <div class="brief-card-accent" style="background:var(--purple)"></div>
+            <div class="brief-card-title">Region Performance</div>
+            <div id="briefRegions"></div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -2828,7 +2951,7 @@
     // ─── SEARCH ─────────────────────────────────────────────
     const searchInput = document.getElementById('searchInput');
     const dropdown = document.getElementById('dropdown');
-    const searchSection = document.getElementById('searchSection');
+    const searchSection = document.getElementById('searchSection'); // may be null (moved to header)
     let debounceTimer = null;
 
     searchInput.addEventListener('input', () => {
@@ -2897,7 +3020,7 @@
       showLoading();
       searchInput.value = airportCode;
       dropdown.classList.remove('show');
-      searchSection.classList.add('compact');
+      if(searchSection) searchSection.classList.add('compact');
 
       document.getElementById('breadcrumb').innerHTML =
         `<span>Dashboard</span><span class="sep">/</span><span style="color:var(--accent)">${airportCode}</span>`;
@@ -2936,7 +3059,7 @@
       const dateVal = document.getElementById('datePicker').value;
       if (!dateVal) return;
       showLoading();
-      searchSection.classList.add('compact');
+      if(searchSection) searchSection.classList.add('compact');
 
       const res = await fetch(`/api/flights/date?date=${encodeURIComponent(dateVal)}`);
       const flights = await res.json();
@@ -2997,7 +3120,7 @@
       state.flightNumber = flightNumber;
       searchInput.value = flightNumber;
       dropdown.classList.remove('show');
-      searchSection.classList.add('compact');
+      if(searchSection) searchSection.classList.add('compact');
 
       // Update breadcrumb
       document.getElementById('breadcrumb').innerHTML =
@@ -3804,7 +3927,164 @@
     // Initialize view mode
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('btnActual')?.classList.add('active');
+      loadDailyBrief();
     });
+
+    // Analytics dropdown
+    function toggleAnalyticsMenu() {
+      const menu = document.getElementById('analyticsMenu');
+      const btn = document.getElementById('analyticsBtn');
+      if (menu.style.display === 'none') {
+        menu.style.display = 'block';
+        btn.classList.add('active');
+      } else {
+        menu.style.display = 'none';
+        btn.classList.remove('active');
+      }
+    }
+    function closeAnalytics() {
+      document.getElementById('analyticsMenu').style.display = 'none';
+      document.getElementById('analyticsBtn').classList.remove('active');
+    }
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+      const wrap = document.getElementById('analyticsDropWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('analyticsMenu').style.display = 'none';
+        document.getElementById('analyticsBtn').classList.remove('active');
+      }
+    });
+
+    let _briefLoaded = false;
+    async function loadDailyBrief() {
+      if (_briefLoaded) return;
+      try {
+        const res = await fetch('/api/daily-brief');
+        if (!res.ok) { document.getElementById('briefLoading').innerHTML='<div style="color:var(--text-3);font-size:.8rem">Brief unavailable</div>'; return; }
+        const d = await res.json();
+
+        // Hide loading, show content
+        document.getElementById('briefLoading').style.display = 'none';
+        document.getElementById('briefContent').style.display = '';
+        _briefLoaded = true;
+
+        // Date
+        const dt = new Date(d.date);
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        document.getElementById('briefDate').textContent = days[dt.getDay()] + ', ' + months[dt.getMonth()] + ' ' + dt.getDate() + ', ' + dt.getFullYear();
+
+        // KPIs (5 cards)
+        const net = d.network || {};
+        const ss = d.sentiment_summary || {};
+        const fc = d.fare_class || {};
+        const alertCount = d.alert_count || 0;
+        document.getElementById('briefKpis').innerHTML = `
+          <div class="brief-card" style="padding:.6rem .8rem">
+            <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600;margin-bottom:.15rem">Network</div>
+            <div class="brief-mono" style="font-size:1.15rem;color:var(--accent)">${net.routes||0} <span style="font-size:.65rem;color:var(--text-3)">routes</span></div>
+            <div style="font-size:.62rem;color:var(--text-3)">${(net.flights||0).toLocaleString()} flights across ${net.regions||0} regions</div>
+          </div>
+          <div class="brief-card" style="padding:.6rem .8rem">
+            <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600;margin-bottom:.15rem">Total Passengers</div>
+            <div class="brief-mono" style="font-size:1.15rem;color:var(--text-0)">${(fc.total_pax||0).toLocaleString()}</div>
+            <div style="font-size:.62rem;color:var(--text-3)">Revenue: $${((fc.total_rev||0)/1000000).toFixed(1)}M</div>
+          </div>
+          <div class="brief-card" style="padding:.6rem .8rem">
+            <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600;margin-bottom:.15rem">Sentiment</div>
+            <div class="brief-mono" style="font-size:1.15rem;color:${ss.avg_score<-0.1?'var(--red)':ss.avg_score>0.1?'var(--green)':'var(--text-2)'}">${ss.avg_score?(ss.avg_score*100).toFixed(0):'0'}</div>
+            <div style="font-size:.62rem;color:var(--text-3)">${ss.total_cities||0} cities monitored</div>
+          </div>
+          <div class="brief-card" style="padding:.6rem .8rem">
+            <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600;margin-bottom:.15rem">Active Alerts</div>
+            <div class="brief-mono" style="font-size:1.15rem;color:${alertCount>0?'var(--red)':'var(--green)'}">${alertCount} <span style="font-size:.65rem;color:var(--text-3)">high</span></div>
+            <div style="font-size:.62rem;color:var(--text-3)">${ss.medium||0} medium, ${ss.low||0} normal</div>
+          </div>
+          <div class="brief-card" style="padding:.6rem .8rem">
+            <div style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:600;margin-bottom:.15rem">News Analyzed</div>
+            <div class="brief-mono" style="font-size:1.15rem;color:var(--text-0)">${(d.sentiment_alerts||[]).reduce((s,a)=>s+a.articles,0)}</div>
+            <div style="font-size:.62rem;color:var(--text-3)">from GDELT + Google News</div>
+          </div>
+        `;
+
+        // Flights to Watch
+        const flEl = document.getElementById('briefFlights');
+        const flights = d.watch_flights || [];
+        if (!flights.length) { flEl.innerHTML = '<div style="color:var(--text-3);padding:.4rem 0">All flights on track</div>'; }
+        else {
+          flEl.innerHTML = flights.map(f => {
+            const colors = {critical:'var(--red)',warning:'var(--orange)',opportunity:'var(--green)',on_track:'var(--text-3)'};
+            const badges = {critical:'CRITICAL',warning:'WARNING',opportunity:'OPPORTUNITY',on_track:'OK'};
+            const bgColors = {critical:'var(--red-dim)',warning:'rgba(210,153,34,.12)',opportunity:'var(--green-dim)',on_track:'var(--bg-3)'};
+            const c = colors[f.status]||'var(--text-3)';
+            const lf = (f.lf*100).toFixed(0);
+            return `<div class="brief-row">
+              <span class="brief-badge" style="background:${bgColors[f.status]};color:${c};min-width:52px;text-align:center">${badges[f.status]}</span>
+              <span style="font-weight:600;color:var(--text-0);min-width:65px">${f.route}</span>
+              <span style="min-width:45px"><span style="display:inline-block;width:${Math.min(lf,100)*0.35}px;height:4px;background:${c};border-radius:2px;vertical-align:middle"></span> <span class="brief-mono" style="color:${c}">${lf}%</span></span>
+              <span style="color:var(--text-3);font-size:.65rem">${f.sold}/${f.capacity}</span>
+              <span style="color:var(--text-3);font-size:.62rem;margin-left:auto">DTD ${f.dtd}</span>
+              <span style="color:var(--text-3);font-size:.6rem;font-style:italic;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.action||''}</span>
+            </div>`;
+          }).join('');
+        }
+
+        // Top Routes
+        const trEl = document.getElementById('briefTopRoutes');
+        const topR = d.top_routes || [];
+        if (!topR.length) { trEl.innerHTML = '<div style="color:var(--text-3);padding:.4rem 0">No data</div>'; }
+        else {
+          trEl.innerHTML = topR.map((r,i) => {
+            const lf = (r.avg_lf*100).toFixed(0);
+            const c = r.avg_lf >= 0.85 ? 'var(--green)' : r.avg_lf >= 0.7 ? 'var(--accent)' : 'var(--text-2)';
+            return `<div class="brief-row">
+              <span style="color:var(--text-3);font-size:.65rem;min-width:14px">${i+1}.</span>
+              <span style="font-weight:600;color:var(--text-0)">${r.route}</span>
+              <span class="brief-mono" style="color:${c};margin-left:auto">${lf}%</span>
+              <span style="color:var(--text-3);font-size:.62rem">$${(r.revenue/1000).toFixed(0)}K</span>
+            </div>`;
+          }).join('');
+        }
+
+        // Sentiment
+        const sentEl = document.getElementById('briefSentiment');
+        const alerts = d.sentiment_alerts || [];
+        if (!alerts.length) { sentEl.innerHTML = '<div style="color:var(--text-3);padding:.4rem 0">No active alerts</div>'; }
+        else {
+          sentEl.innerHTML = alerts.slice(0,5).map(a => {
+            const c = a.alert==='high'?'var(--red)':'var(--orange)';
+            const bg = a.alert==='high'?'var(--red-dim)':'rgba(210,153,34,.12)';
+            return `<div class="brief-row">
+              <span class="brief-badge" style="background:${bg};color:${c}">${a.alert==='high'?'HIGH':'MED'}</span>
+              <span style="color:var(--text-1)">${a.flag} ${a.city}</span>
+              <span class="brief-mono" style="color:${c};margin-left:auto">${a.score>0?'+':''}${(a.score*100).toFixed(0)}</span>
+              <span style="color:var(--text-3);font-size:.62rem">${a.articles} articles</span>
+            </div>`;
+          }).join('');
+        }
+
+        // Region Performance
+        const regEl = document.getElementById('briefRegions');
+        const regs = d.region_performance || [];
+        if (!regs.length) { regEl.innerHTML = '<div style="color:var(--text-3);padding:.4rem 0">No data</div>'; }
+        else {
+          regEl.innerHTML = regs.map(r => {
+            const lf = (r.avg_lf*100).toFixed(0);
+            const c = r.avg_lf >= 0.8 ? 'var(--green)' : r.avg_lf >= 0.65 ? 'var(--accent)' : 'var(--orange)';
+            return `<div class="brief-row">
+              <span style="font-weight:600;color:var(--text-0);min-width:90px">${r.region}</span>
+              <div style="flex:1;height:4px;background:var(--bg-3);border-radius:2px;overflow:hidden"><div style="width:${lf}%;height:100%;background:${c};border-radius:2px"></div></div>
+              <span class="brief-mono" style="color:${c};min-width:35px;text-align:right">${lf}%</span>
+              <span style="color:var(--text-3);font-size:.62rem;min-width:55px;text-align:right">$${(r.revenue/1000000).toFixed(1)}M</span>
+            </div>`;
+          }).join('');
+        }
+
+      } catch(e) {
+        console.error('Daily brief error:', e);
+        document.getElementById('briefLoading').innerHTML='<div style="color:var(--text-3);font-size:.8rem">Brief unavailable</div>';
+      }
+    }
 
     // ─── PANEL SWITCHING (radio-button logic) ────────────────
     const ALL_PANELS = [
@@ -3830,6 +4110,18 @@
       if (exceptPanelId !== 'sentPanel') {
         const dashboard = document.getElementById('dashboard');
         if (dashboard && state.flightId) dashboard.style.display = 'block';
+      }
+      // Brief: herhangi bir panel aciksa gizle, hepsi kapaliysa goster
+      const brief = document.getElementById('insightBoard');
+      if (brief) {
+        // Kisa gecikme — toggle fonksiyonu panel'i acmadan once closeAll cagiriyor
+        setTimeout(() => {
+          const anyOpen = ALL_PANELS.some(({panel}) => {
+            const p = document.getElementById(panel);
+            return p && p.classList.contains('show');
+          });
+          brief.style.display = anyOpen ? 'none' : '';
+        }, 50);
       }
     }
 
@@ -5270,14 +5562,17 @@
       const panel = document.getElementById('sentPanel');
       const btn = document.getElementById('sentBtn');
       const dashboard = document.getElementById('dashboard');
+      const brief = document.getElementById('insightBoard');
       const isShowing = panel.classList.contains('show');
       closeAllPanels('sentPanel');
       if (isShowing) {
         panel.classList.remove('show'); btn.classList.remove('active');
         if (dashboard) dashboard.style.display = state.flightId ? 'block' : 'none';
+        if (brief) brief.style.display = '';
       } else {
         panel.classList.add('show'); btn.classList.add('active');
         if (dashboard) dashboard.style.display = 'none';
+        if (brief) brief.style.display = 'none';
         if (!sentLoaded) loadSentiment();
       }
     }

@@ -1,5 +1,5 @@
 """
-Flight Snapshot Dashboard — Sprint 4
+Seatwise Dashboard Dashboard — Sprint 4
 Flask + DuckDB backend.
 V2 parquet (ticket + ancillary revenue) + metadata lookup.
 Demand forecast via two-stage XGBoost (classifier + regressor).
@@ -962,6 +962,182 @@ def api_pickup(flight_id):
     if cabin and cabin in result:
         return jsonify(result[cabin])
     return jsonify(result)
+
+
+# ─── DAILY BRIEF API ─────────────────────────────────────
+@app.route("/api/daily-brief")
+def api_daily_brief():
+    """Decision maker daily insight board — comprehensive."""
+    from datetime import datetime as _dt
+    today = _dt.now().strftime("%Y-%m-%d")
+    con = get_con()
+    sp = PARQUET_PATH
+    mp = METADATA_PATH
+
+    # 1. Network overview
+    try:
+        net = con.execute(f"""
+            SELECT COUNT(DISTINCT departure_airport || '_' || arrival_airport) as routes,
+                   COUNT(DISTINCT flight_id) as flights,
+                   SUM(capacity) as seats,
+                   COUNT(DISTINCT region) as regions
+            FROM read_parquet('{mp}')
+        """).fetchone()
+        network = {"routes": int(net[0] or 0), "flights": int(net[1] or 0),
+                   "seats": int(net[2] or 0), "regions": int(net[3] or 0)}
+    except Exception:
+        network = {"routes": 0, "flights": 0, "seats": 0, "regions": 0}
+
+    # 2. Flights needing action (next 14 days, sorted by urgency)
+    watch_flights = []
+    try:
+        rows = con.execute(f"""
+            WITH latest AS (
+                SELECT flight_id, cabin_class, MIN(dtd) as min_dtd
+                FROM read_parquet('{sp}')
+                WHERE dtd BETWEEN 1 AND 14
+                GROUP BY flight_id, cabin_class
+            )
+            SELECT m.departure_airport, m.arrival_airport, m.cabin_class,
+                   m.capacity, s.pax_sold_cum, s.dtd,
+                   CAST(s.pax_sold_cum AS FLOAT) / NULLIF(m.capacity, 0) as lf,
+                   m.region
+            FROM read_parquet('{sp}') s
+            JOIN latest l ON s.flight_id = l.flight_id AND s.cabin_class = l.cabin_class AND s.dtd = l.min_dtd
+            JOIN read_parquet('{mp}') m ON s.flight_id = m.flight_id AND s.cabin_class = m.cabin_class
+            WHERE LOWER(m.cabin_class) = 'economy'
+            ORDER BY lf ASC
+            LIMIT 8
+        """).fetchall()
+        for r in rows:
+            lf = float(r[6] or 0)
+            dtd = int(r[5] or 0)
+            if lf < 0.4 and dtd <= 7:
+                status, action = "critical", "Consider V/K class re-open"
+            elif lf < 0.5:
+                status, action = "critical", "Price reduction recommended"
+            elif lf < 0.7:
+                status, action = "warning", "Monitor booking pace"
+            elif lf > 0.9:
+                status, action = "opportunity", "Y class premium pricing"
+            else:
+                status, action = "on_track", "No action needed"
+            watch_flights.append({
+                "route": f"{r[0]}-{r[1]}", "cabin": r[2], "capacity": int(r[3] or 0),
+                "sold": int(r[4] or 0), "lf": round(lf, 4), "dtd": dtd,
+                "status": status, "action": action, "region": r[7],
+            })
+    except Exception:
+        pass
+
+    # 3. Top performing routes (highest LF)
+    top_routes = []
+    try:
+        rows = con.execute(f"""
+            WITH latest AS (
+                SELECT flight_id, cabin_class, MIN(dtd) as min_dtd
+                FROM read_parquet('{sp}') WHERE dtd >= 0 GROUP BY flight_id, cabin_class
+            )
+            SELECT m.departure_airport || '-' || m.arrival_airport as route,
+                   AVG(CAST(s.pax_sold_cum AS FLOAT) / NULLIF(m.capacity, 0)) as avg_lf,
+                   SUM(s.ticket_rev_cum + s.anc_rev_cum) as total_rev,
+                   COUNT(*) as n_flights
+            FROM read_parquet('{sp}') s
+            JOIN latest l ON s.flight_id = l.flight_id AND s.cabin_class = l.cabin_class AND s.dtd = l.min_dtd
+            JOIN read_parquet('{mp}') m ON s.flight_id = m.flight_id AND s.cabin_class = m.cabin_class
+            WHERE LOWER(m.cabin_class) = 'economy'
+            GROUP BY route
+            ORDER BY avg_lf DESC
+            LIMIT 5
+        """).fetchall()
+        for r in rows:
+            top_routes.append({
+                "route": r[0], "avg_lf": round(float(r[1] or 0), 4),
+                "revenue": round(float(r[2] or 0), 0), "flights": int(r[3] or 0),
+            })
+    except Exception:
+        pass
+
+    # 4. Region performance
+    region_perf = []
+    try:
+        rows = con.execute(f"""
+            WITH latest AS (
+                SELECT flight_id, cabin_class, MIN(dtd) as min_dtd
+                FROM read_parquet('{sp}') WHERE dtd >= 0 GROUP BY flight_id, cabin_class
+            )
+            SELECT m.region,
+                   AVG(CAST(s.pax_sold_cum AS FLOAT) / NULLIF(m.capacity, 0)) as avg_lf,
+                   SUM(s.ticket_rev_cum + s.anc_rev_cum) as total_rev,
+                   COUNT(DISTINCT s.flight_id) as n_flights
+            FROM read_parquet('{sp}') s
+            JOIN latest l ON s.flight_id = l.flight_id AND s.cabin_class = l.cabin_class AND s.dtd = l.min_dtd
+            JOIN read_parquet('{mp}') m ON s.flight_id = m.flight_id AND s.cabin_class = m.cabin_class
+            GROUP BY m.region ORDER BY avg_lf DESC
+        """).fetchall()
+        for r in rows:
+            region_perf.append({
+                "region": r[0], "avg_lf": round(float(r[1] or 0), 4),
+                "revenue": round(float(r[2] or 0), 0), "flights": int(r[3] or 0),
+            })
+    except Exception:
+        pass
+
+    # 5. Sentiment summary
+    sent_alerts = []
+    sent_summary = {"total_cities": 0, "high": 0, "medium": 0, "low": 0, "avg_score": 0}
+    if _SENT_CACHE.get("data"):
+        scores = []
+        for city_key, city_data in _SENT_CACHE["data"].items():
+            agg = city_data.get("aggregate", {})
+            score = agg.get("composite_score", 0)
+            alert = agg.get("alert_level", "low")
+            scores.append(score)
+            sent_summary[alert] = sent_summary.get(alert, 0) + 1
+            sent_summary["total_cities"] += 1
+            if alert in ("high", "medium"):
+                sent_alerts.append({
+                    "city": city_data.get("label", city_key),
+                    "flag": city_data.get("flag", ""),
+                    "score": round(score, 4), "alert": alert,
+                    "dominant": agg.get("dominant_event_tr", ""),
+                    "articles": agg.get("article_count", 0),
+                })
+        sent_alerts.sort(key=lambda x: x["score"])
+        if scores:
+            sent_summary["avg_score"] = round(sum(scores) / len(scores), 4)
+
+    # 6. Fare class distribution (network-wide)
+    fc_dist = {}
+    try:
+        rows = con.execute(f"""
+            WITH latest AS (
+                SELECT flight_id, cabin_class, MIN(dtd) as min_dtd
+                FROM read_parquet('{sp}') WHERE dtd >= 0 GROUP BY flight_id, cabin_class
+            )
+            SELECT SUM(s.pax_sold_cum) as total_pax,
+                   SUM(s.ticket_rev_cum) as total_rev
+            FROM read_parquet('{sp}') s
+            JOIN latest l ON s.flight_id = l.flight_id AND s.cabin_class = l.cabin_class AND s.dtd = l.min_dtd
+        """).fetchone()
+        if rows:
+            fc_dist = {"total_pax": int(rows[0] or 0), "total_rev": round(float(rows[1] or 0), 0)}
+    except Exception:
+        pass
+
+    con.close()
+
+    return jsonify({
+        "date": today,
+        "network": network,
+        "watch_flights": watch_flights[:6],
+        "top_routes": top_routes,
+        "region_performance": region_perf,
+        "sentiment_alerts": sent_alerts[:6],
+        "sentiment_summary": sent_summary,
+        "fare_class": fc_dist,
+        "alert_count": sent_summary.get("high", 0),
+    })
 
 
 # ─── TFT INTERPRETATION API ───────────────────────────────
@@ -2063,6 +2239,51 @@ except Exception as e:
 
 
 # ─── SIMULATION API ──────────────────────────────────────
+@app.route("/api/sim/report/pdf")
+def api_sim_report_pdf():
+    """Generate NLG-powered PDF report from simulation results."""
+    from flask import send_file
+    if not SIM_READY or _sim_engine.state != "completed":
+        return jsonify({"error": "No completed simulation"}), 400
+    try:
+        from report_generator.collector import collect
+        from report_generator.analyzer import analyze
+        from report_generator import nlg_engine, charts
+        from report_generator.pdf_builder import build_pdf
+        import io
+
+        # Collect
+        rd = collect(_sim_engine, _SENT_CACHE)
+        # Analyze
+        insights = analyze(rd)
+        # Generate NLG text
+        nlg_sections = {
+            "executive_summary": nlg_engine.generate_executive_summary(rd, insights),
+            "revenue": nlg_engine.generate_revenue_section(rd, insights),
+            "lf": nlg_engine.generate_lf_section(rd, insights),
+            "fareclass": nlg_engine.generate_fareclass_section(rd, insights),
+            "sentiment": nlg_engine.generate_sentiment_section(rd, insights),
+            "recommendations": nlg_engine.generate_recommendations(rd, insights),
+        }
+        # Charts
+        chart_paths = charts.generate_all(rd)
+        # Build PDF
+        pdf_bytes = build_pdf(rd, insights, nlg_sections, chart_paths)
+        # Cleanup chart temp files
+        for p in chart_paths.values():
+            try:
+                os.remove(p)
+            except Exception:
+                pass
+
+        return send_file(io.BytesIO(pdf_bytes), mimetype='application/pdf',
+                         as_attachment=True, download_name='Seatwise_Simulation_Report.pdf')
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/simulation")
 def simulation_page():
     return render_template("simulation.html")
@@ -2363,10 +2584,10 @@ if __name__ == "__main__":
     fc_label = "ON" if FORECAST_READY else "OFF"
     sent_label = "ON" if SENTIMENT_READY else "OFF"
     sim_label = "ON" if SIM_READY else "OFF"
-    print(f"\nFlight Snapshot Dashboard -- {v_label} | Forecast: {fc_label} | Sentiment: {sent_label} | Sim: {sim_label}")
+    print(f"\nSeatwise Dashboard Dashboard -- {v_label} | Forecast: {fc_label} | Sentiment: {sent_label} | Sim: {sim_label}")
     print(f"   Snapshot: {PARQUET_PATH}")
     print(f"   Metadata: {METADATA_PATH}")
     print(f"   URL: http://localhost:5005\n")
-    app.run(debug=False, host="0.0.0.0", port=5005)
+    app.run(debug=True, host="0.0.0.0", port=5005, use_reloader=True)
 
 
