@@ -1,0 +1,184 @@
+════════════════════════════════════════════════════════════════════════
+  SEATWISE — KURULUM KILAVUZU   (Mac / MacBook · adım adım · sıfırdan)
+════════════════════════════════════════════════════════════════════════
+
+Bu kılavuz, projeyi GitHub'dan indirip kendi MacBook'unda çalıştırmak
+içindir. Hiçbir şey bilmiyormuş gibi anlatılmıştır — adımları SIRAYLA yap,
+atlama. (Windows için en alttaki nota bak.)
+
+
+════════════════════════════════════════════════════════════════════════
+  ADIM 1 — PYTHON KURULU MU?
+════════════════════════════════════════════════════════════════════════
+  1. Safari/Chrome'da:  https://www.python.org/downloads/
+  2. Büyük sarı butona bas:  "Download Python 3.12.x"  → dosya iner.
+  3. İnen ".pkg" dosyasına çift tıkla. Çıkan kuruluma "Devam / Devam /
+     Kabul Et / Yükle" diye ilerle. Mac şifreni isteyebilir — gir.
+  4. Kurulum bitince açılan klasörde  "Install Certificates.command"  diye
+     bir dosya görürsen ÇİFT TIKLA (bir terminal açılıp kapanır — bu,
+     internet bağlantısı için gerekli sertifikaları kurar).
+(Mac'inde zaten Python varsa bu adım fazla bir şey değiştirmez, sorun olmaz.)
+
+
+════════════════════════════════════════════════════════════════════════
+  ADIM 2 — PROJEYİ GITHUB'DAN İNDİR
+════════════════════════════════════════════════════════════════════════
+  1. Tarayıcıda şu adrese git:
+        https://github.com/zduyguortancil/FENS401-402-Bitirme-Projesi
+  2. Sayfanın sağ tarafındaki YEŞİL  " < > Code "  butonuna tıkla.
+  3. Açılan küçük kutuda EN ALTTAKİ  "Download ZIP"  yazısına tıkla.
+  4. İnen .zip dosyası "İndirilenler / Downloads" klasörüne gider. Üzerine
+     ÇİFT TIKLA — kendiliğinden açılır ve şuna benzer bir klasör çıkar:
+        FENS401-402-Bitirme-Projesi-main
+  5. Bu klasörü fareyle MASAÜSTÜNE sürükle (sonra kolay bulasın diye).
+     >>> Bundan sonra "PROJE KLASÖRÜ" dediğimde işte bu klasörü kastediyorum.
+
+
+════════════════════════════════════════════════════════════════════════
+  ADIM 3 — "data" KLASÖRÜNÜ KOPYALA
+════════════════════════════════════════════════════════════════════════
+GitHub'a çok büyük dosyalar yüklenemediği için, indirdiğin projedeki
+"data" klasörünün içi BOŞTUR. Sende eski "seatwise_v4" klasörü zaten var;
+"data" klasörünü oradan kopyalayacağız:
+
+  1. Finder'da eski  "seatwise_v4"  klasörünü aç. İçinde
+     "seatwise_v4_ahmet" diye bir klasör var — onu da aç.
+  2. Onun içindeki  "data"  klasörüne sağ tık (veya Control'e basılı tutup
+     tık) → "Kopyala  'data'".
+  3. Şimdi PROJE KLASÖRÜNÜ aç ("FENS401-402-Bitirme-Projesi-main").
+  4. İçindeki boş bir yere sağ tık → "Öğeyi Yapıştır".
+  5. "Aynı isimde bir 'data' klasörü var, birleştirilsin mi / değiştirilsin
+     mi?" diye sorarsa  "Birleştir"  /  "Değiştir"  de.
+
+  >>> ÖZET: Eski seatwise_v4 içindeki  "data"  klasörünü kopyala, PROJE
+      KLASÖRÜNÜN içine yapıştır. Bu kadar. (Başka klasör/dosya kopyalamana
+      gerek yok.)
+
+  (İSTEĞE BAĞLI: Eski klasördeki  dashboard/sentiment_v2.db  dosyası varsa,
+   onu da PROJE KLASÖRÜNDEKİ  dashboard/  klasörünün içine kopyala. Yoksa
+   da sorun değil — program ilk açılışta onu kendisi oluşturur.)
+
+
+════════════════════════════════════════════════════════════════════════
+  ADIM 4 — TERMİNAL'İ AÇ VE PROJE KLASÖRÜNE GİT
+════════════════════════════════════════════════════════════════════════
+  1. Terminal uygulamasını aç:
+        Cmd (⌘) + Boşluk tuşuna bas → "Terminal" yaz → Enter.
+        (Veya: Finder → Uygulamalar → İzlenceler / Utilities → Terminal.)
+  2. Açılan pencereye şunu yaz — ama HENÜZ ENTER'A BASMA:
+        cd
+     (Yani küçük harflerle  c d  yaz, sonra bir BOŞLUK bırak.)
+  3. Şimdi Finder'da PROJE KLASÖRÜNÜ ("FENS401-402-Bitirme-Projesi-main")
+     bul. Onu FAREYLE TUTUP, TERMİNAL PENCERESİNİN ÜZERİNE BIRAK
+     (sürükle-bırak). Terminale klasörün yolu kendiliğinden yazılır:
+        cd /Users/<senin-adin>/Desktop/FENS401-402-Bitirme-Projesi-main
+  4. ŞİMDİ Enter'a bas. Artık o klasörün içindesin.
+  5. Kontrol et — şunu yaz, Enter:
+        ls
+     Listede  "dashboard", "data", "reports", "requirements.txt"  gibi
+     şeyler görmelisin. Görmüyorsan yanlış klasördesin → ADIM 4'ü tekrar yap.
+
+  Python'u kontrol et — şunu yaz, Enter:
+        python3 --version
+     "Python 3.11..." / "3.12..." / "3.13..." yazarsa TAMAM.
+     "command not found" derse → ADIM 1'i yap (python.org'dan kur).
+
+
+════════════════════════════════════════════════════════════════════════
+  ADIM 5 — GEREKLİ KÜTÜPHANELERİ KUR
+════════════════════════════════════════════════════════════════════════
+Aynı Terminal penceresinde, şu komutları SIRAYLA, BİRER BİRER yaz (her
+birinden sonra Enter'a bas, bitmesini bekle, sonra bir sonrakini yaz):
+
+  1)   python3 -m venv .venv
+
+  2)   source .venv/bin/activate
+       Doğru çalıştıysa satırın EN BAŞINDA  (.venv)  yazısını görürsün.
+       O yazı görünmüyorsa devam ETME — bir sorun var (SORUN GİDERME'ye bak).
+
+  3)   python -m pip install --upgrade pip
+
+  4)   pip install -r requirements.txt
+
+  4. komut UZUN SÜRER — yaklaşık 5-10 dakika (torch, transformers gibi büyük
+  kütüphaneler iniyor). İnternet gerekir. GPU GEREKMEZ.
+  Sonunda  "Successfully installed ..."  yazısını görünce bitti demektir.
+
+  (Kurulan kütüphaneler — bilgi için, listenin tamamı requirements.txt'de:
+   Flask, Werkzeug, pywebview, pandas, numpy, pyarrow, duckdb, xgboost,
+   scikit-learn, scipy, joblib, shap, torch, pytorch-forecasting,
+   pytorch-lightning, lightning, transformers, sentencepiece, requests,
+   reportlab, matplotlib.)
+
+
+════════════════════════════════════════════════════════════════════════
+  ADIM 6 — PROGRAMI ÇALIŞTIR
+════════════════════════════════════════════════════════════════════════
+Hâlâ aynı Terminal'de,  (.venv)  yazısı satırın başında dururken, şunu yaz:
+
+        python dashboard/run_company.py
+
+  • Bir pencere açılır VEYA tarayıcıdan şu adrese gidersin:
+        http://localhost:5005/login
+  • İlk açılışta kayıtlı hesap YOKTUR. Login sayfasında "Register" /
+    "Kayıt ol" linkine tıkla → kullanıcı adı + e-posta + şifre gir → o
+    bilgilerle giriş yap.
+
+  >>> Hata verir veya pencere açılmazsa, onun yerine ŞU TEK SATIRI yaz
+      (tamamını kopyala-yapıştır):
+        python -c "import sys; sys.path.insert(0,'dashboard'); from app import app; app.run(host='127.0.0.1', port=5005, threaded=True)"
+      sonra tarayıcıdan  http://localhost:5005/login  adresine git.
+
+  --- Müşteri tarafını da çalıştırmak istersen (isteğe bağlı) ---
+  YENİ bir Terminal penceresi aç (Cmd+N), ADIM 4'teki gibi proje klasörüne
+  git (cd + sürükle-bırak), sonra sırayla:
+        source .venv/bin/activate
+        python dashboard/run_customer.py
+  →  Tarayıcıdan:  http://localhost:5006
+
+  --- Programı kapatmak için ---
+  Terminal'de  Control + C  tuşlarına bas, sonra Terminal'i kapat.
+
+
+════════════════════════════════════════════════════════════════════════
+  SORUN GİDERME
+════════════════════════════════════════════════════════════════════════
+  • "python3: command not found"
+       → Python kurulu değil. ADIM 1'i yap (python.org'dan .pkg ile kur).
+
+  • "pip: command not found"
+       → şunu dene:  python -m pip install -r requirements.txt
+
+  • "source .venv/bin/activate" çalışmıyor / satırın başında "(.venv)" yok
+       → ADIM 5'in 1. komutunu ( python3 -m venv .venv ) düzgün çalıştırdın mı?
+         Proje klasöründe olduğundan emin ol ( ls ile kontrol et), tekrar dene.
+
+  • pip install sırasında "SSL" / "certificate verify failed" hatası
+       → ADIM 1'deki  "Install Certificates.command"  dosyasını çift tıkla,
+         sonra  pip install -r requirements.txt  komutunu tekrar çalıştır.
+
+  • "Address already in use" / "port 5005 in use"
+       → Program zaten açık. Açık olan eski Terminal'de Control+C bas, kapat,
+         tekrar dene.
+
+  • Uçuş arama / snapshot / talep analizi panelleri BOŞ görünüyor
+       → ADIM 3'te "data" klasörünü kopyalamayı atlamışsın. Geri dön, yap.
+
+  • Login sayfası hiçbir şeyi kabul etmiyor
+       → Kayıtlı hesap yok. "Register" / "Kayıt ol" ile yeni bir hesap aç.
+
+
+────────────────────────────────────────────────────────────────────────
+  WINDOWS KULLANIYORSAN (kısaca):
+   • Terminal yerine: PROJE KLASÖRÜNÜN içinde, üst adres çubuğuna  cmd  yazıp
+     Enter (veya boşluğa Shift+sağ tık → "PowerShell penceresini burada aç").
+   • " python3 " yerine  " python ".
+   • " source .venv/bin/activate "  yerine   " .venv\Scripts\activate.bat "
+     (PowerShell'de:  .\.venv\Scripts\Activate.ps1 ).
+   • Gerisi aynı.
+────────────────────────────────────────────────────────────────────────
+
+════════════════════════════════════════════════════════════════════════
+  Group 16 — FENS 401 / FENS 402 — Kadir Has Üniversitesi, Endüstri Müh.
+  Danışman: Prof. Dr. Ahmet Deniz Yücekaya
+════════════════════════════════════════════════════════════════════════

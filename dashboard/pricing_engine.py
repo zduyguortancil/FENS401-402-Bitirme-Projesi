@@ -17,14 +17,14 @@ from datetime import datetime, timedelta
 
 # ── Fare class tanimlari ──────────────────────────────────────
 FARE_CLASSES = {
-    "V": {"name": "V — Promosyon",    "multiplier": 0.50, "open_until_lf": 0.40, "quota_pct": 0.10, "color": "#94a3b8",
-           "features": "En dusuk fiyat. Degisiklik/iptal yok. Bagaj sinirli."},
-    "K": {"name": "K — Indirimli",    "multiplier": 0.75, "open_until_lf": 0.70, "quota_pct": 0.40, "color": "#c9a227",
-           "features": "Indirimli fiyat. Ucretli degisiklik. 1 bagaj."},
-    "M": {"name": "M — Esnek",        "multiplier": 1.00, "open_until_lf": 0.85, "quota_pct": 0.75, "color": "#6366f1",
-           "features": "Standart fiyat. Ucretsiz degisiklik. 2 bagaj."},
-    "Y": {"name": "Y — Tam Fiyat",    "multiplier": 1.50, "open_until_lf": 1.00, "quota_pct": 1.00, "color": "#ef4444",
-           "features": "Tam esneklik. Ucretsiz iptal/degisiklik. 2 bagaj + ozel."},
+    "V": {"name": "V — Promotional",    "multiplier": 0.50, "open_until_lf": 0.40, "quota_pct": 0.10, "color": "#94a3b8",
+           "features": "Lowest fare. No change/cancel. Limited baggage."},
+    "K": {"name": "K — Discounted",     "multiplier": 0.75, "open_until_lf": 0.70, "quota_pct": 0.40, "color": "#c9a227",
+           "features": "Discount fare. Paid changes. 1 checked bag."},
+    "M": {"name": "M — Flexible",       "multiplier": 1.00, "open_until_lf": 0.85, "quota_pct": 0.75, "color": "#6366f1",
+           "features": "Standard fare. Free changes. 2 checked bags."},
+    "Y": {"name": "Y — Full Fare",      "multiplier": 1.50, "open_until_lf": 1.00, "quota_pct": 1.00, "color": "#ef4444",
+           "features": "Maximum flexibility. Free cancel/change. 2 checked bags + premium perks."},
 }
 # quota_pct: sinif bazli kota (kapasitenin yuzde kaci)
 # V: %10 = 30 koltuk (promosyon sinirli tutulur)
@@ -35,11 +35,11 @@ FARE_CLASSES = {
 
 # DTD kurallari: hangi fare class'lar hangi donemde acik
 DTD_RULES = [
-    {"dtd_min": 60,  "dtd_max": 999, "open": ["V", "K", "M"],      "label": "Erken Donem"},
-    {"dtd_min": 30,  "dtd_max": 59,  "open": ["K", "M"],            "label": "Orta Donem"},
-    {"dtd_min": 14,  "dtd_max": 29,  "open": ["K", "M", "Y"],       "label": "Gec Donem"},
-    {"dtd_min": 7,   "dtd_max": 13,  "open": ["M", "Y"],            "label": "Son Hafta"},
-    {"dtd_min": 0,   "dtd_max": 6,   "open": ["Y"],                  "label": "Son Dakika"},
+    {"dtd_min": 60,  "dtd_max": 999, "open": ["V", "K", "M"],      "label": "Early Window"},
+    {"dtd_min": 30,  "dtd_max": 59,  "open": ["K", "M"],            "label": "Mid Window"},
+    {"dtd_min": 14,  "dtd_max": 29,  "open": ["K", "M", "Y"],       "label": "Late Window"},
+    {"dtd_min": 7,   "dtd_max": 13,  "open": ["M", "Y"],            "label": "Final Week"},
+    {"dtd_min": 0,   "dtd_max": 6,   "open": ["Y"],                 "label": "Last Minute"},
 ]
 
 # Baz fiyat formulu (sentetik veri ureticisiyle ayni)

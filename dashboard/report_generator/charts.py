@@ -24,6 +24,7 @@ plt.rcParams.update({
 
 _COLORS = {
     'V': '#94a3b8', 'K': '#c9a227', 'M': '#6366f1', 'Y': '#ef4444',
+    'empty': '#3d3d3d',
     'green': '#27ae60', 'red': '#e74c3c', 'blue': '#3498db',
     'orange': '#f39c12', 'purple': '#8e44ad',
 }
@@ -37,24 +38,44 @@ def _save(fig, name):
 
 
 def fare_class_pie(rd):
-    """Fare class distribution pie chart."""
+    """Fare class distribution pie chart — includes empty (unsold) seats."""
     fc = rd.fare_class_totals
     labels = ['V (Promo)', 'K (Discount)', 'M (Flex)', 'Y (Full)']
     sizes = [fc.get('V', 0), fc.get('K', 0), fc.get('M', 0), fc.get('Y', 0)]
     colors = [_COLORS['V'], _COLORS['K'], _COLORS['M'], _COLORS['Y']]
 
-    if sum(sizes) == 0:
+    total_sold = sum(sizes)
+
+    # Add empty seats slice
+    empty_seats = getattr(rd, 'empty_seats', 0)
+    if empty_seats <= 0 and rd.total_capacity > 0:
+        empty_seats = max(rd.total_capacity - total_sold, 0)
+
+    if total_sold == 0 and empty_seats == 0:
         return None
 
-    fig, ax = plt.subplots(figsize=(4, 3))
+    if empty_seats > 0:
+        labels.append('Empty')
+        sizes.append(empty_seats)
+        colors.append(_COLORS['empty'])
+
+    fig, ax = plt.subplots(figsize=(4.5, 3.5))
+
+    def make_autopct(values):
+        total = sum(values)
+        def autopct(pct):
+            count = int(round(pct * total / 100.0))
+            return f'{pct:.1f}%\n({count})'
+        return autopct
+
     wedges, texts, autotexts = ax.pie(
-        sizes, labels=labels, colors=colors, autopct='%1.1f%%',
-        startangle=90, pctdistance=0.75
+        sizes, labels=labels, colors=colors, autopct=make_autopct(sizes),
+        startangle=90, pctdistance=0.72
     )
     for t in autotexts:
-        t.set_fontsize(8)
+        t.set_fontsize(7)
         t.set_fontweight('bold')
-    ax.set_title('Fare Class Distribution')
+    ax.set_title(f'Seat Allocation  (Total Capacity: {rd.total_capacity:,})')
     return _save(fig, 'fc_pie')
 
 

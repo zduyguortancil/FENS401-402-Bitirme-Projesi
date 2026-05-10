@@ -9,6 +9,22 @@ python app.py
 # http://localhost:5005
 ```
 
+## Masaustu Gibi Acma
+Native pencere icinde acmak icin `pywebview` kullanabilirsiniz:
+
+```bash
+cd dashboard
+pip install -r requirements-desktop.txt
+python desktop_app.py
+```
+
+Kisa yollar:
+
+- macOS: `run_desktop.command` dosyasina cift tiklayin
+- Windows: `run_desktop.bat` dosyasina cift tiklayin
+
+Bu modda Flask arka planda lokal olarak kalkar ve tarayici yerine tek bir uygulama penceresi acilir.
+
 ## Dosyalar
 
 | Dosya | Aciklama |

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seatwise — Revenue Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:   #060a12;
+      --bg1:  #0a0f1c;
+      --bg2:  #0d1526;
+      --blue: #3b82f6;
+      --blue-dim: rgba(59,130,246,.12);
+      --cyan: #06b6d4;
+      --purple: #8b5cf6;
+      --green: #10b981;
+      --text-0: #f0f6ff;
+      --text-1: #94a3b8;
+      --text-2: #64748b;
+      --border: rgba(59,130,246,.15);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-0);
+      overflow: hidden;
+    }
+
+    /* ─── ANIMATED BACKGROUND ─── */
+    .bg-canvas {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+    }
+    .bg-canvas::before {
+      content: '';
+      position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
+      width: 1000px; height: 700px;
+      background: radial-gradient(ellipse at center,
+        rgba(59,130,246,.20) 0%,
+        rgba(99,102,241,.08) 40%,
+        transparent 70%);
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+    .bg-canvas::after {
+      content: '';
+      position: absolute; bottom: -10%; right: -10%;
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse at center, rgba(8,145,178,.12) 0%, transparent 60%);
+      animation: pulseGlow2 6s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%,100% { opacity:1; transform: translateX(-50%) scale(1); }
+      50%      { opacity:.7; transform: translateX(-50%) scale(1.05); }
+    }
+    @keyframes pulseGlow2 {
+      0%,100% { opacity:.6; } 50% { opacity:1; }
+    }
+
+    .grid-lines {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(59,130,246,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59,130,246,.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .particles { position: absolute; inset: 0; }
+    .particle {
+      position: absolute; width: 2px; height: 2px; border-radius: 50%;
+      background: var(--blue); opacity: 0;
+      animation: float var(--dur,8s) var(--delay,0s) ease-in-out infinite;
+    }
+    @keyframes float {
+      0%   { opacity:0; transform: translateY(0) translateX(0); }
+      10%  { opacity:.6; }
+      90%  { opacity:.2; }
+      100% { opacity:0; transform: translateY(var(--dy,-300px)) translateX(var(--dx,20px)); }
+    }
+
+    .data-stream {
+      position: absolute; top: 0; width: 1px; height: 100%;
+      background: linear-gradient(to bottom,
+        transparent, rgba(59,130,246,.3), rgba(6,182,212,.5), rgba(59,130,246,.3), transparent);
+      background-size: 100% 200px;
+      animation: streamDown var(--sd,3s) var(--sdelay,0s) linear infinite;
+      opacity: .4;
+    }
+    @keyframes streamDown {
+      0%   { background-position: 0 -200px; }
+      100% { background-position: 0 100vh; }
+    }
+
+    /* ─── MAIN CONTAINER ─── */
+    .container {
+      position: relative; z-index: 10;
+      height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0;
+    }
+
+    /* ─── LOGO SECTION ─── */
+    .logo-section {
+      display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      animation: fadeInUp .8s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    /* Glowing ring behind the logo image */
+    .logo-glow-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: .5rem;
+    }
+    .logo-glow-wrap::before {
+      content: '';
+      position: absolute; inset: -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        rgba(59,130,246,.35) 0%,
+        rgba(6,182,212,.15) 40%,
+        transparent 70%);
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+    .logo-glow-wrap::after {
+      content: '';
+      position: absolute; inset: -40px;
+      border-radius: 50%;
+      border: 1px solid rgba(59,130,246,.2);
+      animation: spin 12s linear infinite;
+    }
+    @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+    .logo-ring-outer {
+      position: absolute; inset: -28px;
+      border-radius: 50%;
+      border: 1px solid rgba(6,182,212,.25);
+      animation: spin 8s linear infinite reverse;
+    }
+
+    /* Actual logo image */
+    .logo-img {
+      position: relative; z-index: 2;
+      width: 220px;
+      filter:
+        drop-shadow(0 0 24px rgba(59,130,246,.8))
+        drop-shadow(0 0 55px rgba(6,182,212,.4));
+      animation: logoFloat 4s ease-in-out infinite;
+    }
+    @keyframes logoFloat {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-7px); }
+    }
+
+    /* Seatwise text + tagline */
+    .brand-block {
+      text-align: center;
+      margin-top: .2rem;
+    }
+    .brand-name {
+      font-size: 3.2rem;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      background: linear-gradient(135deg, #ffffff 0%, #c0dcff 50%, #7ae8f9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .brand-tagline {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #b0c4de;
+      letter-spacing: .04em;
+      margin-top: .4rem;
+    }
+    .brand-tagline .hl { color: var(--cyan); font-weight: 700; }
+
+    /* ─── DATA METRICS ─── */
+    .data-metrics {
+      display: flex; gap: 1.8rem; align-items: center;
+      margin-top: 1.8rem;
+      animation: fadeInUp .8s .15s cubic-bezier(.16,1,.3,1) both;
+    }
+    .metric { text-align: center; }
+    .metric-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem; font-weight: 600;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .metric-lbl {
+      font-size: .6rem; color: var(--text-2);
+      text-transform: uppercase; letter-spacing: .1em; margin-top: .2rem;
+    }
+    .metric-sep { width:1px; background: var(--border); align-self: stretch; }
+
+    /* ─── FEATURE CARDS ─── */
+    .features {
+      display: flex; gap: .85rem;
+      margin-top: 1.6rem;
+      animation: fadeInUp .8s .25s cubic-bezier(.16,1,.3,1) both;
+    }
+    .feat-card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: .9rem 1rem;
+      display: flex; flex-direction: column; align-items: center; gap: .4rem;
+      width: 132px; text-align: center;
+      backdrop-filter: blur(8px);
+      transition: all .3s ease;
+    }
+    .feat-card:hover {
+      border-color: rgba(59,130,246,.4);
+      background: rgba(59,130,246,.06);
+      transform: translateY(-2px);
+    }
+    .feat-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: .95rem;
+    }
+    .feat-icon.blue   { background: rgba(59,130,246,.15); }
+    .feat-icon.cyan   { background: rgba(6,182,212,.15); }
+    .feat-icon.purple { background: rgba(139,92,246,.15); }
+    .feat-icon.green  { background: rgba(16,185,129,.15); }
+    .feat-label { font-size: .7rem; font-weight: 600; color: var(--text-0); }
+    .feat-desc  { font-size: .62rem; color: var(--text-2); line-height: 1.4; }
+
+    /* ─── LAUNCH BUTTON ─── */
+    .btn-section {
+      margin-top: 2rem;
+      display: flex; flex-direction: column; align-items: center; gap: .9rem;
+      animation: fadeInUp .8s .35s cubic-bezier(.16,1,.3,1) both;
+    }
+    .launch-btn {
+      position: relative;
+      display: flex; align-items: center; gap: .75rem;
+      padding: .95rem 2.4rem;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+      border: none; border-radius: 50px;
+      color: #fff; font-family: 'Inter', sans-serif;
+      font-size: 1rem; font-weight: 700; letter-spacing: .02em;
+      cursor: pointer;
+      transition: all .3s ease;
+      box-shadow: 0 4px 24px rgba(59,130,246,.4), 0 0 60px rgba(59,130,246,.1);
+      overflow: hidden;
+    }
+    .launch-btn::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+      opacity: 0; transition: opacity .3s;
+    }
+    .launch-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(59,130,246,.6), 0 0 80px rgba(6,182,212,.2);
+    }
+    .launch-btn:hover::before { opacity:1; }
+    .launch-btn:active { transform: translateY(0); }
+    .btn-arrow {
+      width:22px; height:22px; background:rgba(255,255,255,.2);
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:.75rem; transition: transform .3s;
+    }
+    .launch-btn:hover .btn-arrow { transform: translateX(3px); }
+
+    /* ─── LOADING PROGRESS ─── */
+    .loading-section {
+      display:flex; flex-direction:column; align-items:center; gap:.55rem;
+      min-height:52px;
+    }
+    .loading-status {
+      font-family: 'JetBrains Mono', monospace;
+      font-size:.72rem; color:var(--blue); letter-spacing:.05em;
+      animation: fadeInOut 2s ease infinite;
+    }
+    @keyframes fadeInOut { 0%,100%{opacity:.6;} 50%{opacity:1;} }
+    .loading-sub { font-size:.68rem; color:var(--text-2); letter-spacing:.04em; }
+    .progress-track {
+      width:260px; height:3px;
+      background:rgba(59,130,246,.12); border-radius:2px; overflow:hidden;
+    }
+    .progress-fill {
+      height:100%;
+      background:linear-gradient(90deg, var(--blue), var(--cyan));
+      border-radius:2px; width:0%;
+      transition:width .4s ease;
+      box-shadow:0 0 8px rgba(6,182,212,.8);
+    }
+
+    /* ─── SYSTEM STATUS ─── */
+    .system-status {
+      position:fixed; bottom:2.5rem; left:50%; transform:translateX(-50%);
+      display:flex; gap:1.5rem; align-items:center;
+      animation: fadeInUp .8s .5s cubic-bezier(.16,1,.3,1) both;
+    }
+    .status-item {
+      display:flex; align-items:center; gap:.4rem;
+      font-size:.63rem; color:var(--text-2);
+      font-family:'JetBrains Mono', monospace; letter-spacing:.05em;
+    }
+    .status-dot { width:6px; height:6px; border-radius:50%; }
+    .status-dot.green  { background:var(--green);  box-shadow:0 0 4px var(--green);  animation:blink 2s   ease infinite; }
+    .status-dot.blue   { background:var(--blue);   box-shadow:0 0 4px var(--blue);   animation:blink 2.5s ease infinite; }
+    .status-dot.purple { background:var(--purple); box-shadow:0 0 4px var(--purple); animation:blink 3s   ease infinite; }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+    /* ─── VERSION BADGE ─── */
+    .version-badge {
+      position:fixed; top:1.5rem; right:1.5rem;
+      font-family:'JetBrains Mono', monospace; font-size:.6rem;
+      color:var(--text-2); letter-spacing:.08em;
+      background:rgba(255,255,255,.03); border:1px solid var(--border);
+      padding:.3rem .7rem; border-radius:20px;
+    }
+
+    .copyright {
+      position:fixed; bottom:.75rem; left:50%; transform:translateX(-50%);
+      font-size:.6rem; color:var(--text-2); letter-spacing:.05em;
+      white-space:nowrap; opacity:.5;
+    }
+
+    /* ─── TRANSITION ─── */
+    .transition-overlay {
+      position:fixed; inset:0; background:var(--bg); z-index:1000;
+      opacity:0; pointer-events:none; transition:opacity .5s ease;
+    }
+    .transition-overlay.active { opacity:1; pointer-events:all; }
+
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateY(24px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .airplane-path {
+      position:fixed; bottom:0; left:-100px;
+      font-size:1.2rem; opacity:.15;
+      animation: flyAcross 14s linear infinite;
+    }
+    @keyframes flyAcross {
+      0%   { left:-100px;          bottom:20%; opacity:0;   }
+      5%   { opacity:.25; }
+      95%  { opacity:.12; }
+      100% { left:calc(100vw + 100px); bottom:32%; opacity:0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Transition overlay -->
+<div class="transition-overlay" id="transitionOverlay"></div>
+
+<!-- Background -->
+<div class="bg-canvas">
+  <div class="grid-lines"></div>
+  <div class="particles" id="particles"></div>
+  <div class="data-stream" style="left:10%; --sd:2.5s; --sdelay:0s;"></div>
+  <div class="data-stream" style="left:25%; --sd:3.5s; --sdelay:.8s;"></div>
+  <div class="data-stream" style="left:42%; --sd:2s;   --sdelay:1.5s;"></div>
+  <div class="data-stream" style="left:60%; --sd:4s;   --sdelay:.3s;"></div>
+  <div class="data-stream" style="left:75%; --sd:3s;   --sdelay:1.2s;"></div>
+  <div class="data-stream" style="left:88%; --sd:2.8s; --sdelay:.6s;"></div>
+</div>
+
+<div class="airplane-path">✈️</div>
+<div class="version-badge">SEATWISE v4.0 · SPRINT 4</div>
+
+<!-- Main content -->
+<div class="container">
+
+  <!-- ── LOGO ── -->
+  <div class="logo-section">
+    <div class="logo-glow-wrap">
+      <div class="logo-ring-outer"></div>
+      <img src="/static/logo.png" alt="Seatwise" class="logo-img" />
+    </div>
+    <div class="brand-block">
+      <div class="brand-name">Seatwise</div>
+      <div class="brand-tagline">
+        <span class="hl">Smarter</span> Decisions. <span class="hl">Better</span> Flights.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DATA METRICS ── -->
+  <div class="data-metrics">
+    <div class="metric">
+      <div class="metric-val" id="cnt-routes">0</div>
+      <div class="metric-lbl">Active Routes</div>
+    </div>
+    <div class="metric-sep"></div>
+    <div class="metric">
+      <div class="metric-val" id="cnt-flights">0</div>
+      <div class="metric-lbl">Flights Monitored</div>
+    </div>
+    <div class="metric-sep"></div>
+    <div class="metric">
+      <div class="metric-val" id="cnt-models">0</div>
+      <div class="metric-lbl">AI Models Active</div>
+    </div>
+    <div class="metric-sep"></div>
+    <div class="metric">
+      <div class="metric-val" id="cnt-accuracy">0%</div>
+      <div class="metric-lbl">Forecast Accuracy</div>
+    </div>
+  </div>
+
+  <!-- ── FEATURE CARDS ── -->
+  <div class="features">
+    <div class="feat-card">
+      <div class="feat-icon blue">📊</div>
+      <div class="feat-label">Real-Time Analytics</div>
+      <div class="feat-desc">Live demand & revenue insights</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon cyan">🎯</div>
+      <div class="feat-label">Dynamic Pricing</div>
+      <div class="feat-desc">AI-powered fare optimization</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon purple">🤖</div>
+      <div class="feat-label">Demand Forecast</div>
+      <div class="feat-desc">XGBoost & TFT models</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon green">💬</div>
+      <div class="feat-label">Sentiment Intel</div>
+      <div class="feat-desc">GDELT + DeBERTa NLP</div>
+    </div>
+  </div>
+
+  <!-- ── BUTTON + PROGRESS ── -->
+  <div class="btn-section">
+    <button class="launch-btn" id="launchBtn" onclick="launchDashboard()">
+      Launch Dashboard
+      <span class="btn-arrow">→</span>
+    </button>
+
+    <div class="loading-section" id="loadingSection" style="display:none;">
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="loading-status" id="loadingStatus">Initializing systems...</div>
+      <div class="loading-sub"    id="loadingSub">Please wait</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- System status bar -->
+<div class="system-status">
+  <div class="status-item"><div class="status-dot green"></div>DuckDB Engine</div>
+  <div class="status-item"><div class="status-dot blue"></div>XGBoost Models</div>
+  <div class="status-item"><div class="status-dot purple"></div>Sentiment NLP</div>
+  <div class="status-item"><div class="status-dot green"></div>Flask API</div>
+</div>
+
+<div class="copyright">© 2024 Seatwise · Revenue Intelligence Platform · All rights reserved</div>
+
+<script>
+  // ── Particles ──
+  const pCont = document.getElementById('particles');
+  for (let i = 0; i < 40; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.cssText = `
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --dur:${6+Math.random()*8}s; --delay:${Math.random()*8}s;
+      --dy:${-(100+Math.random()*200)}px; --dx:${(Math.random()-.5)*60}px;
+      background:${Math.random()>.5?'#3b82f6':'#06b6d4'};
+      width:${1+Math.random()*2}px; height:${1+Math.random()*2}px;
+    `;
+    pCont.appendChild(p);
+  }
+
+  // ── Counters ──
+  function animateCounter(el, target, suffix, dur) {
+    const start = Date.now();
+    const tick = () => {
+      const pct = Math.min((Date.now()-start)/dur, 1);
+      const ease = 1 - Math.pow(1-pct, 3);
+      el.textContent = Math.round(ease*target) + (suffix||'');
+      if (pct < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  setTimeout(() => {
+    animateCounter(document.getElementById('cnt-routes'),   50,  '',  1200);
+    animateCounter(document.getElementById('cnt-flights'),  51,  'k',  1500);
+    animateCounter(document.getElementById('cnt-models'),    3,  '',   800);
+    animateCounter(document.getElementById('cnt-accuracy'), 99,  '%', 2000);
+  }, 400);
+
+  // ── Launch ──
+  const steps = [
+    { msg:'Connecting to DuckDB engine...',          sub:'Loading flight data snapshots',              pct:15 },
+    { msg:'Loading XGBoost demand models...',        sub:'Two-Stage classifier + regressor',           pct:30 },
+    { msg:'Initializing TFT forecast engine...',     sub:'Route-level temporal fusion transformer',    pct:48 },
+    { msg:'Loading sentiment intelligence...',       sub:'GDELT + DeBERTa NLP pipeline',              pct:65 },
+    { msg:'Connecting simulation engine...',         sub:'Dynamic pricing & seat inventory',           pct:80 },
+    { msg:'Warming up revenue analytics...',         sub:'Building KPI dashboards',                    pct:92 },
+    { msg:'Ready. Launching dashboard...',           sub:'Redirecting to Revenue Management',          pct:100 },
+  ];
+
+  function launchDashboard() {
+    document.getElementById('launchBtn').style.display = 'none';
+    const ls = document.getElementById('loadingSection');
+    ls.style.display = 'flex';
+    let i = 0;
+    const run = () => {
+      if (i >= steps.length) {
+        setTimeout(() => {
+          document.getElementById('transitionOverlay').classList.add('active');
+          setTimeout(() => { window.location.href = '/dashboard'; }, 500);
+        }, 300);
+        return;
+      }
+      const s = steps[i++];
+      document.getElementById('progressFill').style.width = s.pct + '%';
+      document.getElementById('loadingStatus').textContent = s.msg;
+      document.getElementById('loadingSub').textContent   = s.sub;
+      setTimeout(run, i === steps.length ? 400 : 280 + Math.random()*220);
+    };
+    run();
+  }
+</script>
+</body>
+</html>

@@ -31,6 +31,9 @@ def init_db():
             event_impact REAL,
             published_at TEXT,
             fetched_at  TEXT NOT NULL,
+            deberta_score REAL,
+            deberta_label TEXT,
+            deberta_prob_pos REAL,
             UNIQUE(city_key, url)
         );
         CREATE TABLE IF NOT EXISTS city_scores (
@@ -45,27 +48,54 @@ def init_db():
             dominant_event_tr   TEXT,
             event_distribution  TEXT,
             high_impact_events  TEXT,
-            updated_at          TEXT NOT NULL
+            updated_at          TEXT NOT NULL,
+            threat_ratio        REAL DEFAULT 0
         );
         CREATE INDEX IF NOT EXISTS idx_art_city ON articles(city_key);
         CREATE INDEX IF NOT EXISTS idx_art_fetched ON articles(fetched_at);
     """)
+    # Migrasyon: eski DB'lerde DeBERTa kolonları yok — sessizce ekle.
+    for col_def in [
+        "ALTER TABLE articles ADD COLUMN deberta_score REAL",
+        "ALTER TABLE articles ADD COLUMN deberta_label TEXT",
+        "ALTER TABLE articles ADD COLUMN deberta_prob_pos REAL",
+        "ALTER TABLE city_scores ADD COLUMN threat_ratio REAL DEFAULT 0",
+    ]:
+        try:
+            con.execute(col_def)
+        except Exception:
+            pass
     con.commit()
     con.close()
 
 
-def cleanup_old(hours=48):
+def cleanup_old(hours=72):
+    """48->72 saat: cycle gecikmelerinde veri kaybı olmasın."""
     cutoff = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
-    # 14 gunden eski published_at olan makaleleri de temizle
-    pub_cutoff_14d = (datetime.utcnow() - timedelta(days=14)).strftime("%Y")  # yil bazli kaba filtre
     con = _con()
     con.execute("DELETE FROM articles WHERE fetched_at < ?", [cutoff])
-    # published_at icinde eski yil gecen makaleleri de sil (orn: 2025)
-    current_year = datetime.utcnow().year
-    for old_year in range(current_year - 1, current_year - 3, -1):
-        con.execute("DELETE FROM articles WHERE published_at LIKE ?", [f"%{old_year}%"])
+    # 14+ gün eski yayınlanmış makaleleri datetime parse'iyle sil — substring match yok.
+    pub_cutoff = datetime.utcnow() - timedelta(days=14)
+    rows = con.execute("SELECT id, published_at FROM articles WHERE published_at IS NOT NULL").fetchall()
+    stale_ids = []
+    for row in rows:
+        pub = _safe_parse(row[1])
+        if pub and pub < pub_cutoff:
+            stale_ids.append(row[0])
+    if stale_ids:
+        con.executemany("DELETE FROM articles WHERE id = ?", [(i,) for i in stale_ids])
     con.commit()
     con.close()
+
+
+def _safe_parse(s):
+    if not s:
+        return None
+    try:
+        from .scoring import _parse_date
+        return _parse_date(s)
+    except Exception:
+        return None
 
 
 def store_articles(city_key, articles):
@@ -78,8 +108,9 @@ def store_articles(city_key, articles):
             con.execute("""
                 INSERT OR REPLACE INTO articles
                 (city_key, title, url, source, tone, sentiment_label, sentiment_score,
-                 event_type, event_tr, event_icon, event_impact, published_at, fetched_at)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+                 event_type, event_tr, event_icon, event_impact, published_at, fetched_at,
+                 deberta_score, deberta_label, deberta_prob_pos)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, [
                 city_key,
                 a.get("title", ""),
@@ -94,6 +125,9 @@ def store_articles(city_key, articles):
                 a.get("event_impact"),
                 a.get("published_at", ""),
                 now,
+                a.get("deberta_score"),
+                a.get("deberta_label"),
+                a.get("deberta_prob_pos"),
             ])
         except Exception:
             pass
@@ -109,8 +143,8 @@ def store_city_score(city_key, aggregate):
         (city_key, composite_score, alert_level, article_count,
          positive_count, negative_count, neutral_count,
          dominant_event, dominant_event_tr, event_distribution,
-         high_impact_events, updated_at)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+         high_impact_events, updated_at, threat_ratio)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
     """, [
         city_key,
         aggregate.get("composite_score", 0.0),
@@ -124,6 +158,7 @@ def store_city_score(city_key, aggregate):
         json.dumps(aggregate.get("event_distribution", {})),
         json.dumps(aggregate.get("high_impact_events", [])),
         now,
+        aggregate.get("threat_ratio", 0.0),
     ])
     con.commit()
     con.close()
@@ -173,7 +208,8 @@ def _load_cached_articles(city_key, limit=10):
     con = _con()
     rows = con.execute("""
         SELECT title, url, source, tone, sentiment_label, sentiment_score,
-               event_type, event_tr, event_icon, event_impact, published_at
+               event_type, event_tr, event_icon, event_impact, published_at,
+               deberta_score, deberta_label, deberta_prob_pos
         FROM articles WHERE city_key = ?
         ORDER BY published_at DESC LIMIT ?
     """, [city_key, limit]).fetchall()
@@ -183,4 +219,5 @@ def _load_cached_articles(city_key, limit=10):
         "sentiment_label": r[4], "sentiment_score": r[5],
         "event_type": r[6], "event_tr": r[7], "event_icon": r[8],
         "event_impact": r[9], "published_at": r[10],
+        "deberta_score": r[11], "deberta_label": r[12], "deberta_prob_pos": r[13],
     } for r in rows]

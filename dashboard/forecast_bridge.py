@@ -109,6 +109,42 @@ class ForecastBridge:
             "cum_fraction": cum_fraction,
         }
 
+    def predict_remaining_demand(self, route, cabin, dep_date, dtd, capacity, sold,
+                                 region="Europe", distance_km=3000.0, revenue_dynamic=0.0):
+        """Tek ucus icin XGBoost pickup modelinden kalan talep tahmini uret."""
+        if self.pickup_model is None or not self.pickup_features:
+            return None
+
+        try:
+            if isinstance(dep_date, datetime):
+                dep_date_obj = dep_date.date()
+            elif isinstance(dep_date, date):
+                dep_date_obj = dep_date
+            elif dep_date:
+                dep_date_obj = datetime.strptime(str(dep_date)[:10], "%Y-%m-%d").date()
+            else:
+                dep_date_obj = date.today()
+
+            sim_day = dep_date_obj - pd.Timedelta(days=int(max(dtd, 0)))
+            inventory = {
+                "route": route,
+                "cabin": cabin,
+                "dep_date": dep_date_obj,
+                "capacity": int(capacity or 0),
+                "sold": int(sold or 0),
+                "region": region or "Europe",
+                "distance_km": float(distance_km or 3000.0),
+                "revenue_dynamic": float(revenue_dynamic or 0.0),
+                "bookings": [],
+            }
+            feat = self._build_features(inventory, int(max(dtd, 0)), sim_day)
+            row = np.array([[feat.get(f, 0.0) for f in self.pickup_features]], dtype=np.float32)
+            dmat = xgb.DMatrix(row, feature_names=self.pickup_features)
+            pred = float(self.pickup_model.predict(dmat)[0])
+            return max(pred, 0.0)
+        except Exception:
+            return None
+
     # ══════════════════════════════════════════════════════
     # BATCH PREDICT — gunde 1 kez tum aktif ucuslar icin
     # ══════════════════════════════════════════════════════

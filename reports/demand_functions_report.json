@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "2.0",
   "total_segments": 6,
   "data_summary": {
     "avg_daily_pax": 0.7884,
@@ -22,6 +22,14 @@
     }
   },
   "region_reference": {
+    "Asia": {
+      "avg_price": 1038.7,
+      "total_pax": 4332274
+    },
+    "Middle East": {
+      "avg_price": 365.41,
+      "total_pax": 8084556
+    },
     "Africa": {
       "avg_price": 582.05,
       "total_pax": 4280186
@@ -33,14 +41,6 @@
     "Europe": {
       "avg_price": 312.13,
       "total_pax": 8260360
-    },
-    "Asia": {
-      "avg_price": 1038.7,
-      "total_pax": 4332274
-    },
-    "Middle East": {
-      "avg_price": 365.41,
-      "total_pax": 8084556
     }
   },
   "dtd_distribution": {
@@ -83,17 +83,16 @@
   "segments": {
     "A": {
       "id": "A",
-      "name": "İş Yolcusu",
-      "name_en": "Business Traveler",
+      "name": "Business Traveler",
       "icon": "💼",
       "color": "#3b82f6",
-      "description": "Son dakika alır, yüksek bütçe, zaman hassasiyeti yüksek. Business class tercih eder.",
+      "description": "Late booker with high budget and time sensitivity. Prefers business class.",
       "characteristics": [
-        "Son dakika rezervasyon (0-14 gün)",
-        "Yüksek bütçe, fiyata duyarsız",
-        "Hafta içi, sabah uçuşları",
-        "Frequent flyer üyesi",
-        "Business class tercih"
+        "Last-minute booking (0–14 days)",
+        "High budget, price-insensitive",
+        "Weekday morning flights",
+        "Frequent flyer member",
+        "Business class preference"
       ],
       "booking_window": {
         "min_dtd": 0,
@@ -108,25 +107,24 @@
       "base_share_pct": 15,
       "preferred_cabin": "business",
       "seasonal_boost": {
-        "kongre_fuar": 1.4,
-        "is_seyahati_yogun": 1.3,
+        "congress_expo": 1.4,
+        "peak_business": 1.3,
         "normal": 1.0
       },
       "dtd_decay_rate": 0.15
     },
     "B": {
       "id": "B",
-      "name": "Gurbetçi (VFR)",
-      "name_en": "Diaspora / VFR",
+      "name": "Diaspora / VFR",
       "icon": "🏠",
       "color": "#10b981",
-      "description": "Destinasyon sabit (memleket). Ağustos + bayram peak. Bagaj ağır. Fiyata orta duyarlı.",
+      "description": "Fixed destination (hometown). August & holiday peaks. Heavy baggage. Moderate price sensitivity.",
       "characteristics": [
-        "Sabit destinasyon (memleket)",
-        "Yaz + bayram döneminde yoğun",
-        "Yüksek bagaj hacmi",
-        "Fiyata orta düzey duyarlı",
-        "Economy class ağırlıklı"
+        "Fixed destination (hometown)",
+        "Peak in summer & holiday periods",
+        "High baggage volume",
+        "Moderate price sensitivity",
+        "Economy class dominant"
       ],
       "booking_window": {
         "min_dtd": 14,
@@ -141,27 +139,26 @@
       "base_share_pct": 20,
       "preferred_cabin": "economy",
       "seasonal_boost": {
-        "yaz_tatili": 1.6,
-        "bayram_donemi": 1.8,
-        "ramazan_donemi": 1.3,
-        "yilbasi": 1.4,
+        "summer_holiday": 1.6,
+        "religious_holiday": 1.8,
+        "ramadan": 1.3,
+        "new_year": 1.4,
         "normal": 1.0
       },
       "dtd_decay_rate": 0.05
     },
     "C": {
       "id": "C",
-      "name": "Kongre / Tıbbi Seyahat",
-      "name_en": "Congress / Medical",
+      "name": "Congress / Medical Travel",
       "icon": "🏥",
       "color": "#8b5cf6",
-      "description": "Belirli tarih ve destinasyon. Grup potansiyeli. Esneklik düşük. Orta bütçe.",
+      "description": "Fixed date and destination. Group travel potential. Low flexibility. Medium budget.",
       "characteristics": [
-        "Tarih ve destinasyon sabit",
-        "Grup halinde seyahat potansiyeli",
-        "Esneklik düşük",
-        "Orta bütçe seviyesi",
-        "Economy + Business karışık"
+        "Fixed date and destination",
+        "Group travel potential",
+        "Low flexibility",
+        "Medium budget level",
+        "Mixed economy & business class"
       ],
       "booking_window": {
         "min_dtd": 7,
@@ -176,24 +173,23 @@
       "base_share_pct": 12,
       "preferred_cabin": "economy",
       "seasonal_boost": {
-        "kongre_fuar": 1.8,
-        "festival_sezonu": 1.3,
+        "congress_expo": 1.8,
+        "festival_season": 1.3,
         "normal": 1.0
       },
       "dtd_decay_rate": 0.08
     },
     "D": {
       "id": "D",
-      "name": "Erken Tatilci",
-      "name_en": "Early Leisure",
+      "name": "Early Leisure",
       "icon": "🏖️",
       "color": "#f59e0b",
-      "description": "Promosyon kovalar, rota esnek, fiyat belirleyici. Aylar öncesinden planlar.",
+      "description": "Promotion hunter with flexible routes. Price is the key driver. Plans months ahead.",
       "characteristics": [
-        "60-180 gün önceden rezervasyon",
-        "Promosyon ve indirim takipçisi",
-        "Rota esnekliği yüksek",
-        "Fiyat ana karar faktörü",
+        "Books 60–180 days in advance",
+        "Promotion & discount seeker",
+        "High route flexibility",
+        "Price is the main decision factor",
         "Economy class"
       ],
       "booking_window": {
@@ -202,33 +198,32 @@
         "peak_dtd": 90
       },
       "wtp_multiplier": {
-        "min": 0.75,
-        "max": 1.35
+        "min": 0.7,
+        "max": 1.0
       },
       "price_elasticity": -1.5,
       "base_share_pct": 25,
       "preferred_cabin": "economy",
       "seasonal_boost": {
-        "yaz_tatili": 1.5,
-        "bahar_tatili": 1.3,
-        "kis_tatili": 1.2,
+        "summer_holiday": 1.5,
+        "spring_break": 1.3,
+        "winter_holiday": 1.2,
         "normal": 1.0
       },
       "dtd_decay_rate": 0.02
     },
     "E": {
       "id": "E",
-      "name": "Öğrenci",
-      "name_en": "Student",
+      "name": "Student",
       "icon": "🎓",
       "color": "#06b6d4",
-      "description": "Bütçe kısıtlı, zaman ve rota esnek. İspanya pahalıysa Yunanistan'a gider.",
+      "description": "Budget-constrained with high time & route flexibility. Will switch destinations if price is too high.",
       "characteristics": [
-        "Düşük bütçe, yüksek fiyat duyarlılığı",
-        "Zaman ve rota esnekliği çok yüksek",
-        "Alternatif destinasyonlara kayabilir",
-        "30-120 gün önceden planlar",
-        "Economy class, en düşük fare"
+        "Low budget, high price sensitivity",
+        "Very high time & route flexibility",
+        "May switch to alternative destinations",
+        "Plans 30–120 days ahead",
+        "Economy class, lowest fare"
       ],
       "booking_window": {
         "min_dtd": 30,
@@ -236,33 +231,32 @@
         "peak_dtd": 60
       },
       "wtp_multiplier": {
-        "min": 0.55,
-        "max": 1.10
+        "min": 0.5,
+        "max": 0.8
       },
       "price_elasticity": -2.2,
       "base_share_pct": 18,
       "preferred_cabin": "economy",
       "seasonal_boost": {
-        "yariyil_tatili": 1.5,
-        "yaz_tatili": 1.4,
-        "bahar_tatili": 1.3,
+        "semester_break": 1.5,
+        "summer_holiday": 1.4,
+        "spring_break": 1.3,
         "normal": 1.0
       },
       "dtd_decay_rate": 0.03
     },
     "F": {
       "id": "F",
-      "name": "Son Dakika Acil",
-      "name_en": "Last-Minute Urgent",
+      "name": "Last-Minute Urgent",
       "icon": "🚨",
       "color": "#ef4444",
-      "description": "Acil durum, ihale, futbol maçı. Ne pahasına olursa olsun biner. Bagajda bile gider.",
+      "description": "Emergency, tender, sports event. Will fly at any cost. Completely price-insensitive.",
       "characteristics": [
-        "0-3 gün içinde bilet alır",
-        "Fiyat duyarlılığı sıfır",
-        "Acil durum motivasyonu",
-        "Destinasyon ve zaman sabit",
-        "Herhangi bir kabin sınıfı"
+        "Books within 0–3 days",
+        "Zero price sensitivity",
+        "Emergency-driven motivation",
+        "Fixed destination and time",
+        "Any cabin class"
       ],
       "booking_window": {
         "min_dtd": 0,
@@ -277,8 +271,8 @@
       "base_share_pct": 10,
       "preferred_cabin": "economy",
       "seasonal_boost": {
-        "futbol_sezonu": 1.5,
-        "bayram_donemi": 1.6,
+        "sports_season": 1.5,
+        "religious_holiday": 1.6,
         "normal": 1.0
       },
       "dtd_decay_rate": 0.5

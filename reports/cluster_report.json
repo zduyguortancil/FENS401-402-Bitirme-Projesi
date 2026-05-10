@@ -37,7 +37,7 @@
       "is_weekday_pct": 70.3,
       "is_morning_pct": 27.7,
       "distance_km": 4363.0,
-      "label": "İş Yolcuları"
+      "label": "Business Travelers"
     },
     "1": {
       "size": 97356,
@@ -53,7 +53,7 @@
       "is_weekday_pct": 70.6,
       "is_morning_pct": 28.0,
       "distance_km": 4361.0,
-      "label": "Erken Planlayıcılar (Fiyata Duyarlı)"
+      "label": "Early Planners (Price-Sensitive)"
     },
     "2": {
       "size": 33441,
@@ -69,7 +69,7 @@
       "is_weekday_pct": 76.6,
       "is_morning_pct": 29.1,
       "distance_km": 3941.0,
-      "label": "Yüksek Talep Rotaları"
+      "label": "High-Demand Routes"
     }
   }
 }

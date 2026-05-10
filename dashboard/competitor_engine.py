@@ -205,9 +205,16 @@ class CompetitorManager:
             total_rev = sum(inv["revenue"] for inv in comp.inventory.values())
             total_cap = sum(inv["capacity"] for inv in comp.inventory.values())
             avg_lf = (total_sold / total_cap * 100) if total_cap > 0 else 0
-            # Ortalama guncel fiyat (cache'deki fiyatlardan)
-            prices = [p for p in comp._price_cache.values() if p > 0]
-            avg_price = round(sum(prices) / len(prices), 2) if prices else 0
+            # Ortalama guncel fiyat (kabin bazli)
+            prices_eco = [p for k, p in comp._price_cache.items() if p > 0 and "_economy" in k]
+            prices_biz = [p for k, p in comp._price_cache.items() if p > 0 and "_business" in k]
+            avg_price_eco = round(sum(prices_eco) / len(prices_eco), 2) if prices_eco else 0
+            avg_price_biz = round(sum(prices_biz) / len(prices_biz), 2) if prices_biz else 0
+            
+            # Geriye uyumluluk icin tum fiyatlarin ortalamasi
+            all_prices = prices_eco + prices_biz
+            avg_price = round(sum(all_prices) / len(all_prices), 2) if all_prices else 0
+
             result["competitors"][code] = {
                 "name": comp.name,
                 "type": comp.airline_type,
@@ -216,6 +223,8 @@ class CompetitorManager:
                 "total_capacity": total_cap,
                 "avg_lf": round(avg_lf, 1),
                 "avg_price": avg_price,
+                "avg_price_eco": avg_price_eco,
+                "avg_price_biz": avg_price_biz,
                 "routes_served": len(comp.inventory),
             }
         return result

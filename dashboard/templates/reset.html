@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Seatwise — Reset Password</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#060d18;
+  --teal:#14b8a6;
+  --blue:#1a73e8;
+  --text:#f0f6ff;
+  --text-muted:#7a9cc0;
+  --text-dim:#a8c0d8;
+  --border:rgba(56,189,248,.18);
+  --error:#f87171;
+  --success:#34d399;
+  --card:rgba(6,15,32,.92);
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:linear-gradient(180deg,#060d18 0%,#0b1525 60%,#050c16 100%);color:var(--text)}
+.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.2rem 2rem;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.brand{display:flex;align-items:center;gap:.6rem;margin-bottom:1.4rem;justify-content:center}
+.brand img{width:42px;height:42px;object-fit:contain}
+.brand-name{font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,#60c8f8,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h1{font-size:1.15rem;font-weight:700;margin-bottom:.4rem;text-align:center}
+.sub{font-size:.78rem;color:var(--text-muted);text-align:center;margin-bottom:1.4rem;line-height:1.55}
+.row{margin-bottom:.9rem}
+label{display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:.3rem;font-weight:600;letter-spacing:.02em}
+input[type=password]{width:100%;padding:.6rem .75rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.88rem;font-family:inherit;outline:none;transition:border .2s}
+input[type=password]:focus{border-color:rgba(56,189,248,.5)}
+.flash{font-size:.78rem;margin:.6rem 0;min-height:1.2rem;line-height:1.4}
+.flash.error{color:var(--error)}
+.flash.success{color:var(--success)}
+.btn{width:100%;margin-top:.4rem;padding:.75rem;background:linear-gradient(135deg,#1a73e8,#14b8a6);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .2s}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.error-banner{padding:1rem;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.35);border-radius:10px;color:var(--error);font-size:.85rem;margin-bottom:1rem;text-align:center}
+.back-link{display:block;text-align:center;margin-top:1.2rem;font-size:.78rem;color:#60c8f8;text-decoration:none}
+.back-link:hover{text-decoration:underline}
+.policy{font-size:.7rem;color:var(--text-muted);margin-top:.4rem;line-height:1.45}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="brand">
+      <img src="/static/logo.png?v=2" alt="Seatwise"/>
+      <span class="brand-name">Seatwise</span>
+    </div>
+    <h1>Reset your password</h1>
+    <p class="sub">Choose a new password for your account.</p>
+
+    {% if error %}
+      <div class="error-banner">{{ error }}</div>
+      <a href="/login" class="back-link">← Back to sign in</a>
+    {% else %}
+      <form id="resetForm" onsubmit="submitReset(event)" novalidate>
+        <div class="row">
+          <label for="newpw">New Password</label>
+          <input type="password" id="newpw" required autocomplete="new-password" placeholder="••••••••" />
+        </div>
+        <div class="row">
+          <label for="confirm">Confirm Password</label>
+          <input type="password" id="confirm" required autocomplete="new-password" placeholder="••••••••" />
+        </div>
+        <div class="policy">Password must be 8–32 characters and include lowercase, uppercase, a digit and a special character.</div>
+        <div id="flash" class="flash"></div>
+        <button type="submit" class="btn" id="submitBtn">Update Password</button>
+      </form>
+      <a href="/login" class="back-link">← Cancel</a>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+const PW_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-.])[A-Za-z\d@$!%*?&_\-.]{8,32}$/;
+async function submitReset(e){
+  e.preventDefault();
+  const np = document.getElementById('newpw').value;
+  const cf = document.getElementById('confirm').value;
+  const flash = document.getElementById('flash');
+  flash.className = 'flash error';
+  if (!np || !cf) { flash.textContent = 'Please fill both fields.'; return; }
+  if (np !== cf)  { flash.textContent = 'Passwords do not match.'; return; }
+  if (!PW_REGEX.test(np)) { flash.textContent = 'Password does not meet the policy.'; return; }
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  try {
+    const r = await fetch(window.location.pathname, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_password: np }),
+    });
+    const d = await r.json();
+    if (d.success) {
+      flash.className = 'flash success';
+      flash.textContent = (d.message || 'Password updated.') + ' Redirecting to sign in…';
+      setTimeout(() => { window.location.href = '/login'; }, 1500);
+    } else {
+      flash.textContent = d.message || 'Reset failed.';
+      btn.disabled = false; btn.textContent = 'Update Password';
+    }
+  } catch {
+    flash.textContent = 'Could not connect to server.';
+    btn.disabled = false; btn.textContent = 'Update Password';
+  }
+}
+</script>
+</body>
+</html>

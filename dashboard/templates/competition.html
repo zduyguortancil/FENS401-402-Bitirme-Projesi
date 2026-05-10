@@ -68,11 +68,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
 <body>
 
 <div class="header">
-  <a class="logo" href="/"><img src="/static/logo.png" alt="Seatwise" style="height:28px;border-radius:4px" />Seatwise Dashboard</a>
+  <a class="logo" href="/dashboard"><img src="/static/logo.png" alt="Seatwise" style="height:28px;border-radius:4px" />Seatwise Dashboard</a>
   <span style="color:var(--text-3);font-size:.8rem">/</span>
   <span style="color:var(--text-2);font-size:.8rem">Competition Simulation</span>
   <div class="hdr-spacer"></div>
-  <a class="nav-link" href="/">Dashboard</a>
+  <a class="nav-link" href="/dashboard">Dashboard</a>
   <a class="nav-link" href="/simulation">Simulation</a>
   <a class="nav-link" href="/competition" style="color:var(--accent)">Competition</a>
   <span class="sim-state idle" id="simState">READY</span>
@@ -163,7 +163,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-0);color:var(--text-1);m
       <div class="airline-kpis">
         <div class="airline-kpi">Load Factor: <strong id="ekLF">0%</strong></div>
         <div class="airline-kpi">Sold: <strong id="ekSold">0</strong>/322</div>
-        <div class="airline-kpi">Price: <strong id="ekPrice">$0</strong></div>
+        <div class="airline-kpi">Price: <strong id="ekPrice">$0</strong> <span id="ekBizPrice" style="font-size:0.6rem; color:var(--text-3)">(Biz: $0)</span></div>
       </div>
       <div class="seat-grid">
         <div style="font-size:.65rem;color:var(--text-3);margin-bottom:4px">BUSINESS (1-2-1 Herringbone)</div>
@@ -353,7 +353,8 @@ function updatePage(status, comp) {
     if (ek) {
       document.getElementById('ekLF').textContent = ek.avg_lf + '%';
       document.getElementById('ekSold').textContent = ek.total_sold.toLocaleString();
-      document.getElementById('ekPrice').textContent = ek.avg_price ? fmt$(ek.avg_price) : '--';
+      document.getElementById('ekPrice').textContent = ek.avg_price_eco ? fmt$(ek.avg_price_eco) : '--';
+      document.getElementById('ekBizPrice').textContent = ek.avg_price_biz ? '(Biz: ' + fmt$(ek.avg_price_biz) + ')' : '';
       // Animated Emirates seats — biz/eco proportional split
       const ekBizSold = Math.round(ek.total_sold * (42 / 322));
       const ekEcoSold = ek.total_sold - ekBizSold;

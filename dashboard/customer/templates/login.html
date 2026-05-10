@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FindTicket — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020f0a;
+  --teal:#14b8a6;
+  --teal2:#2dd4bf;
+  --sky:#38bdf8;
+  --green:#10b981;
+  --text:#e8fdf5;
+  --text-muted:#5a9e80;
+  --text-dim:#94c9a9;
+  --border:rgba(20,184,166,.15);
+  --border-focus:rgba(20,184,166,.5);
+  --error:#f87171;
+  --success:#34d399;
+  --card:rgba(2,18,12,.93);
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+.wrapper{display:flex;height:100vh}
+
+/* ── LEFT PANEL ── */
+.left{flex:1.1;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:3rem}
+.left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 35% 35%,rgba(16,185,129,.16) 0%,transparent 60%),radial-gradient(ellipse at 80% 75%,rgba(56,189,248,.1) 0%,transparent 50%),linear-gradient(180deg,#020f0a 0%,#031a10 60%,#010a06 100%)}
+.worldmap{position:absolute;inset:0;opacity:.12;background-image:radial-gradient(circle,rgba(20,184,166,.9) 1px,transparent 1px);background-size:22px 22px}
+
+/* Sunset window - different style for customer */
+.plane-window{position:absolute;right:-40px;top:50%;transform:translateY(-50%);width:320px;height:420px;border-radius:50% 50% 48% 48% / 42% 42% 58% 58%;overflow:hidden;border:6px solid rgba(255,255,255,.05);box-shadow:0 0 80px rgba(16,185,129,.1),inset 0 0 40px rgba(0,0,0,.4)}
+.window-inner{width:100%;height:100%;background:linear-gradient(170deg,#0ea5e9 0%,#0284c7 20%,#06b6d4 35%,#0891b2 50%,#164e63 65%,#0f172a 80%,#020f0a 100%);position:relative}
+.window-inner::before{content:'';position:absolute;bottom:35%;left:-30%;right:-30%;height:120px;background:rgba(255,255,255,.08);border-radius:50%;filter:blur(25px)}
+.window-clouds{position:absolute;bottom:30%;left:10%;right:10%;height:40px;background:rgba(255,255,255,.12);border-radius:50px;filter:blur(15px)}
+.wing{position:absolute;bottom:18%;right:-5%;width:160px;height:50px;background:linear-gradient(135deg,rgba(220,240,255,.8),rgba(200,225,255,.55));border-radius:8px 2px 2px 12px;transform:perspective(300px) rotateX(8deg);box-shadow:0 4px 20px rgba(0,0,0,.4)}
+
+/* Floating price badges */
+.price-hint{position:absolute;background:rgba(2,20,14,.88);border:1px solid rgba(20,184,166,.22);border-radius:10px;padding:.5rem .85rem;font-size:.64rem;color:var(--text-dim);backdrop-filter:blur(12px);animation:floatH var(--fh,7s) var(--fhd,0s) ease-in-out infinite}
+.price-hint strong{color:var(--teal2);font-size:.76rem;font-weight:700}
+.price-hint .rt{font-size:.6rem;color:var(--text-muted);margin-bottom:.1rem}
+.ph1{top:18%;left:5%;--fh:8s;--fhd:0s}
+.ph2{top:36%;left:8%;--fh:7s;--fhd:-3s}
+.ph3{bottom:30%;left:5%;--fh:9s;--fhd:-1.5s}
+@keyframes floatH{0%,100%{transform:translateY(0);opacity:.7}50%{transform:translateY(-7px);opacity:1}}
+
+/* Fly plane */
+.fly-plane{position:absolute;font-size:1.5rem;animation:flyAcross 12s linear infinite;top:26%;left:-60px;filter:drop-shadow(0 0 8px rgba(20,184,166,.6))}
+@keyframes flyAcross{0%{left:-60px;opacity:0}6%{opacity:1}90%{opacity:1}100%{left:calc(100% + 60px);opacity:0}}
+
+/* Brand */
+.brand{position:relative;z-index:2;margin-bottom:2rem}
+.brand-logo{display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem}
+.brand-icon{width:48px;height:48px;background:linear-gradient(135deg,#10b981,#06b6d4);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 6px 20px rgba(16,185,129,.35)}
+.brand-name{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#34d399,#67e8f9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-sub{font-size:.75rem;font-weight:600;letter-spacing:.18em;color:var(--teal2);text-transform:uppercase;margin-left:56px}
+.brand-tagline{margin-top:1rem;font-size:1.1rem;font-weight:600;color:var(--text-dim);line-height:1.5}
+.brand-tagline span{color:var(--teal2);font-weight:700}
+
+/* Route display */
+.route-display{position:relative;z-index:2;display:flex;align-items:center;gap:1rem;margin-bottom:2rem;background:rgba(255,255,255,.03);border:1px solid rgba(20,184,166,.1);border-radius:14px;padding:.8rem 1.2rem}
+.airport-code{font-size:1.6rem;font-weight:800;color:var(--text)}
+.airport-name{font-size:.65rem;color:var(--text-muted);letter-spacing:.06em}
+.route-mid{flex:1;display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.route-line-svg{width:100%;height:20px}
+.route-dur{font-size:.6rem;color:var(--text-muted);letter-spacing:.06em}
+
+/* Features */
+.features-left{position:relative;z-index:2;display:flex;gap:1.5rem;flex-wrap:wrap}
+.feat{display:flex;flex-direction:column;gap:.3rem}
+.feat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;border:1px solid rgba(20,184,166,.2);background:rgba(20,184,166,.07)}
+.feat-label{font-size:.7rem;font-weight:600;color:var(--text-dim);letter-spacing:.04em}
+.feat-desc{font-size:.66rem;color:var(--text-muted);line-height:1.4}
+
+/* ── RIGHT PANEL ── */
+.right{width:420px;flex-shrink:0;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:2.5rem 2.8rem;overflow-y:auto;backdrop-filter:blur(20px)}
+.form-title{font-size:1.25rem;font-weight:700;margin-bottom:.3rem}
+.form-sub{font-size:.8rem;color:var(--text-muted);margin-bottom:1.8rem}
+.tabs{display:flex;background:rgba(255,255,255,.04);border-radius:10px;padding:4px;margin-bottom:1.6rem}
+.tab-btn{flex:1;padding:8px;border:none;background:transparent;color:var(--text-muted);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;border-radius:7px;transition:all .22s}
+.tab-btn.active{color:var(--text);background:rgba(20,184,166,.15);box-shadow:0 2px 10px rgba(20,184,166,.15)}
+.form-panel{display:none;animation:sIn .25s ease}
+.form-panel.active{display:block}
+@keyframes sIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+.input-wrap{position:relative}
+.input-wrap input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:9px;padding:10px 40px 10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:all .18s}
+.input-wrap input:focus{border-color:var(--border-focus);background:rgba(20,184,166,.05);box-shadow:0 0 0 3px rgba(20,184,166,.1)}
+.input-wrap input.error-state{border-color:var(--error);box-shadow:0 0 0 3px rgba(248,113,113,.08)}
+.input-wrap input.valid-state{border-color:var(--success)}
+.eye-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;display:flex}
+.eye-btn:hover{color:var(--text-dim)}
+.err-msg{font-size:.7rem;color:var(--error);margin-top:4px;min-height:14px;display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .18s}
+.err-msg.visible{opacity:1}
+.err-msg::before{content:"⚠";font-size:.68rem}
+.checkbox-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:16px}
+.checkbox-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);margin-top:2px;cursor:pointer;flex-shrink:0}
+.checkbox-row label{font-size:.77rem;color:var(--text-muted);cursor:pointer;line-height:1.4}
+.checkbox-row a{color:var(--teal2);text-decoration:none}
+.extras-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.forgot-link{font-size:.75rem;color:var(--teal2);text-decoration:none}
+.forgot-link:hover{text-decoration:underline}
+.submit-btn{width:100%;padding:12px;background:linear-gradient(135deg,#10b981,#06b6d4);border:none;border-radius:10px;color:#fff;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .22s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px rgba(16,185,129,.3)}
+.submit-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 7px 24px rgba(16,185,129,.4)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none}
+.spinner.show{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.flash{padding:9px 13px;border-radius:9px;font-size:.78rem;font-weight:500;margin-bottom:14px;display:none}
+.flash.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:var(--error)}
+.flash.success{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--success)}
+.flash.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="left-bg"></div>
+    <div class="worldmap"></div>
+    <div class="fly-plane">✈</div>
+
+    <div class="plane-window">
+      <div class="window-inner">
+        <div class="window-clouds"></div>
+        <div class="wing"></div>
+      </div>
+    </div>
+
+    <!-- Price hints -->
+    <div class="price-hint ph1"><div class="rt">IST → LHR</div><strong>$387</strong> · Economy</div>
+    <div class="price-hint ph2"><div class="rt">IST → DXB</div><strong>$542</strong> · Business</div>
+    <div class="price-hint ph3"><div class="rt">IST → MAD</div><strong>$461</strong> · Economy</div>
+
+    <div class="brand">
+      <div class="brand-logo">
+        <div class="brand-icon">🎫</div>
+        <span class="brand-name">FindTicket</span>
+      </div>
+      <div class="brand-sub">Smart Flight Search</div>
+      <p class="brand-tagline">
+        Find the <span>cheapest flights</span> instantly.<br/>
+        Compare prices. Fly smarter.
+      </p>
+    </div>
+
+    <div class="route-display">
+      <div><div class="airport-code">IST</div><div class="airport-name">Istanbul</div></div>
+      <div class="route-mid">
+        <svg class="route-line-svg" viewBox="0 0 120 20"><line x1="0" y1="10" x2="45" y2="10" stroke="rgba(20,184,166,.4)" stroke-width="1" stroke-dasharray="4 3"/><text x="55" y="14" fill="rgba(20,184,166,.8)" font-size="10" text-anchor="middle">✈</text><line x1="65" y1="10" x2="120" y2="10" stroke="rgba(20,184,166,.4)" stroke-width="1" stroke-dasharray="4 3"/></svg>
+        <div class="route-dur">50+ Global Routes</div>
+      </div>
+      <div><div class="airport-code">✦</div><div class="airport-name">World</div></div>
+    </div>
+
+    <div class="features-left">
+      <div class="feat"><div class="feat-icon">📅</div><div class="feat-label">Price Calendar</div><div class="feat-desc">Find cheapest travel days</div></div>
+      <div class="feat"><div class="feat-icon">📈</div><div class="feat-label">Live Prices</div><div class="feat-desc">Real-time market data</div></div>
+      <div class="feat"><div class="feat-icon">🏆</div><div class="feat-label">Best Value</div><div class="feat-desc">Compare all airlines</div></div>
+      <div class="feat"><div class="feat-icon">♻️</div><div class="feat-label">Round Trip</div><div class="feat-desc">Outbound &amp; return search</div></div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="form-title">Welcome to FindTicket</div>
+    <div class="form-sub">Sign in to search the best flight deals</div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" id="tab-register" role="tab" aria-selected="false" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div class="flash" id="login-flash"></div>
+      <form novalidate onsubmit="submitLogin(event)">
+        <div class="field">
+          <label for="login-username">Username or Email</label>
+          <div class="input-wrap">
+            <input type="text" id="login-username" placeholder="username or email@..."
+              autocomplete="username" aria-label="Username or Email" aria-describedby="login-username-err" aria-invalid="false" required/>
+          </div>
+          <div class="err-msg" id="login-username-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="login-password" placeholder="••••••••"
+              autocomplete="current-password" aria-label="Password" aria-describedby="login-password-err" aria-invalid="false" required/>
+            <button type="button" class="eye-btn" onclick="togglePwd('login-password',this)" aria-label="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="login-password-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="extras-row">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.77rem;color:var(--text-muted)">
+            <input type="checkbox" id="remember-me" autocomplete="off"/> Remember Me
+          </label>
+          <a href="#" class="forgot-link" onclick="alert('Password reset will be available soon.');return false">Forgot Password?</a>
+        </div>
+        <button type="submit" class="submit-btn" id="login-btn">
+          <div class="spinner" id="login-spinner"></div>
+          <span id="login-btn-text">Sign In</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form-panel" id="panel-register">
+      <div class="flash" id="register-flash"></div>
+      <form novalidate onsubmit="submitRegister(event)">
+        <div class="field">
+          <label for="reg-username">Username</label>
+          <div class="input-wrap">
+            <input type="text" id="reg-username" placeholder="username"
+              autocomplete="username" aria-label="Username" aria-describedby="reg-username-err" aria-invalid="false" required minlength="3" maxlength="20"/>
+          </div>
+          <div class="err-msg" id="reg-username-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="reg-email">Email</label>
+          <div class="input-wrap">
+            <input type="email" id="reg-email" placeholder="email@example.com"
+              autocomplete="email" aria-label="Email" aria-describedby="reg-email-err" aria-invalid="false" required/>
+          </div>
+          <div class="err-msg" id="reg-email-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="reg-password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="reg-password" placeholder="••••••••"
+              autocomplete="new-password" aria-label="Password" aria-describedby="reg-password-err" aria-invalid="false" required minlength="8" maxlength="32"/>
+            <button type="button" class="eye-btn" onclick="togglePwd('reg-password',this)" aria-label="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="reg-password-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="reg-confirm">Confirm Password</label>
+          <div class="input-wrap">
+            <input type="password" id="reg-confirm" placeholder="••••••••"
+              autocomplete="new-password" aria-label="Confirm password" aria-describedby="reg-confirm-err" aria-invalid="false" required/>
+            <button type="button" class="eye-btn" onclick="togglePwd('reg-confirm',this)" aria-label="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="reg-confirm-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="reg-terms" required aria-label="Terms"/>
+          <label for="reg-terms">I have read and agree to the <a href="#" onclick="return false">Terms of Service and Privacy Policy</a>.</label>
+        </div>
+        <div class="err-msg" id="reg-terms-err" role="alert" aria-live="polite" style="margin-top:-10px;margin-bottom:12px"></div>
+        <button type="submit" class="submit-btn" id="register-btn">
+          <div class="spinner" id="register-spinner"></div>
+          <span id="register-btn-text">Register</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const REGEX={username:/^[a-zA-Z0-9]{3,20}$/,email:/^[^\s@]+@[^\s@]+\.[^\s@]+$/,password:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-.])[A-Za-z\d@$!%*?&_\-.]{8,32}$/};
+const MSGS={username:"Username must be 3-20 characters, English letters and numbers only.",email:"Please enter a valid email address.",password:"Password must be 8+ chars with uppercase, lowercase, number and special character.",confirm:"Passwords do not match.",required:"This field is required.",terms:"You must accept the terms to continue."};
+const timers={};
+function showErr(id,msg){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.toggle('visible',!!msg);const inp=document.getElementById(id.replace('-err',''));if(inp){inp.setAttribute('aria-invalid',msg?'true':'false');inp.classList.toggle('error-state',!!msg);inp.classList.toggle('valid-state',!msg&&inp.value.length>0);}}
+function validateField(f){const v=f.value,id=f.id;
+  if(id==='reg-username')return showErr('reg-username-err',!v?MSGS.required:REGEX.username.test(v)?'':MSGS.username);
+  if(id==='reg-email')return showErr('reg-email-err',!v?MSGS.required:REGEX.email.test(v)?'':MSGS.email);
+  if(id==='reg-password'){showErr('reg-password-err',!v?MSGS.required:REGEX.password.test(v)?'':MSGS.password);const c=document.getElementById('reg-confirm');if(c&&c.value)validateField(c);return;}
+  if(id==='reg-confirm')return showErr('reg-confirm-err',v===document.getElementById('reg-password').value?'':MSGS.confirm);
+  if(id==='login-username')return showErr('login-username-err',v?'':MSGS.required);
+  if(id==='login-password')return showErr('login-password-err',v?'':MSGS.required);}
+document.querySelectorAll('input[type=text],input[type=email],input[type=password]').forEach(el=>{el.addEventListener('blur',()=>validateField(el));el.addEventListener('input',()=>{clearTimeout(timers[el.id]);timers[el.id]=setTimeout(()=>validateField(el),500);});});
+function switchTab(tab){['login','register'].forEach(t=>{document.getElementById('panel-'+t).classList.toggle('active',t===tab);const b=document.getElementById('tab-'+t);b.classList.toggle('active',t===tab);b.setAttribute('aria-selected',t===tab?'true':'false');});document.querySelector('.form-title').textContent=tab==='login'?'Welcome to FindTicket':'Create your account';document.querySelector('.form-sub').textContent=tab==='login'?'Sign in to search the best flight deals':'Register to access all flight deals';}
+function togglePwd(id,btn){const inp=document.getElementById(id);if(!inp)return;const isText=inp.type==='text';inp.type=isText?'password':'text';btn.querySelector('svg').style.opacity=isText?'1':'0.5';}
+function setLoading(k,on){const btn=document.getElementById(k+'-btn'),sp=document.getElementById(k+'-spinner'),tx=document.getElementById(k+'-btn-text');btn.disabled=on;sp.classList.toggle('show',on);tx.textContent=on?(k==='login'?'Signing In...':'Registering...'):(k==='login'?'Sign In':'Register');}
+function showFlash(k,msg,type){const el=document.getElementById(k+'-flash');el.textContent=msg;el.className='flash '+type+' show';setTimeout(()=>el.classList.remove('show'),5000);}
+async function submitLogin(e){e.preventDefault();const u=document.getElementById('login-username'),p=document.getElementById('login-password');validateField(u);validateField(p);if(!u.value||!p.value)return;setLoading('login',true);try{const r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u.value,password:p.value,remember:document.getElementById('remember-me').checked})});const d=await r.json();if(d.success){window.location.href=d.redirect||'/';}else{showFlash('login',d.message||'Login failed.','error');}}catch{showFlash('login','Could not connect to server.','error');}finally{setLoading('login',false);}}
+async function submitRegister(e){e.preventDefault();const flds=['reg-username','reg-email','reg-password','reg-confirm'];flds.forEach(id=>validateField(document.getElementById(id)));const terms=document.getElementById('reg-terms');if(!terms.checked){showErr('reg-terms-err',MSGS.terms);return;}else{showErr('reg-terms-err','');}const vals=flds.map(id=>document.getElementById(id));if(vals.some(f=>document.getElementById(f.id+'-err')?.classList.contains('visible')))return;setLoading('register',true);try{const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:vals[0].value,email:vals[1].value,password:vals[2].value})});const d=await r.json();if(d.success){showFlash('register','Registration successful! You can now sign in.','success');setTimeout(()=>switchTab('login'),1500);}else{showFlash('register',d.message||'Registration failed.','error');}}catch{showFlash('register','Could not connect to server.','error');}finally{setLoading('register',false);}}
+</script>
+</body>
+</html>

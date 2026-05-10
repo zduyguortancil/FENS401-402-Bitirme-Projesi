@@ -107,6 +107,7 @@ class SimulationEngine:
         self.network = network_optimizer  # NetworkOptimizer veya None
         self.clock = SimClock()
         self.state = "idle"
+        self._reset_requested = False
         self.inventory = {}
         self.lock = threading.Lock()
         self.thread = None
@@ -276,6 +277,7 @@ class SimulationEngine:
             time.sleep(0.2)  # thread'in durmasini bekle
 
         random.seed(seed)
+        self._reset_requested = False
         self.state = "initializing"
         self.inventory = {}
         self.stats = {
@@ -345,8 +347,87 @@ class SimulationEngine:
                 "overbooking_limit": self._calc_overbooking_limit(f["route"], f["cabin"], f["capacity"]),
             }
 
-        # Saat ayarla — booking window 180 gun oncesinden baslar
-        sim_start = start_date - timedelta(days=180)
+        # ── PRE-LOAD: bugün itibariyle uçuşların gerçek anlık doluluğunu yansıt ──
+        # Sentetik veride bookings 180 gün önceden başlar; ama simülasyon bugün
+        # başlatıldığında geçmişi tekrar oynatmak yanlış: uçuşa 1 gün kala
+        # ortalama %85 dolu olmalı, %0'dan başlayıp 1 günde dolması mantıksız.
+        # Bu blok, simülasyon başlamadan önce her uçuş için "şimdiye kadar
+        # tarihsel olarak satılmış" miktarı sentetik bookings ile yerleştirir.
+        today = date.today()
+        for _key, _inv in self.inventory.items():
+            _dep = _inv["dep_date"]
+            _real_dtd = (_dep - today).days
+            if _real_dtd <= 0 or _real_dtd >= 180:
+                continue
+            # S-curve: bugüne kadar satılmış olması gereken kümülatif oran
+            _cum_now = max(0.0, min(0.95, 1.0 - (_real_dtd / 180.0) ** 1.5))
+            _target_lf = 0.70 if _inv["cabin"] == "business" else 0.85
+            _target_total = _inv["capacity"] * _target_lf
+            try:
+                if self.bridge:
+                    _tft = self.bridge.get_tft_total(
+                        _inv["route"].replace("-", "_"),
+                        _inv["cabin"],
+                        _dep,
+                    )
+                    if _tft and _tft > 0:
+                        # TFT bazen kapasiteyi aşar; gerçek satılabilir tavanla sınırla
+                        _target_total = min(float(_tft), _inv["capacity"] * 0.95)
+            except Exception:
+                pass
+            _expected = int(round(_target_total * _cum_now))
+            # Pre-load mutlak tavan: %92 LF — kalan %8'i sim canlı oynasın
+            _expected = max(0, min(_expected, int(_inv["capacity"] * 0.92)))
+            if _expected <= 0:
+                continue
+            # Baz fiyatı al — fare class fiyatlandırması için
+            try:
+                _base_price = self.pricing._compute_base_price(
+                    _inv["cabin"], _inv.get("distance_km", 3000), _inv["route"]
+                )
+            except Exception:
+                _base_price = 500.0 if _inv["cabin"] == "economy" else 1500.0
+            # Fare class dağılımı (tarihsel: V/K erken, M/Y son haftalar)
+            _fc_dist = {"V": 0.25, "K": 0.35, "M": 0.30, "Y": 0.10}
+            _fc_mult = {"V": 0.50, "K": 0.75, "M": 1.00, "Y": 1.50}
+            _revenue = 0.0
+            for _fc, _frac in _fc_dist.items():
+                _n = int(round(_expected * _frac))
+                _price = round(_base_price * _fc_mult[_fc], 2)
+                for _i in range(_n):
+                    # Sentetik tarihsel timestamp (180..real_dtd günü arası)
+                    _hist_dtd = _real_dtd + random.randint(0, max(1, 179 - _real_dtd))
+                    _ts_date = _dep - timedelta(days=_hist_dtd)
+                    _inv["bookings"].append({
+                        "timestamp": _ts_date.isoformat() + "T00:00:00",
+                        "dtd": _hist_dtd,
+                        "fare_class": _fc,
+                        "price": _price,
+                        "baseline_price": _price,
+                        "is_bot": True,
+                        "is_connecting": False,
+                        "cabin": _inv["cabin"],
+                        "segment": "preload",
+                        "cancelled": False,
+                    })
+                    _inv["fare_class_sold"][_fc] = _inv["fare_class_sold"].get(_fc, 0) + 1
+                    _revenue += _price
+            _actual_sold = sum(_inv["fare_class_sold"].values())
+            _inv["sold"] = _actual_sold
+            _inv["load_factor"] = _actual_sold / _inv["capacity"] if _inv["capacity"] else 0
+            _inv["revenue_dynamic"] = _revenue
+            _inv["revenue_baseline"] = _revenue
+            _inv["max_lf_reached"] = _inv["load_factor"]
+            _inv["max_fc_sold"] = dict(_inv["fare_class_sold"])
+            self.stats["total_bots"] += _actual_sold
+            self.stats["total_sales"] += _actual_sold
+            self.stats["total_revenue_dynamic"] += _revenue
+            self.stats["total_revenue_baseline"] += _revenue
+
+        # Saat ayarla — booking penceresi 180 gün öncesinden başlar AMA bugünden
+        # geriye gitmesin (yoksa simülasyon geçmişi yeniden oynatır).
+        sim_start_candidate = start_date - timedelta(days=180)
+        sim_start = max(sim_start_candidate, today)
         self.clock.configure(sim_start, speed)
 
         # Rakip havayollarini yukle
@@ -416,6 +497,47 @@ class SimulationEngine:
         if was_running:
             self.resume()
         print(f"[Sim] Jumped to {target_date}", flush=True)
+
+    def reset(self):
+        """Simulasyonu tamamen sifirla."""
+        self._reset_requested = True
+        if self.state in ("running", "paused", "ready", "initializing", "completed"):
+            self.state = "resetting"
+        self.clock.pause()
+        if self.thread and self.thread.is_alive():
+            self.thread.join(timeout=0.5)
+
+        self.clock = SimClock()
+        self.state = "idle"
+        self.inventory = {}
+        self.event_log = []
+        self.thread = None
+        self.stats = {
+            "total_bots": 0,
+            "total_sales": 0,
+            "total_rejected": 0,
+            "total_revenue_dynamic": 0.0,
+            "total_revenue_baseline": 0.0,
+            "local_sales": 0,
+            "connecting_sales": 0,
+            "displacement_count": 0,
+            "displacement_revenue_saved": 0.0,
+            "cancellations": 0,
+            "cancellation_refunds": 0.0,
+            "no_shows": 0,
+            "denied_boardings": 0,
+            "denied_boarding_cost": 0.0,
+            "shadow_lost_to_competitor": 0,
+            "shadow_displacement": 0,
+            "wtp_forced_purchase": 0,
+            "guaranteed_no_fares": 0,
+            "lost_to_PC": 0,
+            "lost_to_EK": 0,
+            "stolen_from_PC": 0,
+            "stolen_from_EK": 0,
+        }
+        self._reset_requested = False
+        print("[Sim] Reset to idle", flush=True)
 
     # ── MANUEL MUDAHALE ───────────────────────────────────────
     def override_fare_class(self, flight_key, fare_class, action):
@@ -522,6 +644,7 @@ class SimulationEngine:
                 time.sleep(0.1)
                 continue
 
+            loop_start = time.time()
             self._process_day(current_day)
 
             # Clock'u deterministik guncelle — current_day'i dogrudan set et
@@ -532,10 +655,14 @@ class SimulationEngine:
 
             current_day += timedelta(days=1)
 
-            # Hiz gecikme
-            seconds_per_day = 60.0 / self.clock.speed
-            delay = max(0.003, seconds_per_day)
-            time.sleep(delay)
+            # Hiz gecikme — hedef gun-suresinden hesaplama suresini cikar.
+            # (Yaklasan DTD'de daha cok booking islendigi icin _process_day
+            #  yavaslayabilir; bunu telafi edince gun-hizi sabit kalir.)
+            target_per_day = 60.0 / self.clock.speed
+            time.sleep(max(0.0, target_per_day - (time.time() - loop_start)))
+
+        if self._reset_requested or self.state == "resetting":
+            return
 
         if self.state != "paused":
             # Simulasyon bitti — no-show ve denied boarding hesapla
@@ -615,6 +742,12 @@ class SimulationEngine:
         sell_limit = inv.get("overbooking_limit", capacity)  # overbooking dahil limit
         remaining = sell_limit - inv["sold"]
         if remaining <= 0:
+            return
+
+        # Soft LF tavanı: gerçek havayolu uçuşları nadiren %95'in üstüne çıkar.
+        # Sim son boş koltukları da agresif doldurmasın — kalkış %92-95 LF ile gerçekleşsin.
+        soft_lf_cap = 0.95
+        if inv["sold"] >= int(capacity * soft_lf_cap):
             return
 
         cabin = inv.get("cabin", "economy")
@@ -729,6 +862,20 @@ class SimulationEngine:
         dow_factor = self.DOW_DEMAND.get(dep_date.weekday(), 1.0)
         demand_multiplier = season_factor * special_factor * dow_factor * sentiment_factor
 
+        # ── DEMAND SCALE: Gaussian weights are normalized (0-1), they need ──
+        # ── a scale factor to produce enough bots to fill the aircraft.    ──
+        # Target: ~85% LF for economy, ~70% LF for business over 180 days.
+        # Raw Gaussian sum for eco ≈ 50, biz ≈ 15 over 180 days.
+        # We need eco: 300*0.85=255, biz: 49*0.70=34 bookings total.
+        # Scale = target_bookings / raw_sum → eco ≈ 5.1, biz ≈ 2.3
+        # Using capacity-adaptive formula:
+        target_lf = 0.70 if cabin == "business" else 0.85
+        target_bookings = capacity * target_lf
+        # Pre-computed raw Gaussian sums (invariant for given segment windows):
+        #   economy cabin: sum ≈ 50, business cabin: sum ≈ 15
+        raw_gauss_sum = 15.0 if cabin == "business" else 50.0
+        demand_scale = target_bookings / max(raw_gauss_sum, 1.0)
+
         for seg_id, seg in self.segments.items():
             # Bu segment bu DTD'de talep gosteriyor mu?
             demand = self._get_dtd_demand(seg_id, dtd)
@@ -737,13 +884,16 @@ class SimulationEngine:
 
             # Segmentin genel paylarina gore olcekle
             share = seg.get("base_share_pct", 10) / 100
-            daily_demand = demand * share * (capacity / 300)
+            daily_demand = demand * share
 
             # Kabin orani (veriden)
             if cabin == "business":
                 daily_demand *= self.BIZ_RATIO.get(seg_id, 0.18)
             else:
                 daily_demand *= (1.0 - self.BIZ_RATIO.get(seg_id, 0.18))
+
+            # DEMAND SCALE — Gaussian'i gercekci booking sayilarina donustur
+            daily_demand *= demand_scale
 
             # TUM DIS FAKTORLERI UYGULA
             daily_demand *= demand_multiplier

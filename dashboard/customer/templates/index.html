@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SeatWise | Premium Flight Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488', 900: '#134e4a',
+                            active: '#00d0f4'
+                        },
+                        dark: {
+                            bg: '#0B0F19', panel: '#151C2C', border: '#1E293B', card: '#1A2234'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(21, 28, 44, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #0d9488 0%, #00d0f4 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            box-shadow: 0 0 20px rgba(0, 208, 244, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .card-best {
+            border: 2px solid #00d0f4;
+        }
+
+        .card-best::before {
+            content: '🏆 BEST VALUE';
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #00d0f4;
+            color: #0B0F19;
+            font-weight: bold;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .tab-btn.active {
+            background-color: #00d0f4;
+            color: #0B0F19;
+            font-weight: 600;
+        }
+
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #00d0f4;
+        }
+
+        .toggle-checkbox:checked+.toggle-label {
+            background-color: #00d0f4;
+        }
+
+        .loader {
+            border-top-color: #00d0f4;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @keyframes spinner {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .progress-bar-bg {
+            background-color: #1E293B;
+            border-radius: 9999px;
+            overflow: hidden;
+            height: 6px;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #10b981 0%, #f59e0b 50%, #ef4444 100%);
+            height: 100%;
+        }
+
+        .cal-cell {
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .cal-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            border-color: white;
+        }
+
+        /* B4: Cheapest day indicator */
+        .cal-cheapest {
+            border: 2px solid #10b981 !important;
+            box-shadow: 0 0 12px rgba(16, 185, 129, .3);
+        }
+
+        .cal-cheapest::after {
+            content: '⭐';
+            position: absolute;
+            top: -6px;
+            right: -4px;
+            font-size: 12px;
+        }
+
+        /* B8: Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1a2234 25%, #253047 50%, #1a2234 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-card {
+            height: 280px;
+        }
+
+        .skeleton-cal {
+            height: 56px;
+        }
+
+        .skeleton-chart {
+            height: 256px;
+        }
+
+        /* B1: Live indicator */
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 2s infinite;
+        }
+
+        .live-dot.online {
+            background: #10b981;
+            box-shadow: 0 0 6px #10b981;
+        }
+
+        .live-dot.offline {
+            background: #6b7280;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* Checkout panel */
+        .booking-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: none;
+            justify-content: flex-end;
+            background: rgba(0, 0, 0, .65);
+            backdrop-filter: blur(8px);
+        }
+
+        .booking-modal.show {
+            display: flex;
+        }
+
+        .booking-modal-content {
+            background: #0d1117;
+            border-left: 1px solid rgba(0, 229, 255, .12);
+            width: 420px;
+            max-width: 100vw;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 0;
+            box-shadow: -20px 0 60px rgba(0, 0, 0, .6);
+            animation: slideIn .3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%)
+            }
+
+            to {
+                transform: translateX(0)
+            }
+        }
+
+        .checkout-header {
+            background: linear-gradient(135deg, #0d2a2a, #0d1117);
+            border-bottom: 1px solid rgba(0, 229, 255, .1);
+            padding: 1.5rem 1.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .checkout-section {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .checkout-section:last-child {
+            border-bottom: none;
+        }
+
+        .flight-card-checkout {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(0, 229, 255, .12);
+            border-radius: 14px;
+            padding: 1rem 1.25rem;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .45rem 0;
+            font-size: .87rem;
+            color: #94a3b8;
+        }
+
+        .price-row .val {
+            color: #e2e8f0;
+        }
+
+        .price-row.total {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            border-top: 1px solid rgba(255, 255, 255, .1);
+            margin-top: .5rem;
+            padding-top: .85rem;
+        }
+
+        .price-row.total .val {
+            color: #00e5ff;
+            font-size: 1.3rem;
+        }
+
+        .pay-card {
+            background: rgba(255, 255, 255, .03);
+            border: 1.5px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            padding: .85rem 1rem;
+            cursor: pointer;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .pay-card:hover,
+        .pay-card.active {
+            border-color: #00e5ff;
+            background: rgba(0, 229, 255, .06);
+        }
+
+        .pay-card .pay-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: rgba(0, 229, 255, .1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #00b4cc, #00e5ff);
+            border: none;
+            border-radius: 12px;
+            color: #0d1117;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: .01em;
+            cursor: pointer;
+            transition: all .3s;
+            box-shadow: 0 4px 20px rgba(0, 229, 255, .3);
+        }
+
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 229, 255, .45);
+        }
+
+        .seats-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            background: rgba(239, 68, 68, .12);
+            border: 1px solid rgba(239, 68, 68, .3);
+            border-radius: 20px;
+            padding: .25rem .75rem;
+            font-size: .72rem;
+            color: #f87171;
+            font-weight: 600;
+        }
+
+        /* B7: Responsive */
+        @media (max-width: 768px) {
+            .search-fields-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .results-grid-3 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .sidebar-panels {
+                flex-direction: column !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .glass-panel {
+                padding: 1rem !important;
+            }
+
+            .cal-cell {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen text-sm">
+    <!-- WRAP EXISTING CONTENT -->
+    <div id="customerAppRoot">
+
+
+        <!-- Navbar -->
+        <nav class="border-b border-dark-border bg-dark-bg/80 backdrop-blur-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <img src="/static/logo.png" alt="SeatWise Logo" class="h-8">
+                    <span class="text-xl font-bold tracking-wide">Seat<span class="text-brand-active">Wise</span></span>
+                </div>
+                <div class="flex items-center space-x-4 text-gray-400">
+                    <span
+                        class="text-white border-b-2 border-brand-active pb-1 cursor-pointer transition">Flights</span>
+                    <span id="simStatusBadge"
+                        class="flex items-center gap-1.5 text-xs px-2 py-1 rounded bg-dark-panel border border-dark-border">
+                        <span class="live-dot offline" id="simDot"></span>
+                        <span id="simStatusText">Offline</span>
+                    </span>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span id="navUsername" class="text-gray-300 hidden"><i
+                                class="fa-solid fa-user mr-1 text-brand-active"></i><span
+                                id="navUsernameText"></span></span>
+                        <a href="/logout"
+                            class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-dark-border hover:border-brand-active hover:text-brand-active transition text-gray-400 text-xs font-semibold">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Search -->
+        <div class="max-w-5xl mx-auto mt-10 p-4">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold mb-2">Search & Compare <span class="text-brand-active">Flights</span></h1>
+                <p class="text-gray-400">Compare 3 airlines, find the best ticket (Live Simulation Data)</p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl">
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="relative">
+                        <label
+                            class="text-xs text-brand-active font-semibold bg-dark-panel absolute -top-2 left-3 px-1 z-10"><i
+                                class="fa-solid fa-plane-departure mr-1"></i>FROM</label>
+                        <select id="origin"
+                            class="w-full bg-dark-bg border border-dark-border rounded-lg pl-4 pr-10 py-3 text-white focus:outline-none focus:border-brand-active appearance-none">
+                            <option value="IST">Istanbul (IST)</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <label
+                            class="text-xs text-red-500 font-semibold bg-dark-panel absolute -top-2 left-3 px-1 z-10"><i
+                                class="fa-solid fa-location-dot mr-1"></i>TO</label>
+                        <select id="destination"
+                            class="w-full bg-dark-bg border border-dark-border rounded-lg pl-4 pr-10 py-3 text-white focus:outline-none focus:border-red-500 appearance-none">
+                            <!-- Populated by JS -->
+                            <option value="MAD">Madrid (MAD)</option>
+                            <option value="LHR">London (LHR)</option>
+                            <option value="DXB">Dubai (DXB)</option>
+                            <option value="BKK">Bangkok (BKK)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <label class="text-xs text-gray-400 font-semibold absolute -top-2 left-3 px-1 bg-dark-panel"><i
+                            class="fa-regular fa-calendar mr-1"></i>DEPARTURE DATE</label>
+                    <input type="date" id="dep_date" value="2026-08-15"
+                        class="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-active [color-scheme:dark]">
+                </div>
+            </div>
+
+            <!-- Cabin selection -->
+            <label class="text-xs text-gray-400 font-semibold mb-2 block"><i class="fa-solid fa-chair mr-1"></i>CABIN
+                CLASS</label>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div id="cab-economy"
+                    class="cursor-pointer border-2 border-brand-active bg-dark-bg/50 rounded-xl p-4 text-center transition hover:border-brand-active"
+                    onclick="setCabin('economy')">
+                    <i class="fa-solid fa-chair text-2xl text-gray-300 mb-2"></i>
+                    <div class="font-semibold">Economy</div>
+                    <div class="text-xs text-gray-400">Standard fares</div>
+                </div>
+                <div id="cab-business"
+                    class="cursor-pointer border border-dark-border bg-dark-bg/50 rounded-xl p-4 text-center transition hover:border-brand-active"
+                    onclick="setCabin('business')">
+                    <i class="fa-solid fa-briefcase text-2xl text-yellow-500 mb-2"></i>
+                    <div class="font-semibold text-yellow-500">Business</div>
+                    <div class="text-xs text-gray-400">Premium experience</div>
+                </div>
+            </div>
+
+            <!-- Extras -->
+            <div class="flex flex-wrap items-center gap-6 mb-6 pt-4 border-t border-dark-border">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-paw text-gray-400"></i>
+                    <span class="text-gray-300 text-xs font-semibold">PET IN CABIN</span>
+                    <div
+                        class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="pet_toggle"
+                            class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer border-gray-600" />
+                        <label for="pet_toggle"
+                            class="toggle-label block overflow-hidden h-5 rounded-full bg-gray-600 cursor-pointer"></label>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-suitcase-rolling text-orange-400"></i>
+                    <span class="text-gray-300 text-xs font-semibold">EXTRA BAGGAGE</span>
+                    <select id="extra_bag" class="bg-dark-bg border border-dark-border rounded px-2 py-1 text-sm">
+                        <option value="0">None</option>
+                        <option value="10">+10 kg</option>
+                        <option value="20">+20 kg</option>
+                        <option value="30">+30 kg</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-user-group text-blue-400"></i>
+                    <span class="text-gray-300 text-xs font-semibold">PASSENGERS</span>
+                    <select id="pax" class="bg-dark-bg border border-dark-border rounded px-2 py-1 text-sm">
+                        <option value="1">1 Passenger</option>
+                        <option value="2">2 Passengers</option>
+                        <option value="3">3 Passengers</option>
+                        <option value="4">4 Passengers</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="doSearch()" class="w-full btn-gradient py-4 rounded-xl font-bold text-lg shadow-lg">
+                <i class="fa-solid fa-search mr-2"></i> Search Flights
+            </button>
+            <div id="sim-warning" class="hidden mt-4 text-center text-xs text-yellow-500 bg-yellow-500/10 py-2 rounded">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Live simulation connection failed. Showing
+                estimated prices.
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="hidden max-w-5xl mx-auto text-center py-20">
+        <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-16 w-16 mx-auto mb-4"></div>
+        <h2 class="text-xl font-bold">Finding the best prices...</h2>
+        <p class="text-gray-400">Fetching live data from THY, Pegasus, and Emirates</p>
+    </div>
+
+    <!-- Results Area -->
+    <div id="results" class="hidden max-w-6xl mx-auto mt-8 mb-20 px-4">
+
+        <!-- Header Info -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <h2 class="text-2xl font-bold" id="res_title">IST ➔ MAD</h2>
+                <div
+                    class="text-sm text-gray-400 flex items-center space-x-2 bg-dark-panel px-4 py-1 rounded-full border border-dark-border">
+                    <span id="res_dates">15.08.2026</span>
+                    <span>—</span>
+                    <span id="res_cabin">Economy</span>
+                    <span>—</span>
+                    <span id="res_pax">1 Pax</span>
+                </div>
+            </div>
+            <div>
+                <select class="bg-dark-bg border border-dark-border px-4 py-2 rounded-lg text-sm">
+                    <option>Lowest Price</option>
+                    <option>Shortest Flight</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Outbound Grid -->
+        <h3 class="font-bold text-lg mb-4 text-brand-active border-b border-dark-border pb-2"><i
+                class="fa-solid fa-plane-departure mr-2"></i>OUTBOUND FLIGHTS</h3>
+        <div class="space-y-8 mb-10" id="outbound-grid">
+            <!-- Cards injected via JS -->
+        </div>
+
+        <!-- Inbound Grid -->
+        <div id="return_section" class="hidden">
+            <h3 class="font-bold text-lg mb-4 text-red-500 border-b border-dark-border pb-2"><i
+                    class="fa-solid fa-plane-arrival mr-2"></i>RETURN FLIGHTS</h3>
+            <div class="space-y-8 mb-10" id="return-grid">
+                <!-- Cards injected via JS -->
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+            <!-- Trend Chart -->
+            <div class="glass-panel p-6 rounded-2xl w-full max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg"><i class="fa-solid fa-chart-line mr-2"></i>Price Trend (DTD Analysis)
+                    </h3>
+                    <span class="text-xs bg-dark-bg border border-dark-border px-2 py-1 rounded" id="trend-dtd">Now: 129
+                        days left</span>
+                </div>
+                <div class="w-full h-64">
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <p class="text-xs text-gray-400 mt-4 text-center">Prices are historical trend estimates across Days to
+                    Departure (DTD) based on simulation dynamics.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Fare Template Modal (hidden) -->
+    <template id="flight-card-template">
+        <div
+            class="relative bg-dark-card border border-dark-border rounded-xl p-5 hover:border-gray-500 transition shadow-lg flex flex-col justify-between h-full">
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <img src="" class="w-12 h-12 object-contain bg-white rounded p-1 airline-logo" alt="logo">
+                        <span class="font-bold text-lg airline-name">Airline</span>
+                    </div>
+                    <span
+                        class="text-xs px-2 py-1 rounded bg-dark-bg border border-dark-border airline-type">Type</span>
+                </div>
+
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <div class="text-2xl font-bold dep-time">10:30</div>
+                        <div class="text-xs text-gray-400 origin-code">IST</div>
+                    </div>
+                    <div class="flex-1 px-4 flex flex-col items-center">
+                        <div class="text-xs text-gray-400 mb-1 duration-time">~ 4h 30m</div>
+                        <div class="w-full border-t border-dashed border-gray-600 relative">
+                            <i
+                                class="fa-solid fa-plane text-brand-active absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                        </div>
+                        <div class="text-[10px] text-brand-active mt-1">Direct Flight</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold arr-time">14:30</div>
+                        <div class="text-xs text-gray-400 dest-code">MAD</div>
+                    </div>
+                </div>
+
+                <!-- Load factor / Warning -->
+                <div class="mb-4 status-container"></div>
+
+                <!-- Extras calc (hidden normally, shown simply) -->
+                <div class="text-xs text-gray-400 space-y-1 mb-4 pb-4 border-b border-dark-border">
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-suitcase bag-icon"></i> <span
+                            class="bag-text">20 kg</span></div>
+                    <div class="flex items-center gap-2"><i class="fa-solid fa-paw pet-icon"></i> <span
+                            class="pet-text">Pet In Cabin</span></div>
+                </div>
+            </div>
+
+            <div class="mt-auto">
+                <div class="flex items-end justify-between">
+                    <div class="text-xs text-gray-400">Total (1 Pax)</div>
+                    <div class="text-3xl font-bold text-white total-price">$0</div>
+                </div>
+                <div class="text-[10px] text-right mt-1 text-gray-400 price-breakdown">Ticket: $0, Extras: $0</div>
+                <button
+                    class="w-full mt-4 bg-dark-bg hover:bg-gray-800 border border-dark-border py-2 rounded-lg text-sm font-semibold transition btn-select"
+                    data-flight-key="" data-best-fare="" onclick="openBookingModal(this)">Select Option</button>
+            </div>
+
+            <!-- Sold out overlay -->
+            <div
+                class="sold-out-overlay hidden absolute inset-0 bg-dark-card/90 backdrop-blur-sm rounded-xl flex flex-col items-center justify-center p-4 text-center z-10 border border-red-900">
+                <i class="fa-regular fa-circle-xmark text-4xl text-red-500 mb-2"></i>
+                <h3 class="font-bold text-lg text-white mb-1">UNAVAILABLE</h3>
+                <p class="text-xs text-gray-300 soldout-msg">No seats remain on this flight.</p>
+                <div
+                    class="mt-4 px-3 py-1 bg-dark-bg border border-dark-border rounded text-xs text-gray-400 reason-msg">
+                    Capacity reached</div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Premium Checkout Panel -->
+    <div class="booking-modal" id="bookingModal">
+        <div class="booking-modal-content">
+
+            <!-- Header -->
+            <div class="checkout-header">
+                <div>
+                    <div class="text-xs text-gray-500 mb-1 tracking-widest font-medium">SEATWISE</div>
+                    <h2 class="text-lg font-bold text-white">Booking &amp; Payment</h2>
+                </div>
+                <button onclick="closeBookingModal()"
+                    style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:1.1rem;cursor:pointer;transition:all .2s;"
+                    onmouseover="this.style.color='#fff';this.style.borderColor='rgba(0,229,255,.4)'"
+                    onmouseout="this.style.color='#9ca3af';this.style.borderColor='rgba(255,255,255,.1)'">&times;</button>
+            </div>
+
+            <!-- Selected Flight -->
+            <div class="checkout-section">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Selected Flight</div>
+                <div class="flight-card-checkout">
+                    <!-- Airline row -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <img id="ck-logo" src="/static/thy.png" class="h-9 object-contain bg-white rounded-lg p-1"
+                                alt="logo">
+                            <span id="ck-airline-name" class="text-sm font-bold text-white">Turkish Airlines</span>
+                        </div>
+                    </div>
+                    <!-- Route -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-black text-white tracking-tight" id="ck-dep-time">13:15</div>
+                            <div class="text-xs text-gray-500 mt-0.5 font-semibold" id="ck-origin">IST</div>
+                        </div>
+                        <div class="flex-1 px-5 text-center">
+                            <div class="text-xs text-gray-500 mb-2" id="ck-duration">~ 3h 20m</div>
+                            <div class="relative h-px" style="background:rgba(255,255,255,.1);">
+                                <div class="absolute inset-0"
+                                    style="background:linear-gradient(90deg,transparent,#00e5ff,transparent);"></div>
+                                <i class="fa-solid fa-plane text-cyan-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                                    style="font-size:.65rem;"></i>
+                            </div>
+                            <div class="text-xs mt-2" style="color:#00e5ff;">Direct Flight</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-black text-white tracking-tight" id="ck-arr-time">16:35</div>
+                            <div class="text-xs text-gray-500 mt-0.5 font-semibold" id="ck-dest">FCO</div>
+                        </div>
+                    </div>
+                    <!-- Meta -->
+                    <div class="flex items-center gap-3 text-xs text-gray-500 pt-3 border-t border-white/5 flex-wrap">
+                        <span><i class="fa-regular fa-calendar mr-1" style="color:#00e5ff;"></i><span
+                                id="ck-date">2026-05-15</span></span>
+                        <span style="color:#374151;">·</span>
+                        <span><i class="fa-solid fa-chair mr-1" style="color:#00e5ff;"></i><span
+                                id="ck-cabin">Economy</span></span>
+                        <span style="color:#374151;">·</span>
+                        <span><i class="fa-solid fa-user mr-1" style="color:#00e5ff;"></i><span id="ck-pax">1
+                                Passenger</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Details -->
+            <div class="checkout-section">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Price Details</div>
+                <div class="price-row"><span>Ticket Price (per person)</span><span class="val"
+                        id="ck-base-price">$215.37</span></div>
+                <div class="price-row" id="ck-pet-row" style="display:none">
+                    <div class="flex items-center gap-2">
+                        <span>🐾 Pet in Cabin Fee</span>
+                        <div class="flex items-center bg-white/5 rounded px-2 py-0.5 ml-2 border border-white/10">
+                            <button onclick="changePetCount(-1)"
+                                class="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-white transition">&minus;</button>
+                            <span id="ck-pet-count-display"
+                                class="w-4 text-center text-white text-xs font-bold mx-1">0</span>
+                            <button onclick="changePetCount(1)"
+                                class="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-white transition">&plus;</button>
+                        </div>
+                    </div>
+                    <span class="val" id="ck-pet-fee">$45.00</span>
+                </div>
+                <div class="price-row" id="ck-bag-row" style="display:none"><span>🧳 Extra Baggage</span><span
+                        class="val" id="ck-bag-fee">$0.00</span></div>
+                <div class="price-row"><span>Number of Passengers</span><span class="val" id="ck-pax-count">×1</span>
+                </div>
+                <div class="price-row total"><span>Total Amount</span><span class="val" id="ck-total">$215.37</span>
+                </div>
+            </div>
+
+            <!-- Passenger Information -->
+            <div class="checkout-section">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Passenger Information
+                </div>
+                <input type="text" id="bookPassengerName" placeholder="Full Name"
+                    class="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none mb-3 transition"
+                    style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);"
+                    onfocus="this.style.borderColor='rgba(0,229,255,.5)'"
+                    onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+                <input type="email" id="bookEmail" placeholder="Email Address"
+                    class="w-full rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 outline-none transition"
+                    style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);"
+                    onfocus="this.style.borderColor='rgba(0,229,255,.5)'"
+                    onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+            </div>
+
+            <!-- Payment Method -->
+            <div class="checkout-section">
+                <div class="text-xs text-gray-500 uppercase tracking-widest mb-3 font-semibold">Payment Method</div>
+                <div style="display:flex;flex-direction:column;gap:.6rem;">
+                    <div class="pay-card active" id="payCard" onclick="selectPay('card')">
+                        <div class="pay-icon">💳</div>
+                        <div>
+                            <div class="text-sm font-bold text-white">Credit / Debit Card</div>
+                            <div class="text-xs text-gray-500">Visa · Mastercard · Amex</div>
+                        </div>
+                        <i class="fa-solid fa-check-circle ml-auto" style="color:#00e5ff;font-size:1.1rem;"
+                            id="pay-card-check"></i>
+                    </div>
+                    <div class="pay-card" id="payCash" onclick="selectPay('cash')">
+                        <div class="pay-icon">🏦</div>
+                        <div>
+                            <div class="text-sm font-bold text-white">Cash / Bank Transfer</div>
+                            <div class="text-xs text-gray-500">Pay via bank transfer</div>
+                        </div>
+                        <i class="fa-regular fa-circle ml-auto text-gray-600" style="font-size:1.1rem;"
+                            id="pay-cash-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="checkout-section">
+                <button class="confirm-btn" onclick="confirmBooking()">
+                    <i class="fa-solid fa-lock mr-2"></i>Complete Booking
+                </button>
+                <p class="text-center text-xs text-gray-600 mt-3">This is a simulation. No actual booking will be made.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Init Routes
+        fetch('/api/routes')
+            .then(r => r.json())
+            .then(data => {
+                if (data.routes) {
+                    const dest = document.getElementById('destination');
+                    dest.innerHTML = '';
+                    data.routes.forEach(r => {
+                        const arr = r.split('-')[1];
+                        dest.innerHTML += `<option value="${arr}">${arr} (${arr})</option>`;
+                    });
+                    dest.value = 'MAD';
+                }
+            })
+            .catch(() => {
+                showSearchWarning('Route catalog could not be refreshed. Using cached destinations.');
+            });
+
+        // One-way only — round trip removed
+        let isRoundTrip = false;
+        let cabin = 'economy';
+        let chartInstance = null;
+        let lastSearchParams = null;
+        let lastSimClockToken = null;
+        let searchInFlight = false;
+
+
+
+        function setCabin(c) {
+            cabin = c;
+            document.getElementById('cab-economy').classList.remove('border-brand-active', 'border-2');
+            document.getElementById('cab-economy').classList.add('border', 'border-dark-border');
+            document.getElementById('cab-business').classList.remove('border-brand-active', 'border-2');
+            document.getElementById('cab-business').classList.add('border', 'border-dark-border');
+
+            document.getElementById(`cab-${c}`).classList.remove('border', 'border-dark-border');
+            document.getElementById(`cab-${c}`).classList.add('border-brand-active', 'border-2');
+        }
+
+        function showSearchWarning(message, isError = false) {
+            const warning = document.getElementById('sim-warning');
+            warning.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${message}`;
+            warning.classList.remove('hidden');
+            warning.classList.toggle('text-red-400', isError);
+            warning.classList.toggle('bg-red-500/10', isError);
+            warning.classList.toggle('text-yellow-500', !isError);
+            warning.classList.toggle('bg-yellow-500/10', !isError);
+        }
+
+        function hideSearchWarning() {
+            const warning = document.getElementById('sim-warning');
+            warning.classList.add('hidden');
+            warning.classList.remove('text-red-400', 'bg-red-500/10');
+            warning.classList.add('text-yellow-500', 'bg-yellow-500/10');
+        }
+
+        function collectSearchParams() {
+            const params = {
+                origin: document.getElementById('origin').value,
+                destination: document.getElementById('destination').value,
+                dep_date: document.getElementById('dep_date').value,
+                cabin,
+                pax: document.getElementById('pax').value,
+                pet: document.getElementById('pet_toggle').checked,
+                extra_baggage: document.getElementById('extra_bag').value
+            };
+            const retDate = isRoundTrip ? document.getElementById('ret_date').value : '';
+            if (retDate) params.return_date = retDate;
+            return params;
+        }
+
+        async function runSearch(params, options = {}) {
+            const { showLoading = true, background = false } = options;
+            if (searchInFlight) return;
+            searchInFlight = true;
+
+            const origin = params.origin;
+            const dest = params.destination;
+            const depDate = params.dep_date;
+            const retDate = params.return_date || '';
+            const pax = params.pax;
+
+            if (showLoading) {
+                document.getElementById('results').classList.add('hidden');
+                showSkeletonLoading();
+            }
+
+            try {
+                const q = new URLSearchParams(params);
+                const res = await fetch(`/api/search?${q}`);
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    throw new Error(data.error || 'Search request failed');
+                }
+
+                lastSearchParams = { ...params };
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('res_title').innerText = `${origin} ➔ ${dest}`;
+                document.getElementById('res_dates').innerText = depDate + (retDate ? ` ⇌ ${retDate}` : '');
+                document.getElementById('res_cabin').innerText = cabin.toUpperCase();
+                document.getElementById('res_pax').innerText = `${pax} Pax`;
+
+                if (!data.outbound.simulation_live) {
+                    showSearchWarning('Live simulation connection failed. Showing estimated prices.');
+                } else if (background) {
+                    showSearchWarning('Live simulation updated. Prices refreshed from the active scenario.');
+                } else {
+                    hideSearchWarning();
+                }
+
+                renderLeg('outbound-grid', data.outbound, dest);
+
+                if (data.return) {
+                    document.getElementById('return_section').classList.add('hidden');
+                }
+
+                await Promise.all([
+                    loadChart(data.outbound.thy ? data.outbound.thy.flight_key : null, data.outbound.dtd)
+                ]);
+            } catch (err) {
+                console.error('Customer search failed', err);
+                showSearchWarning('Search could not be completed. The customer app kept running, but live data is temporarily unavailable.', true);
+                if (showLoading) {
+                    document.getElementById('results').classList.add('hidden');
+                }
+            } finally {
+                if (showLoading) {
+                    hideSkeletonLoading();
+                }
+                searchInFlight = false;
+            }
+        }
+
+        async function doSearch() {
+            await runSearch(collectSearchParams(), { showLoading: true, background: false });
+        }
+
+        function renderLeg(containerId, legData, destCode) {
+            const cont = document.getElementById(containerId);
+            cont.innerHTML = '';
+            const tpl = document.getElementById('flight-card-template').content;
+            const originCode = legData.route ? legData.route.split('-')[0] : 'IST';
+
+            const LOGOS = {
+                'THY': '/static/thy.png',
+                'PC': '/static/pegasus.png',
+                'EK': '/static/emirates.png'
+            };
+
+            // airlines map — yeni API: legData.airlines, eski uyumluluk: legData.thy/PC/EK
+            const airlinesMap = legData.airlines || {
+                'THY': [legData.thy],
+                'PC': [legData.PC],
+                'EK': [legData.EK]
+            };
+
+            // En ucuz toplam fiyati bul
+            let globalMin = Infinity;
+            Object.values(airlinesMap).forEach(flights => {
+                (flights || []).forEach(f => {
+                    if (f && f.available && !f.sold_out && f.total_with_extras < globalMin)
+                        globalMin = f.total_with_extras;
+                });
+            });
+
+            ['THY', 'PC', 'EK'].forEach(code => {
+                const flights = airlinesMap[code] || [];
+                const logo = LOGOS[code];
+
+                // Havayolu baslik satiri
+                const airlineName = flights[0]?.name || code;
+                const headerEl = document.createElement('div');
+                headerEl.className = 'flex items-center gap-3 mb-2 mt-2';
+                headerEl.innerHTML = `
+                    <img src="${logo}" class="w-8 h-8 object-contain bg-white rounded p-0.5">
+                    <span class="font-bold text-sm text-gray-300">${airlineName}</span>
+                    <span class="text-xs text-gray-500">${flights.length} sefer</span>
+                `;
+                cont.appendChild(headerEl);
+
+                const rowEl = document.createElement('div');
+                rowEl.className = 'grid grid-cols-1 md:grid-cols-3 gap-4 mb-4';
+
+                flights.forEach(d => {
+                    const node = document.importNode(tpl, true);
+                    const card = node.querySelector('div');
+
+                    node.querySelector('.airline-logo').src = logo;
+
+                    if (!d || !d.available) {
+                        card.querySelector('.sold-out-overlay').classList.remove('hidden');
+                        card.querySelector('.sold-out-overlay h3').innerText = 'UNAVAILABLE';
+                        card.querySelector('.soldout-msg').innerText = d?.reason || 'Bu kabinde sefer yok';
+                        card.querySelector('.reason-msg').innerText = airlineName;
+                        rowEl.appendChild(node);
+                        return;
+                    }
+
+                    if (d.total_with_extras === globalMin && !d.sold_out)
+                        card.classList.add('card-best');
+
+                    node.querySelector('.airline-name').innerText = d.name;
+                    node.querySelector('.airline-type').innerText = d.type || code;
+                    node.querySelector('.dest-code').innerText = destCode;
+                    node.querySelector('.origin-code').innerText = originCode;
+
+                    // Ucus saatleri
+                    const depT = d.departure_time || '10:30';
+                    const arrT = d.arrival_time || '14:30';
+                    const durMin = d.duration_min || 240;
+                    node.querySelector('.dep-time').innerText = depT;
+                    node.querySelector('.arr-time').innerText = arrT;
+                    node.querySelector('.duration-time').innerText =
+                        `~ ${Math.floor(durMin / 60)}h ${durMin % 60 > 0 ? durMin % 60 + 'm' : ''}`;
+
+                    node.querySelector('.total-price').innerText = `$${d.total_with_extras.toFixed(2)}`;
+                    node.querySelector('.price-breakdown').innerText =
+                        `Ticket: $${d.price_per_pax.toFixed(2)}, Extras: $${((d.extra_baggage_fee || 0) + (d.pet_fee || 0)).toFixed(0)}`;
+
+                    const btn = node.querySelector('.btn-select');
+                    if (d.flight_key) btn.setAttribute('data-flight-key', d.flight_key);
+                    btn.setAttribute('data-best-fare', d.best_fare || 'Y');
+                    btn.setAttribute('data-base-price', d.price_per_pax || 0);
+                    btn.setAttribute('data-pet-fee', d.pet_fee || 0);
+                    btn.setAttribute('data-bag-fee', d.extra_baggage_fee || 0);
+                    btn.setAttribute('data-pet-allowed', d.pet_allowed || false);
+
+                    node.querySelector('.bag-text').innerText = `${d.baggage_kg} kg Included`;
+                    if (d.pet_allowed) {
+                        node.querySelector('.pet-text').innerText = `Pet Allowed ($${d.pet_fee || 0})`;
+                        node.querySelector('.pet-icon').classList.add('text-green-500');
+                    } else {
+                        node.querySelector('.pet-text').innerText = 'Pets not allowed';
+                        node.querySelector('.pet-icon').classList.add('text-red-500');
+                    }
+
+                    const statCont = node.querySelector('.status-container');
+                    if (d.sold_out) {
+                        card.querySelector('.sold-out-overlay').classList.remove('hidden');
+                        if (d.days_since_soldout)
+                            card.querySelector('.soldout-msg').innerText = `Sold out ${d.days_since_soldout} days ago`;
+                    } else if (d.last_seats && d.seats_remaining <= 15) {
+                        statCont.innerHTML = `<div class="px-3 py-2 bg-red-900/40 border border-red-500 text-red-400 text-xs rounded font-semibold text-center">🔥 Only a few seats left — book now!</div>`;
+                    } else {
+                        statCont.innerHTML = '';
+                    }
+
+                    rowEl.appendChild(node);
+                });
+
+                cont.appendChild(rowEl);
+            });
+        }
+
+
+        async function loadChart(flight_key, current_dtd) {
+            document.getElementById('trend-dtd').innerText = `Now: ${current_dtd} days left`;
+            // B8: Show skeleton chart
+            const chartWrap = document.getElementById('trendChart').parentElement;
+            const skelChart = document.createElement('div'); skelChart.className = 'skeleton skeleton-chart w-full'; skelChart.id = 'skelChart';
+            chartWrap.appendChild(skelChart);
+            try {
+                const res = await fetch(`/api/flight-detail?flight_key=${flight_key || 'demo'}`);
+                const data = await res.json();
+                if (!res.ok || !Array.isArray(data.history)) {
+                    throw new Error(data.error || 'Trend data unavailable');
+                }
+
+                const oldSkel = document.getElementById('skelChart');
+                if (oldSkel) oldSkel.remove();
+
+                const srcBadge = data.source === 'simulation' ? 'Live Simulation Data' : 'Estimated Trend';
+                document.getElementById('trend-dtd').innerText = `${srcBadge} · Now: ${current_dtd} days left`;
+
+                const ctx = document.getElementById('trendChart').getContext('2d');
+                if (chartInstance) chartInstance.destroy();
+
+                const labels = data.history.map(d => `DTD ${d.dtd}`);
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'THY', data: data.history.map(d => d.thy), borderColor: '#00d0f4', backgroundColor: 'transparent', tension: 0.4, borderWidth: 3 },
+                            { label: 'Pegasus', data: data.history.map(d => d.pc), borderColor: '#FFD700', backgroundColor: 'transparent', tension: 0.4, borderDash: [5, 5] },
+                            { label: 'Emirates', data: data.history.map(d => d.ek), borderColor: '#ef4444', backgroundColor: 'transparent', tension: 0.4, borderDash: [2, 2] }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#9ca3af' } } },
+                        scales: {
+                            x: { ticks: { color: '#6b7280' }, grid: { color: '#1e293b' }, reverse: true },
+                            y: { ticks: { color: '#6b7280' }, grid: { color: '#1e293b' } }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error('Trend chart load failed', err);
+                const oldSkel = document.getElementById('skelChart');
+                if (oldSkel) oldSkel.remove();
+                if (chartInstance) {
+                    chartInstance.destroy();
+                    chartInstance = null;
+                }
+                document.getElementById('trend-dtd').innerText = 'Trend data is temporarily unavailable';
+            }
+        }
+
+        // ── B8: Skeleton Loading Helpers ──
+        function showSkeletonLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+            const outGrid = document.getElementById('outbound-grid');
+            outGrid.innerHTML = '<div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div>';
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('res_title').innerText = 'Searching...';
+        }
+        function hideSkeletonLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // ── Checkout Panel ──
+        let currentBookingData = null;
+        let selectedPayMethod = 'card';
+        let _originalPanelHTML = null;  // saved once to restore after booking
+
+        function selectPay(method) {
+            selectedPayMethod = method;
+            document.getElementById('payCard').classList.remove('active');
+            document.getElementById('payCash').classList.remove('active');
+            document.getElementById('pay-card-check').className = 'fa-regular fa-circle ml-auto text-gray-600';
+            document.getElementById('pay-cash-check').className = 'fa-regular fa-circle ml-auto text-gray-600';
+
+            if (method === 'card') {
+                document.getElementById('payCard').classList.add('active');
+                document.getElementById('pay-card-check').className = 'fa-solid fa-check-circle ml-auto text-cyan-400';
+            } else {
+                document.getElementById('payCash').classList.add('active');
+                document.getElementById('pay-cash-check').className = 'fa-solid fa-check-circle ml-auto text-cyan-400';
+            }
+        }
+
+        function changePetCount(delta) {
+            if (!currentBookingData.petAllowed) return;
+            let newVal = currentBookingData.petCount + delta;
+            if (newVal < 0) newVal = 0;
+            // Max 2 pets allowed
+            if (newVal > 2) newVal = 2;
+
+            currentBookingData.petCount = newVal;
+            updateCheckoutPrices();
+        }
+
+        function updateCheckoutPrices() {
+            const paxCount = currentBookingData.paxCount;
+            const baseTotal = currentBookingData.basePrice * paxCount;
+            const petTotal = currentBookingData.petCount * currentBookingData.petFee;
+            const bagTotal = currentBookingData.bagFee * paxCount;
+
+            const grandTotal = baseTotal + petTotal + bagTotal;
+
+            document.getElementById('ck-base-price').innerText = `$${currentBookingData.basePrice.toFixed(2)}`;
+
+            if (currentBookingData.petAllowed) {
+                document.getElementById('ck-pet-row').style.display = 'flex';
+                document.getElementById('ck-pet-count-display').innerText = currentBookingData.petCount;
+                document.getElementById('ck-pet-fee').innerText = `+$${petTotal.toFixed(2)}`;
+            } else {
+                document.getElementById('ck-pet-row').style.display = 'none';
+            }
+
+            if (currentBookingData.bagFee > 0) {
+                document.getElementById('ck-bag-row').style.display = 'flex';
+                document.getElementById('ck-bag-fee').innerText = `+$${bagTotal.toFixed(2)}`;
+            } else {
+                document.getElementById('ck-bag-row').style.display = 'none';
+            }
+
+            document.getElementById('ck-pax-count').innerText = `×${paxCount}`;
+            document.getElementById('ck-total').innerText = `$${grandTotal.toFixed(2)}`;
+
+            // Save final total string for confirmation screen
+            currentBookingData.priceEl = `$${grandTotal.toFixed(2)}`;
+        }
+
+        function openBookingModal(btn) {
+            // Restore original panel HTML if it was replaced by success screen
+            const panel = document.querySelector('.booking-modal-content');
+            if (_originalPanelHTML) {
+                panel.innerHTML = _originalPanelHTML;
+            }
+            const card = btn.closest('.relative');
+            const airline = card.querySelector('.airline-name')?.innerText || '—';
+            const priceEl = card.querySelector('.total-price')?.innerText || '$0';
+            const dest = card.querySelector('.dest-code')?.innerText || '—';
+            const origin = card.querySelector('.origin-code')?.innerText || 'IST';
+            const depTime = card.querySelector('.dep-time')?.innerText || '—';
+            const arrTime = card.querySelector('.arr-time')?.innerText || '—';
+            const durText = card.querySelector('.duration-time')?.innerText || '—';
+            const flightKey = btn.getAttribute('data-flight-key');
+            const bestFare = btn.getAttribute('data-best-fare');
+            const seatsEl = card.querySelector('.status-container');
+            const logoSrc = card.querySelector('.airline-logo')?.src || '/static/thy.png';
+
+            const paxCount = parseInt(document.getElementById('pax').value) || 1;
+            const cabinLabel = cabin === 'business' ? 'Business' : 'Economy';
+            const depDateVal = document.getElementById('dep_date').value;
+            const hasPet = document.getElementById('pet_toggle').checked;
+
+            // Store needed pricing info
+            currentBookingData = {
+                airline, priceEl, dest, origin, depTime, arrTime, flightKey, bestFare, paxCount,
+                basePrice: parseFloat(btn.getAttribute('data-base-price')) || 0,
+                petFee: parseFloat(btn.getAttribute('data-pet-fee')) || 0,
+                bagFee: parseFloat(btn.getAttribute('data-bag-fee')) || 0,
+                petAllowed: btn.getAttribute('data-pet-allowed') === 'true',
+                petCount: hasPet ? 1 : 0
+            };
+
+            // Panel doldur
+            document.getElementById('ck-logo').src = logoSrc;
+            document.getElementById('ck-airline-name').innerText = airline;
+            document.getElementById('ck-dep-time').innerText = depTime;
+            document.getElementById('ck-arr-time').innerText = arrTime;
+            document.getElementById('ck-origin').innerText = origin;
+            document.getElementById('ck-dest').innerText = dest;
+            document.getElementById('ck-duration').innerText = durText;
+            document.getElementById('ck-date').innerText = depDateVal;
+            document.getElementById('ck-cabin').innerText = cabinLabel;
+            document.getElementById('ck-pax').innerText = `${paxCount} Passenger${paxCount > 1 ? 's' : ''}`;
+
+            updateCheckoutPrices();
+
+            document.getElementById('bookPassengerName').value = '';
+            document.getElementById('bookEmail').value = '';
+            // Save original HTML on first open
+            if (!_originalPanelHTML) {
+                _originalPanelHTML = document.querySelector('.booking-modal-content').innerHTML;
+            }
+
+            document.getElementById('bookingModal').classList.add('show');
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.remove('show');
+            // Restore panel to original form state so next Select Option works
+            if (_originalPanelHTML) {
+                document.querySelector('.booking-modal-content').innerHTML = _originalPanelHTML;
+            }
+        }
+        async function confirmBooking() {
+            const name = document.getElementById('bookPassengerName').value;
+            const email = document.getElementById('bookEmail').value;
+            if (!name || !email) { alert('Please fill in your Full Name and Email.'); return; }
+
+            let simBooked = false;
+            if (currentBookingData.flightKey && (currentBookingData.airline.includes('Turkish') || currentBookingData.airline === 'THY')) {
+                try {
+                    const paxCount = parseInt(document.getElementById('pax').value) || 1;
+                    const res = await fetch('/api/book', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            flight_key: currentBookingData.flightKey,
+                            fare_class: currentBookingData.bestFare,
+                            session: { user: name, email: email, is_b2c: true }
+                        })
+                    });
+                    if (res.ok) simBooked = true;
+                } catch (e) { console.error('Sim booking failed', e); }
+            }
+
+            // Show success screen inside panel
+            document.querySelector('.booking-modal-content').innerHTML = `
+                <div class="checkout-header">
+                    <div><div class="text-xs text-gray-500 mb-1 tracking-widest font-medium">SEATWISE</div>
+                    <h2 class="text-lg font-bold text-white">Booking Confirmed</h2></div>
+                    <button onclick="closeBookingModal()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:1.1rem;cursor:pointer;" onclick="closeBookingModal()">&times;</button>
+                </div>
+                <div style="padding:3rem 1.75rem;text-align:center;">
+                    <div style="font-size:4rem;margin-bottom:1rem;">✅</div>
+                    <h3 style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:.5rem;">Booking Successful!</h3>
+                    <p style="color:#94a3b8;font-size:.85rem;">${currentBookingData.airline} &middot; ${currentBookingData.origin} &rarr; ${currentBookingData.dest}</p>
+                    <p style="color:#00e5ff;font-weight:800;font-size:1.6rem;margin:1rem 0;">${currentBookingData.priceEl}</p>
+                    <p style="color:#6b7280;font-size:.75rem;">Confirmation sent to <strong style="color:#9ca3af;">${email}</strong></p>
+                    <p style="color:#374151;font-size:.7rem;margin-top:.5rem;">(Simulation &mdash; ${simBooked ? 'Live capacity updated' : 'No real booking made'})</p>
+                    <button onclick="closeBookingModal()" style="margin-top:2rem;padding:.75rem 2rem;background:linear-gradient(135deg,#00b4cc,#00e5ff);border:none;border-radius:10px;color:#0d1117;font-weight:800;font-size:.9rem;cursor:pointer;">← Back to Flights</button>
+                </div>
+            `;
+            if (simBooked && lastSearchParams && !searchInFlight) {
+                runSearch(lastSearchParams, { showLoading: false, background: true });
+            }
+        }
+
+
+        // ── B1: Auto-refresh polling ──
+        async function checkSimStatus() {
+            try {
+                const res = await fetch('/api/sim-status');
+                const data = await res.json();
+                const dot = document.getElementById('simDot');
+                const txt = document.getElementById('simStatusText');
+                if (data.sim_running) {
+                    dot.classList.remove('offline'); dot.classList.add('online');
+                    txt.textContent = 'Live · ' + (data.state || 'running');
+                    txt.classList.add('text-green-400'); txt.classList.remove('text-gray-400');
+                    const clockToken = data.clock?.sim_datetime || data.clock?.sim_date || null;
+                    if (clockToken && lastSearchParams && lastSimClockToken && clockToken !== lastSimClockToken && !searchInFlight) {
+                        await runSearch(lastSearchParams, { showLoading: false, background: true });
+                    }
+                    lastSimClockToken = clockToken || lastSimClockToken;
+                } else {
+                    dot.classList.remove('online'); dot.classList.add('offline');
+                    txt.textContent = 'Offline';
+                    txt.classList.remove('text-green-400'); txt.classList.add('text-gray-400');
+                }
+            } catch (e) {
+                document.getElementById('simDot').classList.remove('online');
+                document.getElementById('simDot').classList.add('offline');
+                document.getElementById('simStatusText').textContent = 'Offline';
+            }
+        }
+        setInterval(checkSimStatus, 10000);
+        checkSimStatus();
+
+        // Navbar kullanici bilgisi
+        fetch('/api/user-info').then(r => r.json()).then(data => {
+            if (data.logged_in) {
+                const el = document.getElementById('navUsername');
+                document.getElementById('navUsernameText').innerText = data.username;
+                el.classList.remove('hidden');
+            }
+        }).catch(() => { });
+    </script>
+    </div> <!-- End customerAppRoot -->
+</body>
+
+</html>

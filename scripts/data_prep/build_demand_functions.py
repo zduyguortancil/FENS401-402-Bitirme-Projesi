@@ -1,11 +1,11 @@
 """
-Sprint 6 — Yolcu Segmentleri ve Talep Fonksiyonları (Demand Functions)
-Emre'nin toplantıda belirlediği 6 yolcu segmenti için:
-  - Willingness-to-pay (WTP) aralıkları
-  - Booking window profilleri
-  - Fiyat elastikiyeti fonksiyonları
-  - Fiyat–talep eğrileri (price sweep)
-Mevcut cluster ve training verisinden davranışsal parametreler türetilir.
+Sprint 6 — Passenger Segments & Demand Functions
+6 passenger segments with:
+  - Willingness-to-pay (WTP) ranges
+  - Booking window profiles
+  - Price elasticity functions
+  - Price–demand curves (price sweep)
+Behavioral parameters derived from cluster and training data.
 """
 import json
 import math
@@ -13,21 +13,22 @@ import duckdb
 import numpy as np
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent
-TRAIN_PATH = BASE_DIR / "demand_training.parquet"
-META_PATH = BASE_DIR / "flight_metadata.parquet"
-SNAP_PATH = BASE_DIR / "flight_snapshot_v2.parquet"
-CLUSTER_PATH = BASE_DIR / "passenger_clusters.parquet"
-OUT_REPORT = BASE_DIR / "demand_functions_report.json"
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # project root
+DATA_DIR = BASE_DIR / "data"
+TRAIN_PATH = DATA_DIR / "processed" / "demand_training.parquet"
+META_PATH = DATA_DIR / "processed" / "flight_metadata.parquet"
+SNAP_PATH = DATA_DIR / "raw" / "flight_snapshot_v2.parquet"
+CLUSTER_PATH = DATA_DIR / "processed" / "passenger_clusters.parquet"
+OUT_REPORT = BASE_DIR / "reports" / "demand_functions_report.json"
 
 con = duckdb.connect()
 
 # ═══════════════════════════════════════════════════════════════
-# STEP 1: Mevcut veriden davranışsal parametreleri çıkar
+# STEP 1: Extract behavioral parameters from existing data
 # ═══════════════════════════════════════════════════════════════
-print("[1/5] Mevcut veriden davranış parametreleri çıkarılıyor...", flush=True)
+print("[1/5] Extracting behavioral parameters from data...", flush=True)
 
-# Genel istatistikler
+# General statistics
 stats = con.execute(f"""
     SELECT
         AVG(y_pax_sold_today)                             AS avg_pax,
@@ -40,9 +41,9 @@ stats = con.execute(f"""
 """).fetchone()
 avg_pax, pax_p25, pax_p75 = float(stats[0]), float(stats[1]), float(stats[2])
 avg_lf, avg_dtd_sale, avg_cap = float(stats[3]), float(stats[4]), float(stats[5])
-print(f"   Ort. günlük pax: {avg_pax:.3f}  |  Ort. LF: {avg_lf:.3f}  |  Ort. kapasite: {avg_cap:.0f}", flush=True)
+print(f"   Avg daily pax: {avg_pax:.3f}  |  Avg LF: {avg_lf:.3f}  |  Avg capacity: {avg_cap:.0f}", flush=True)
 
-# DTD-bazlı satış profili (her DTD bucket'ta toplam satış oranı)
+# DTD-based sales profile (total sales ratio per DTD bucket)
 dtd_profile = con.execute(f"""
     SELECT
         dtd_bucket,
@@ -63,7 +64,7 @@ for r in dtd_profile:
     }
 print(f"   DTD buckets: {len(dtd_dist)}", flush=True)
 
-# Kabin bazlı fiyat referansı (snapshot'tan ortalama bilet fiyatı)
+# Cabin-based price reference (average ticket price from snapshot)
 cabin_prices = con.execute(f"""
     SELECT
         LOWER(cabin_class) AS cabin,
@@ -87,9 +88,9 @@ for r in cabin_prices:
         "p75": round(float(r[3]), 2),
         "p90": round(float(r[4]), 2),
     }
-print(f"   Fiyat referansları: {json.dumps(price_ref, indent=2)}", flush=True)
+print(f"   Price references: {json.dumps(price_ref, indent=2)}", flush=True)
 
-# Bölge bazlı fiyat farkları
+# Region-based price differences
 region_prices = con.execute(f"""
     SELECT
         m.region,
@@ -110,93 +111,89 @@ for r in region_prices:
 con.close()
 
 # ═══════════════════════════════════════════════════════════════
-# STEP 2: 6 Yolcu Segmenti Tanımla
+# STEP 2: Define 6 Passenger Segments
 # ═══════════════════════════════════════════════════════════════
-print("[2/5] Yolcu segmentleri tanımlanıyor...", flush=True)
+print("[2/5] Defining passenger segments...", flush=True)
 
-# Her kabin için base fiyat
+# Base price per cabin
 eco_base = price_ref.get("economy", {}).get("avg", 500)
 biz_base = price_ref.get("business", {}).get("avg", 1500)
 
 SEGMENTS = {
     "A": {
         "id": "A",
-        "name": "İş Yolcusu",
-        "name_en": "Business Traveler",
+        "name": "Business Traveler",
         "icon": "💼",
         "color": "#3b82f6",
-        "description": "Son dakika alır, yüksek bütçe, zaman hassasiyeti yüksek. Business class tercih eder.",
+        "description": "Late booker with high budget and time sensitivity. Prefers business class.",
         "characteristics": [
-            "Son dakika rezervasyon (0-14 gün)",
-            "Yüksek bütçe, fiyata duyarsız",
-            "Hafta içi, sabah uçuşları",
-            "Frequent flyer üyesi",
-            "Business class tercih",
+            "Last-minute booking (0–14 days)",
+            "High budget, price-insensitive",
+            "Weekday morning flights",
+            "Frequent flyer member",
+            "Business class preference",
         ],
         "booking_window": {"min_dtd": 0, "max_dtd": 14, "peak_dtd": 5},
         "wtp_multiplier": {"min": 1.8, "max": 2.5},
-        "price_elasticity": -0.3,   # inelastic: fiyat %10 artarsa talep %3 düşer
-        "base_share_pct": 15,        # bu segment toplam yolcunun ~%15'i
+        "price_elasticity": -0.3,   # inelastic: +10% price → −3% demand
+        "base_share_pct": 15,        # ~15% of total passengers
         "preferred_cabin": "business",
-        "seasonal_boost": {"kongre_fuar": 1.4, "is_seyahati_yogun": 1.3, "normal": 1.0},
-        "dtd_decay_rate": 0.15,      # yüksek → son günlerde yoğunlaşır
+        "seasonal_boost": {"congress_expo": 1.4, "peak_business": 1.3, "normal": 1.0},
+        "dtd_decay_rate": 0.15,      # high → concentrates in final days
     },
     "B": {
         "id": "B",
-        "name": "Gurbetçi (VFR)",
-        "name_en": "Diaspora / VFR",
+        "name": "Diaspora / VFR",
         "icon": "🏠",
         "color": "#10b981",
-        "description": "Destinasyon sabit (memleket). Ağustos + bayram peak. Bagaj ağır. Fiyata orta duyarlı.",
+        "description": "Fixed destination (hometown). August & holiday peaks. Heavy baggage. Moderate price sensitivity.",
         "characteristics": [
-            "Sabit destinasyon (memleket)",
-            "Yaz + bayram döneminde yoğun",
-            "Yüksek bagaj hacmi",
-            "Fiyata orta düzey duyarlı",
-            "Economy class ağırlıklı",
+            "Fixed destination (hometown)",
+            "Peak in summer & holiday periods",
+            "High baggage volume",
+            "Moderate price sensitivity",
+            "Economy class dominant",
         ],
         "booking_window": {"min_dtd": 14, "max_dtd": 60, "peak_dtd": 30},
         "wtp_multiplier": {"min": 1.3, "max": 1.8},
         "price_elasticity": -0.7,
         "base_share_pct": 20,
         "preferred_cabin": "economy",
-        "seasonal_boost": {"yaz_tatili": 1.6, "bayram_donemi": 1.8, "ramazan_donemi": 1.3, "yilbasi": 1.4, "normal": 1.0},
+        "seasonal_boost": {"summer_holiday": 1.6, "religious_holiday": 1.8, "ramadan": 1.3, "new_year": 1.4, "normal": 1.0},
         "dtd_decay_rate": 0.05,
     },
     "C": {
         "id": "C",
-        "name": "Kongre / Tıbbi Seyahat",
-        "name_en": "Congress / Medical",
+        "name": "Congress / Medical Travel",
         "icon": "🏥",
         "color": "#8b5cf6",
-        "description": "Belirli tarih ve destinasyon. Grup potansiyeli. Esneklik düşük. Orta bütçe.",
+        "description": "Fixed date and destination. Group travel potential. Low flexibility. Medium budget.",
         "characteristics": [
-            "Tarih ve destinasyon sabit",
-            "Grup halinde seyahat potansiyeli",
-            "Esneklik düşük",
-            "Orta bütçe seviyesi",
-            "Economy + Business karışık",
+            "Fixed date and destination",
+            "Group travel potential",
+            "Low flexibility",
+            "Medium budget level",
+            "Mixed economy & business class",
         ],
         "booking_window": {"min_dtd": 7, "max_dtd": 30, "peak_dtd": 14},
         "wtp_multiplier": {"min": 1.2, "max": 1.6},
         "price_elasticity": -0.5,
         "base_share_pct": 12,
         "preferred_cabin": "economy",
-        "seasonal_boost": {"kongre_fuar": 1.8, "festival_sezonu": 1.3, "normal": 1.0},
+        "seasonal_boost": {"congress_expo": 1.8, "festival_season": 1.3, "normal": 1.0},
         "dtd_decay_rate": 0.08,
     },
     "D": {
         "id": "D",
-        "name": "Erken Tatilci",
-        "name_en": "Early Leisure",
+        "name": "Early Leisure",
         "icon": "🏖️",
         "color": "#f59e0b",
-        "description": "Promosyon kovalar, rota esnek, fiyat belirleyici. Aylar öncesinden planlar.",
+        "description": "Promotion hunter with flexible routes. Price is the key driver. Plans months ahead.",
         "characteristics": [
-            "60-180 gün önceden rezervasyon",
-            "Promosyon ve indirim takipçisi",
-            "Rota esnekliği yüksek",
-            "Fiyat ana karar faktörü",
+            "Books 60–180 days in advance",
+            "Promotion & discount seeker",
+            "High route flexibility",
+            "Price is the main decision factor",
             "Economy class",
         ],
         "booking_window": {"min_dtd": 60, "max_dtd": 180, "peak_dtd": 90},
@@ -204,51 +201,49 @@ SEGMENTS = {
         "price_elasticity": -1.5,   # very elastic
         "base_share_pct": 25,
         "preferred_cabin": "economy",
-        "seasonal_boost": {"yaz_tatili": 1.5, "bahar_tatili": 1.3, "kis_tatili": 1.2, "normal": 1.0},
+        "seasonal_boost": {"summer_holiday": 1.5, "spring_break": 1.3, "winter_holiday": 1.2, "normal": 1.0},
         "dtd_decay_rate": 0.02,
     },
     "E": {
         "id": "E",
-        "name": "Öğrenci",
-        "name_en": "Student",
+        "name": "Student",
         "icon": "🎓",
         "color": "#06b6d4",
-        "description": "Bütçe kısıtlı, zaman ve rota esnek. İspanya pahalıysa Yunanistan'a gider.",
+        "description": "Budget-constrained with high time & route flexibility. Will switch destinations if price is too high.",
         "characteristics": [
-            "Düşük bütçe, yüksek fiyat duyarlılığı",
-            "Zaman ve rota esnekliği çok yüksek",
-            "Alternatif destinasyonlara kayabilir",
-            "30-120 gün önceden planlar",
-            "Economy class, en düşük fare",
+            "Low budget, high price sensitivity",
+            "Very high time & route flexibility",
+            "May switch to alternative destinations",
+            "Plans 30–120 days ahead",
+            "Economy class, lowest fare",
         ],
         "booking_window": {"min_dtd": 30, "max_dtd": 120, "peak_dtd": 60},
         "wtp_multiplier": {"min": 0.5, "max": 0.8},
         "price_elasticity": -2.2,   # extremely elastic
         "base_share_pct": 18,
         "preferred_cabin": "economy",
-        "seasonal_boost": {"yariyil_tatili": 1.5, "yaz_tatili": 1.4, "bahar_tatili": 1.3, "normal": 1.0},
+        "seasonal_boost": {"semester_break": 1.5, "summer_holiday": 1.4, "spring_break": 1.3, "normal": 1.0},
         "dtd_decay_rate": 0.03,
     },
     "F": {
         "id": "F",
-        "name": "Son Dakika Acil",
-        "name_en": "Last-Minute Urgent",
+        "name": "Last-Minute Urgent",
         "icon": "🚨",
         "color": "#ef4444",
-        "description": "Acil durum, ihale, futbol maçı. Ne pahasına olursa olsun biner. Bagajda bile gider.",
+        "description": "Emergency, tender, sports event. Will fly at any cost. Completely price-insensitive.",
         "characteristics": [
-            "0-3 gün içinde bilet alır",
-            "Fiyat duyarlılığı sıfır",
-            "Acil durum motivasyonu",
-            "Destinasyon ve zaman sabit",
-            "Herhangi bir kabin sınıfı",
+            "Books within 0–3 days",
+            "Zero price sensitivity",
+            "Emergency-driven motivation",
+            "Fixed destination and time",
+            "Any cabin class",
         ],
         "booking_window": {"min_dtd": 0, "max_dtd": 3, "peak_dtd": 1},
         "wtp_multiplier": {"min": 2.5, "max": 4.0},
         "price_elasticity": -0.1,   # completely inelastic
         "base_share_pct": 10,
         "preferred_cabin": "economy",
-        "seasonal_boost": {"futbol_sezonu": 1.5, "bayram_donemi": 1.6, "normal": 1.0},
+        "seasonal_boost": {"sports_season": 1.5, "religious_holiday": 1.6, "normal": 1.0},
         "dtd_decay_rate": 0.5,
     },
 }
@@ -257,21 +252,21 @@ for sid, seg in SEGMENTS.items():
     print(f"   {seg['icon']} Segment {sid}: {seg['name']} — elasticity={seg['price_elasticity']}, share={seg['base_share_pct']}%", flush=True)
 
 # ═══════════════════════════════════════════════════════════════
-# STEP 3: Talep Fonksiyonlarını Hesapla
+# STEP 3: Compute Demand Functions
 # ═══════════════════════════════════════════════════════════════
-print("[3/5] Talep fonksiyonları hesaplanıyor...", flush=True)
+print("[3/5] Computing demand functions...", flush=True)
 
 
 def demand_function(price_ratio, elasticity, dtd, peak_dtd, dtd_decay, seasonal=1.0, base_demand=1.0):
     """
-    Talep fonksiyonu:
+    Demand function:
     Q(p, dtd) = base_demand × price_effect × timing_effect × seasonal_factor
 
-    price_ratio: current_price / base_price (1.0 = base fiyat)
-    elasticity: fiyat elastikiyeti (negatif, örn: -0.3)
-    dtd: kalkışa gün sayısı
-    peak_dtd: segmentin en yoğun alım yaptığı DTD
-    dtd_decay: zamanlama yoğunlaşma katsayısı
+    price_ratio: current_price / base_price (1.0 = base price)
+    elasticity: price elasticity (negative, e.g. -0.3)
+    dtd: days to departure
+    peak_dtd: DTD at which this segment books most intensively
+    dtd_decay: timing concentration coefficient
     """
     # Price effect: Q = Q0 × (P/P0)^elasticity
     price_effect = max(price_ratio ** elasticity, 0.01)
@@ -280,20 +275,20 @@ def demand_function(price_ratio, elasticity, dtd, peak_dtd, dtd_decay, seasonal=
     dtd_sigma = max(peak_dtd * 0.6, 3)
     timing_effect = math.exp(-0.5 * ((dtd - peak_dtd) / dtd_sigma) ** 2)
 
-    # Son dakikacılar için DTD 0'a yakın ek boost
+    # Extra boost near DTD 0 for last-minute segments
     if dtd_decay >= 0.3 and dtd <= 3:
         timing_effect = max(timing_effect, 0.9)
 
     return round(base_demand * price_effect * timing_effect * seasonal, 4)
 
 
-# Her segment × her fiyat noktası × her DTD bucket için eğri hesapla
+# Compute curve for each segment × price point × DTD bucket
 price_ratios = [round(0.3 + i * 0.1, 1) for i in range(28)]  # 0.3x - 3.0x
 dtd_points = [0, 1, 3, 5, 7, 14, 21, 30, 45, 60, 90, 120, 150, 180]
 
 segment_curves = {}
 for sid, seg in SEGMENTS.items():
-    # Fiyat-Talep eğrisi (DTD = peak_dtd'de)
+    # Price-Demand curve (at DTD = peak_dtd)
     price_demand_curve = []
     for pr in price_ratios:
         q = demand_function(
@@ -305,7 +300,7 @@ for sid, seg in SEGMENTS.items():
             seasonal=1.0,
             base_demand=seg["base_share_pct"] / 100,
         )
-        # Gelir = fiyat × miktar
+        # Revenue = price × quantity
         revenue = round(pr * q, 4)
         price_demand_curve.append({
             "price_ratio": pr,
@@ -313,7 +308,7 @@ for sid, seg in SEGMENTS.items():
             "revenue": revenue,
         })
 
-    # DTD-Talep eğrisi (base fiyatta)
+    # DTD-Demand curve (at base price)
     dtd_demand_curve = []
     for dtd in dtd_points:
         q = demand_function(
@@ -329,7 +324,7 @@ for sid, seg in SEGMENTS.items():
             "demand": q,
         })
 
-    # Optimal fiyat noktası (gelir maksimizasyonu)
+    # Optimal price point (revenue maximization)
     best_rev = max(price_demand_curve, key=lambda x: x["revenue"])
 
     segment_curves[sid] = {
@@ -339,15 +334,15 @@ for sid, seg in SEGMENTS.items():
         "optimal_revenue": best_rev["revenue"],
         "optimal_demand": best_rev["demand"],
     }
-    print(f"   Segment {sid}: optimal fiyat = {best_rev['price_ratio']:.1f}x base, "
-          f"gelir-idx = {best_rev['revenue']:.4f}", flush=True)
+    print(f"   Segment {sid}: optimal price = {best_rev['price_ratio']:.1f}x base, "
+          f"revenue-idx = {best_rev['revenue']:.4f}", flush=True)
 
 # ═══════════════════════════════════════════════════════════════
-# STEP 4: Segment Etkileşim Matrisi (Fiyat değişirse hangi segment kayar?)
+# STEP 4: Segment Interaction Matrix (which segment shifts when price changes?)
 # ═══════════════════════════════════════════════════════════════
-print("[4/5] Segment etkileşim matrisi hesaplanıyor...", flush=True)
+print("[4/5] Computing segment interaction matrix...", flush=True)
 
-# Fiyat artarsa elastic segmentler ne kadar kayar?
+# If price increases, how much do elastic segments shift?
 interaction_matrix = {}
 for sid, seg in SEGMENTS.items():
     row = {}
@@ -355,7 +350,7 @@ for sid, seg in SEGMENTS.items():
         if sid == target_sid:
             row[target_sid] = 0.0
             continue
-        # Eğer kaynak segment elastic ise ve hedef segment daha ucuz aralıktaysa → kayma potansiyeli
+        # If source segment is elastic and target has a cheaper WTP range → shift potential
         if seg["price_elasticity"] < -1.0 and target_seg["wtp_multiplier"]["max"] < seg["wtp_multiplier"]["min"]:
             overlap = max(0, min(seg["booking_window"]["max_dtd"], target_seg["booking_window"]["max_dtd"])
                           - max(seg["booking_window"]["min_dtd"], target_seg["booking_window"]["min_dtd"]))
@@ -367,17 +362,16 @@ for sid, seg in SEGMENTS.items():
     interaction_matrix[sid] = row
 
 # ═══════════════════════════════════════════════════════════════
-# STEP 5: Rapor oluştur ve kaydet
+# STEP 5: Build report and save
 # ═══════════════════════════════════════════════════════════════
-print("[5/5] Rapor oluşturuluyor...", flush=True)
+print("[5/5] Building report...", flush=True)
 
-# Segment tanımlarını JSON-serializable yap
+# Make segment definitions JSON-serializable
 segments_json = {}
 for sid, seg in SEGMENTS.items():
     segments_json[sid] = {
         "id": seg["id"],
         "name": seg["name"],
-        "name_en": seg["name_en"],
         "icon": seg["icon"],
         "color": seg["color"],
         "description": seg["description"],
@@ -392,7 +386,7 @@ for sid, seg in SEGMENTS.items():
     }
 
 report = {
-    "version": "1.0",
+    "version": "2.0",
     "total_segments": len(SEGMENTS),
     "data_summary": {
         "avg_daily_pax": round(avg_pax, 4),
@@ -425,20 +419,21 @@ with open(OUT_REPORT, "w", encoding="utf-8") as f:
     json.dump(report, f, ensure_ascii=False, indent=2)
 
 print(f"\n{'=' * 60}")
-print("  TALEP FONKSİYONLARI RAPORU")
+print("  DEMAND FUNCTIONS REPORT")
 print("=" * 60)
-print(f"  Segment sayısı:    {len(SEGMENTS)}")
-print(f"  Fiyat aralığı:     0.3x - 3.0x base")
-print(f"  DTD noktaları:     {len(dtd_points)}")
+print(f"  Segments:      {len(SEGMENTS)}")
+print(f"  Price range:   0.3x - 3.0x base")
+print(f"  DTD points:    {len(dtd_points)}")
 print()
 
 for sid, seg in SEGMENTS.items():
     opt = segment_curves[sid]
     print(f"  {seg['icon']} {sid} — {seg['name']}")
-    print(f"     Elastikiyet: {seg['price_elasticity']}  |  WTP: {seg['wtp_multiplier']['min']}-{seg['wtp_multiplier']['max']}x")
-    print(f"     Booking: {seg['booking_window']['min_dtd']}-{seg['booking_window']['max_dtd']} gün (peak: {seg['booking_window']['peak_dtd']})")
-    print(f"     Optimal fiyat: {opt['optimal_price_ratio']:.1f}x  →  gelir-idx: {opt['optimal_revenue']:.4f}")
+    print(f"     Elasticity: {seg['price_elasticity']}  |  WTP: {seg['wtp_multiplier']['min']}-{seg['wtp_multiplier']['max']}x")
+    print(f"     Booking: {seg['booking_window']['min_dtd']}-{seg['booking_window']['max_dtd']} days (peak: {seg['booking_window']['peak_dtd']})")
+    print(f"     Optimal price: {opt['optimal_price_ratio']:.1f}x  →  revenue-idx: {opt['optimal_revenue']:.4f}")
     print()
 
-print(f"  📋 Rapor: {OUT_REPORT}")
+print(f"  📋 Report: {OUT_REPORT}")
 print("\n[DONE]")
+

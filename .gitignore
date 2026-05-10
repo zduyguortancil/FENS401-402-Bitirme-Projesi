@@ -1,47 +1,69 @@
-# Data files (large — download separately, see README)
+# ════════════════════════════════════════════════════════════════
+#  Seatwise — .gitignore
+#  (large data, trained models, virtualenvs, secrets, caches → NOT on GitHub)
+#  How to obtain the excluded data/model files:  see SETUP_GUIDE.txt
+# ════════════════════════════════════════════════════════════════
+
+# ── Large binary data & trained-model artefacts ──────────────────
+# Get these from your existing seatwise_v4 folder (or the Drive link) — see SETUP_GUIDE.txt
 *.parquet
+*.pkl
+*.pt
+*.ckpt
+*.pth
+*.joblib
 data/raw/
 data/processed/
 data/models/
 
-# Python
+# ── Databases / runtime caches & local user store ────────────────
+*.db
+dashboard/sentiment_v2.db
+dashboard/sentiment_cache.db
+dashboard/users_db.json
+dashboard/customer/users_db.json
+
+# ── Python ───────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
+.pytest_cache/
 
-# Environment / secrets
+# ── Virtual environments ─────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+dashboard/venv/
+
+# ── Environment / secrets ────────────────────────────────────────
 .env
 .env.*
 
-# Database cache
-*.db
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-Desktop.ini
-
-# Build / temp
+# ── Logs & temp ──────────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
 *.spec
 build/
 dist/
 
-# Model checkpoints (large)
-*.ckpt
-*.pt
-*.pkl
+# ── IDE / editor ─────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Temp scripts
-pv.py
-pv_panel.py
+# ── OS junk ──────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+Thumbs.db
+Desktop.ini
 
-# Non-repo artifacts
+# ── Misc local artefacts (not part of the project) ───────────────
 presentation_figs/
 docs_ts/
+pv.py
+pv_panel.py

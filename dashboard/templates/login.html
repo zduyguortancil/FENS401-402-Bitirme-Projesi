@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Seatwise — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#060d18;
+  --navy2:#0b1525;
+  --blue:#1a73e8;
+  --teal:#14b8a6;
+  --sky:#38bdf8;
+  --text:#f0f6ff;
+  --text-muted:#7a9cc0;
+  --text-dim:#a8c0d8;
+  --border:rgba(56,189,248,.15);
+  --border-focus:rgba(56,189,248,.5);
+  --error:#f87171;
+  --success:#34d399;
+  --card:rgba(6,15,32,.92);
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--navy);color:var(--text);overflow:hidden}
+
+/* ── LAYOUT ── */
+.wrapper{display:flex;height:100vh}
+
+/* ── LEFT PANEL (visual) ── */
+.left{flex:1.1;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:3rem}
+.left-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(20,184,166,.18) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(26,115,232,.15) 0%,transparent 55%),linear-gradient(180deg,#060d18 0%,#0b1525 60%,#050c16 100%)}
+
+/* World map dots */
+.worldmap{position:absolute;inset:0;opacity:.18;background-image:radial-gradient(circle,rgba(56,189,248,.9) 1px,transparent 1px);background-size:22px 22px}
+
+/* Airplane window */
+.plane-window{position:absolute;right:-40px;top:50%;transform:translateY(-50%);width:340px;height:440px;border-radius:50% 50% 48% 48% / 42% 42% 58% 58%;overflow:hidden;border:6px solid rgba(255,255,255,.06);box-shadow:0 0 80px rgba(20,184,166,.12),inset 0 0 40px rgba(0,0,0,.4)}
+.window-inner{width:100%;height:100%;background:linear-gradient(160deg,#ff6b35 0%,#ff9a3c 15%,#c2510a 28%,#7a3a8a 42%,#3d1a6e 55%,#1a0a3e 68%,#0a1a3a 80%,#060d18 100%);position:relative}
+.window-inner::before{content:'';position:absolute;bottom:30%;left:-20%;right:-20%;height:180px;background:rgba(255,255,255,.06);border-radius:50%;filter:blur(30px)}
+.wing{position:absolute;bottom:15%;right:-5%;width:180px;height:60px;background:linear-gradient(135deg,rgba(200,210,230,.85),rgba(180,195,220,.6));border-radius:8px 2px 2px 12px;transform:perspective(300px) rotateX(8deg);box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.horizon-line{position:absolute;bottom:28%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,140,50,.6),rgba(255,180,80,.9),rgba(255,140,50,.6),transparent)}
+
+/* Route animation */
+.route-anim{position:absolute;left:6%;top:55%;transform:translateY(-50%)}
+.route-svg{width:260px;height:120px}
+
+/* Features */
+.features-left{position:relative;z-index:2;margin-top:auto;display:flex;gap:1.8rem;flex-wrap:wrap}
+.feat{display:flex;flex-direction:column;gap:.3rem}
+.feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;border:1px solid rgba(56,189,248,.2);background:rgba(56,189,248,.07)}
+.feat-label{font-size:.72rem;font-weight:600;color:var(--text-dim);letter-spacing:.04em}
+.feat-desc{font-size:.68rem;color:var(--text-muted);line-height:1.4}
+
+/* Brand */
+.brand{position:relative;z-index:2;margin-bottom:2rem}
+.brand-logo{display:flex;align-items:center;gap:0;margin-bottom:.6rem}
+.brand-icon{width:76px;height:76px;border-radius:16px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;margin-right:-.75rem;transform:translateY(-3px)}
+.brand-icon img{width:100%;height:100%;object-fit:contain;display:block}
+.brand-name{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#60c8f8,#2dd4bf);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-sub{font-size:.78rem;font-weight:600;letter-spacing:.18em;color:var(--teal);text-transform:uppercase;margin-left:56px}
+.brand-tagline{margin-top:1rem;font-size:1.15rem;font-weight:600;color:var(--text-dim);line-height:1.5}
+.brand-tagline span{color:var(--sky);font-weight:700}
+
+/* Flying plane */
+.fly-plane{position:absolute;font-size:1.6rem;animation:flyAcross 14s linear infinite;top:28%;left:-80px;filter:drop-shadow(0 0 8px rgba(56,189,248,.5))}
+@keyframes flyAcross{0%{left:-80px;opacity:0}5%{opacity:1}90%{opacity:1}100%{left:calc(100% + 80px);opacity:0}}
+.fly-trail{position:absolute;top:calc(28% + 20px);left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.4),transparent);animation:trailPulse 3s ease-in-out infinite}
+@keyframes trailPulse{0%,100%{opacity:.2}50%{opacity:.7}}
+
+/* ── RIGHT PANEL (form) ── */
+.right{width:420px;flex-shrink:0;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;padding:2.5rem 2.8rem;overflow-y:auto;backdrop-filter:blur(20px)}
+
+.form-title{font-size:1.25rem;font-weight:700;margin-bottom:.3rem}
+.form-sub{font-size:.8rem;color:var(--text-muted);margin-bottom:1.8rem}
+
+.tabs{display:flex;background:rgba(255,255,255,.04);border-radius:10px;padding:4px;margin-bottom:1.6rem}
+.tab-btn{flex:1;padding:8px;border:none;background:transparent;color:var(--text-muted);font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;border-radius:7px;transition:all .22s}
+.tab-btn.active{color:var(--text);background:rgba(56,189,248,.15);box-shadow:0 2px 10px rgba(56,189,248,.15)}
+
+.form-panel{display:none;animation:sIn .25s ease}
+.form-panel.active{display:block}
+@keyframes sIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.72rem;font-weight:600;color:var(--text-dim);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+.input-wrap{position:relative}
+.input-wrap input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:10px 40px 10px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.88rem;outline:none;transition:all .18s}
+.input-wrap input:focus{border-color:var(--border-focus);background:rgba(56,189,248,.05);box-shadow:0 0 0 3px rgba(56,189,248,.1)}
+.input-wrap input.error-state{border-color:var(--error);box-shadow:0 0 0 3px rgba(248,113,113,.1)}
+.input-wrap input.valid-state{border-color:var(--success)}
+.eye-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;display:flex;transition:color .15s}
+.eye-btn:hover{color:var(--text-dim)}
+.err-msg{font-size:.7rem;color:var(--error);margin-top:4px;min-height:14px;display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .18s}
+.err-msg.visible{opacity:1}
+.err-msg::before{content:"⚠";font-size:.68rem}
+
+.checkbox-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:16px}
+.checkbox-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);margin-top:2px;cursor:pointer;flex-shrink:0}
+.checkbox-row label{font-size:.77rem;color:var(--text-muted);cursor:pointer;line-height:1.4}
+.checkbox-row a{color:var(--sky);text-decoration:none}
+
+.extras-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.forgot-link{font-size:.75rem;color:var(--sky);text-decoration:none}
+.forgot-link:hover{text-decoration:underline}
+
+.submit-btn{width:100%;padding:12px;background:linear-gradient(135deg,#1a73e8,#14b8a6);border:none;border-radius:10px;color:#fff;font-family:'Inter',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .22s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 18px rgba(20,184,166,.3)}
+.submit-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 7px 24px rgba(20,184,166,.4)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none}
+.spinner.show{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.flash{padding:9px 13px;border-radius:9px;font-size:.78rem;font-weight:500;margin-bottom:14px;display:none}
+.flash.error{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);color:var(--error)}
+.flash.success{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);color:var(--success)}
+.flash.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="left-bg"></div>
+    <div class="worldmap"></div>
+    <div class="fly-plane">✈</div>
+    <div class="fly-trail"></div>
+
+    <!-- Airplane window -->
+    <div class="plane-window">
+      <div class="window-inner">
+        <div class="horizon-line"></div>
+        <div class="wing"></div>
+      </div>
+    </div>
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-logo">
+        <div class="brand-icon"><img src="/static/logo.png?v=2" alt="Seatwise" /></div>
+        <span class="brand-name">Seatwise</span>
+      </div>
+      <p class="brand-tagline">
+        <span>Smarter Prices.</span> Better Revenue.<br/>
+        AI-powered revenue management at your fingertips.
+      </p>
+    </div>
+
+    <!-- Features -->
+    <div class="features-left">
+      <div class="feat">
+        <div class="feat-icon">📈</div>
+        <div class="feat-label">Real-Time Data</div>
+        <div class="feat-desc">Live demand &amp; market analysis</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">💡</div>
+        <div class="feat-label">Dynamic Pricing</div>
+        <div class="feat-desc">Prices adapt to demand &amp; trends</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🛡</div>
+        <div class="feat-label">Secure &amp; Reliable</div>
+        <div class="feat-desc">Enterprise-grade data security</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-label">Fast &amp; Easy</div>
+        <div class="feat-desc">Intuitive manager cockpit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="form-title">Welcome back</div>
+    <div class="form-sub">Sign in to your Seatwise account</div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" id="tab-register" role="tab" aria-selected="false" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div class="flash" id="login-flash"></div>
+      <form novalidate onsubmit="submitLogin(event)">
+        <div class="field">
+          <label for="login-username">Username or Email</label>
+          <div class="input-wrap">
+            <input type="text" id="login-username" placeholder="username or email@..."
+              autocomplete="username" aria-label="Username or Email" aria-describedby="login-username-err" aria-invalid="false" required/>
+          </div>
+          <div class="err-msg" id="login-username-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="login-password" placeholder="••••••••"
+              autocomplete="current-password" aria-label="Password" aria-describedby="login-password-err" aria-invalid="false" required/>
+            <button type="button" class="eye-btn" onclick="togglePwd('login-password',this)" aria-label="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="login-password-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="extras-row">
+          <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:.77rem;color:var(--text-muted)">
+            <input type="checkbox" id="remember-me" autocomplete="off"/> Remember Me
+          </label>
+          <a href="#" class="forgot-link" onclick="openResetModal();return false">Forgot Password?</a>
+        </div>
+        <button type="submit" class="submit-btn" id="login-btn">
+          <div class="spinner" id="login-spinner"></div>
+          <span id="login-btn-text">Sign In</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form-panel" id="panel-register">
+      <div class="flash" id="register-flash"></div>
+      <form novalidate onsubmit="submitRegister(event)">
+        <div class="field">
+          <label for="reg-username">Username</label>
+          <div class="input-wrap">
+            <input type="text" id="reg-username" placeholder="username"
+              autocomplete="username" aria-label="Username" aria-describedby="reg-username-err" aria-invalid="false" required minlength="3" maxlength="20"/>
+          </div>
+          <div class="err-msg" id="reg-username-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="reg-email">Email</label>
+          <div class="input-wrap">
+            <input type="email" id="reg-email" placeholder="email@company.com"
+              autocomplete="email" aria-label="Email" aria-describedby="reg-email-err" aria-invalid="false" required/>
+          </div>
+          <div class="err-msg" id="reg-email-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="reg-password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="reg-password" placeholder="••••••••"
+              autocomplete="new-password" aria-label="Password" aria-describedby="reg-password-err" aria-invalid="false" required minlength="8" maxlength="32"/>
+            <button type="button" class="eye-btn" onclick="togglePwd('reg-password',this)" aria-label="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="reg-password-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="field">
+          <label for="reg-confirm">Confirm Password</label>
+          <div class="input-wrap">
+            <input type="password" id="reg-confirm" placeholder="••••••••"
+              autocomplete="new-password" aria-label="Confirm password" aria-describedby="reg-confirm-err" aria-invalid="false" required/>
+            <button type="button" class="eye-btn" onclick="togglePwd('reg-confirm',this)" aria-label="Toggle visibility">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="err-msg" id="reg-confirm-err" role="alert" aria-live="polite"></div>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="reg-terms" required aria-label="Terms"/>
+          <label for="reg-terms">I have read and agree to the <a href="#" onclick="openTermsModal();return false" style="color:var(--sky);text-decoration:underline">Terms of Service and Privacy Policy</a>.</label>
+        </div>
+        <div class="err-msg" id="reg-terms-err" role="alert" aria-live="polite" style="margin-top:-10px;margin-bottom:12px"></div>
+        <button type="submit" class="submit-btn" id="register-btn">
+          <div class="spinner" id="register-spinner"></div>
+          <span id="register-btn-text">Register</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+const REGEX={username:/^[a-zA-Z0-9]{3,20}$/,email:/^[^\s@]+@[^\s@]+\.[^\s@]+$/,password:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-.])[A-Za-z\d@$!%*?&_\-.]{8,32}$/};
+const MSGS={username:"Username must be 3-20 characters, English letters and numbers only.",email:"Please enter a valid email address.",password:"Password must be 8+ chars with uppercase, lowercase, number and special character.",confirm:"Passwords do not match.",required:"This field is required.",terms:"You must accept the terms to continue."};
+const timers={};
+function showErr(id,msg){const el=document.getElementById(id);if(!el)return;el.textContent=msg;el.classList.toggle('visible',!!msg);const inp=document.getElementById(id.replace('-err',''));if(inp){inp.setAttribute('aria-invalid',msg?'true':'false');inp.classList.toggle('error-state',!!msg);inp.classList.toggle('valid-state',!msg&&inp.value.length>0);}}
+function validateField(f){const v=f.value,id=f.id;
+  if(id==='reg-username')return showErr('reg-username-err',!v?MSGS.required:REGEX.username.test(v)?'':MSGS.username);
+  if(id==='reg-email')return showErr('reg-email-err',!v?MSGS.required:REGEX.email.test(v)?'':MSGS.email);
+  if(id==='reg-password'){showErr('reg-password-err',!v?MSGS.required:REGEX.password.test(v)?'':MSGS.password);const c=document.getElementById('reg-confirm');if(c&&c.value)validateField(c);return;}
+  if(id==='reg-confirm'){return showErr('reg-confirm-err',v===document.getElementById('reg-password').value?'':MSGS.confirm);}
+  if(id==='login-username')return showErr('login-username-err',v?'':MSGS.required);
+  if(id==='login-password')return showErr('login-password-err',v?'':MSGS.required);}
+document.querySelectorAll('input[type=text],input[type=email],input[type=password]').forEach(el=>{el.addEventListener('blur',()=>validateField(el));el.addEventListener('input',()=>{clearTimeout(timers[el.id]);timers[el.id]=setTimeout(()=>validateField(el),500);});});
+function switchTab(tab){['login','register'].forEach(t=>{document.getElementById('panel-'+t).classList.toggle('active',t===tab);const b=document.getElementById('tab-'+t);b.classList.toggle('active',t===tab);b.setAttribute('aria-selected',t===tab?'true':'false');});document.querySelector('.form-title').textContent=tab==='login'?'Welcome back':'Create account';document.querySelector('.form-sub').textContent=tab==='login'?'Sign in to your Seatwise account':'Register for a new Seatwise account';}
+function togglePwd(id,btn){const inp=document.getElementById(id);if(!inp)return;const isText=inp.type==='text';inp.type=isText?'password':'text';btn.querySelector('svg').style.opacity=isText?'1':'0.5';}
+function setLoading(k,on){const btn=document.getElementById(k+'-btn'),sp=document.getElementById(k+'-spinner'),tx=document.getElementById(k+'-btn-text');btn.disabled=on;sp.classList.toggle('show',on);tx.textContent=on?(k==='login'?'Signing In...':'Registering...'):(k==='login'?'Sign In':'Register');}
+function showFlash(k,msg,type){const el=document.getElementById(k+'-flash');el.textContent=msg;el.className='flash '+type+' show';setTimeout(()=>el.classList.remove('show'),5000);}
+async function submitLogin(e){e.preventDefault();const u=document.getElementById('login-username'),p=document.getElementById('login-password');validateField(u);validateField(p);if(!u.value||!p.value)return;setLoading('login',true);try{const r=await fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u.value,password:p.value,remember:document.getElementById('remember-me').checked})});const d=await r.json();if(d.success){window.location.href=d.redirect||'/';}else{showFlash('login',d.message||'Login failed.','error');}}catch{showFlash('login','Could not connect to server.','error');}finally{setLoading('login',false);}}
+async function submitRegister(e){e.preventDefault();const flds=['reg-username','reg-email','reg-password','reg-confirm'];flds.forEach(id=>validateField(document.getElementById(id)));const terms=document.getElementById('reg-terms');if(!terms.checked){showErr('reg-terms-err',MSGS.terms);return;}else{showErr('reg-terms-err','');}const vals=flds.map(id=>document.getElementById(id));if(vals.some(f=>document.getElementById(f.id+'-err')?.classList.contains('visible')))return;setLoading('register',true);try{const r=await fetch('/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:vals[0].value,email:vals[1].value,password:vals[2].value})});const d=await r.json();if(d.success){showFlash('register','Registration successful! You can now sign in.','success');setTimeout(()=>switchTab('login'),1500);}else{showFlash('register',d.message||'Registration failed.','error');}}catch{showFlash('register','Could not connect to server.','error');}finally{setLoading('register',false);}}
+
+// ─── TERMS OF SERVICE MODAL ───────────────────────────
+let _termsLoaded = false;
+function renderMarkdown(md){
+  // Once tehlikeli HTML karakterlerini escape et
+  const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = md.split(/\r?\n/);
+  const out = [];
+  let inTable = false;
+  let inList = false;
+  for (let raw of lines) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line.trim()) {
+      if (inList) { out.push('</ul>'); inList = false; }
+      if (inTable) { out.push('</tbody></table>'); inTable = false; }
+      out.push('');
+      continue;
+    }
+    // Hr
+    if (/^---+$/.test(line.trim())) { out.push('<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">'); continue; }
+    // Headings
+    let m;
+    if (m = line.match(/^#{1,4}\s+(.*)/)) {
+      const lvl = line.match(/^#+/)[0].length;
+      const sizes = {1:'1.05rem',2:'.98rem',3:'.9rem',4:'.83rem'};
+      const margins = {1:'1.4rem 0 .6rem',2:'1.2rem 0 .5rem',3:'1rem 0 .4rem',4:'.8rem 0 .3rem'};
+      const text = renderInline(esc(m[1]));
+      out.push(`<div style="font-size:${sizes[lvl]||'.9rem'};font-weight:700;color:var(--text);margin:${margins[lvl]||'.8rem 0 .3rem'}">${text}</div>`);
+      continue;
+    }
+    // Table (basic | separator)
+    if (line.includes('|') && line.trim().startsWith('|')) {
+      if (/^\|[\s:|-]+\|$/.test(line.trim())) continue; // alignment row
+      const cells = line.split('|').slice(1, -1).map(c => c.trim());
+      if (!inTable) {
+        out.push('<table style="width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.74rem"><tbody>');
+        inTable = true;
+      }
+      out.push('<tr>' + cells.map(c => `<td style="padding:.4rem .6rem;border:1px solid var(--border);vertical-align:top">${renderInline(esc(c))}</td>`).join('') + '</tr>');
+      continue;
+    } else if (inTable) {
+      out.push('</tbody></table>'); inTable = false;
+    }
+    // Bullet list
+    if (line.match(/^\s*[-*]\s+(.*)/)) {
+      const text = line.match(/^\s*[-*]\s+(.*)/)[1];
+      if (!inList) { out.push('<ul style="margin:.3rem 0 .3rem 1.2rem;padding:0">'); inList = true; }
+      out.push(`<li style="margin:.2rem 0">${renderInline(esc(text))}</li>`);
+      continue;
+    } else if (inList) {
+      out.push('</ul>'); inList = false;
+    }
+    // Plain paragraph
+    out.push(`<p style="margin:.4rem 0">${renderInline(esc(line))}</p>`);
+  }
+  if (inList) out.push('</ul>');
+  if (inTable) out.push('</tbody></table>');
+  return out.join('\n');
+}
+function renderInline(s){
+  // **bold**, *italic*, `code`
+  return s
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,.06);padding:.05rem .3rem;border-radius:3px;font-family:ui-monospace,monospace;font-size:.85em">$1</code>');
+}
+
+async function openTermsModal(){
+  const modal = document.getElementById('terms-modal');
+  const body  = document.getElementById('terms-body');
+  modal.style.display = 'flex';
+  if (!_termsLoaded) {
+    body.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:2rem">Loading…</div>';
+    try {
+      const r = await fetch('/static/terms.txt');
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const txt = await r.text();
+      body.innerHTML = renderMarkdown(txt);
+      _termsLoaded = true;
+    } catch (err) {
+      body.innerHTML = '<div style="color:var(--error);text-align:center;padding:2rem">Could not load Terms of Service. Please try again later.</div>';
+    }
+  }
+}
+function closeTermsModal(){
+  document.getElementById('terms-modal').style.display = 'none';
+}
+function acceptTermsAndClose(){
+  const cb = document.getElementById('reg-terms');
+  if (cb) { cb.checked = true; const errEl = document.getElementById('reg-terms-err'); if (errEl) errEl.classList.remove('visible'); }
+  closeTermsModal();
+}
+
+// ─── FORGOT PASSWORD MODAL (token-based) ──────────────
+function openResetModal(){
+  document.getElementById('reset-modal').style.display='flex';
+  document.getElementById('reset-email').focus();
+  document.getElementById('reset-flash').textContent='';
+  document.getElementById('reset-link-box').style.display='none';
+  document.getElementById('reset-form').style.display='block';
+}
+function closeResetModal(){
+  document.getElementById('reset-modal').style.display='none';
+  document.getElementById('reset-email').value='';
+}
+async function submitForgot(e){
+  e.preventDefault();
+  const email=document.getElementById('reset-email').value.trim();
+  const flash=document.getElementById('reset-flash');
+  flash.style.color='var(--error)';
+  if(!email){flash.textContent='Please enter your email.';return;}
+  const btn=document.getElementById('reset-submit-btn');
+  btn.disabled=true;btn.textContent='Sending…';
+  try{
+    const r=await fetch('/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const d=await r.json();
+    flash.style.color='var(--success)';
+    flash.textContent='';
+    document.getElementById('reset-form').style.display='none';
+    document.getElementById('reset-link-box').style.display='block';
+    const box=document.getElementById('reset-link-box');
+    if(d.delivery==='email'){
+      // Üretim modu: SMTP ile email gönderildi
+      box.innerHTML=`
+        <div style="padding:1rem;background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:8px;margin-bottom:.7rem">
+          <div style="font-size:.85rem;color:var(--success);font-weight:700;margin-bottom:.4rem">✓ Reset link sent</div>
+          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5">
+            If an account exists with that email, we've sent you a reset link. Please check your inbox (and spam folder).
+            The link expires in ${d.expires_in_minutes||15} minutes.
+          </div>
+        </div>
+        <button type="button" onclick="closeResetModal()"
+                style="width:100%;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:.8rem;cursor:pointer;font-family:inherit">Close</button>
+      `;
+    } else if(d.dev_reset_url){
+      // Geliştirme modu — SMTP yapılandırılmamış
+      const fullUrl=window.location.origin+d.dev_reset_url;
+      box.innerHTML=`
+        <div style="padding:.8rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:8px;margin-bottom:.7rem">
+          <div style="font-size:.78rem;color:#f59e0b;font-weight:700;margin-bottom:.4rem">⚠ Dev mode (no SMTP configured)</div>
+          <div style="font-size:.7rem;color:var(--text-muted);margin-bottom:.5rem;line-height:1.45">
+            In production this link is emailed to the user. For now, click the link below:
+          </div>
+          <a href="${d.dev_reset_url}" target="_blank"
+             style="display:block;font-size:.72rem;color:#60c8f8;font-family:'JetBrains Mono',ui-monospace,monospace;word-break:break-all;text-decoration:underline">${fullUrl}</a>
+          <div style="font-size:.68rem;color:var(--text-muted);margin-top:.5rem">Link expires in ${d.expires_in_minutes||15} minutes.</div>
+        </div>
+        <button type="button" onclick="closeResetModal()"
+                style="width:100%;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:.8rem;cursor:pointer;font-family:inherit">Close</button>
+      `;
+    } else {
+      box.innerHTML=`
+        <div style="padding:1rem;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.3);border-radius:8px;margin-bottom:.7rem">
+          <div style="font-size:.78rem;color:var(--text-dim);line-height:1.5">${d.message||'If an account exists, a reset link has been generated.'}</div>
+        </div>
+        <button type="button" onclick="closeResetModal()"
+                style="width:100%;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:.8rem;cursor:pointer;font-family:inherit">Close</button>
+      `;
+    }
+  } catch{
+    flash.textContent='Could not connect to server.';
+  } finally {
+    btn.disabled=false;btn.textContent='Send reset link';
+  }
+}
+</script>
+
+<!-- Forgot password modal (token-based) -->
+<div id="reset-modal" style="display:none;position:fixed;inset:0;background:rgba(6,13,24,.78);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--card);border:1px solid var(--border-focus);border-radius:14px;padding:1.8rem 1.6rem;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.55);position:relative">
+    <button type="button" onclick="closeResetModal()" aria-label="Close"
+            style="position:absolute;top:.6rem;right:.7rem;background:transparent;border:none;color:var(--text-muted);font-size:1.3rem;cursor:pointer;line-height:1">×</button>
+    <h2 style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:.3rem">Forgot password</h2>
+    <p style="font-size:.78rem;color:var(--text-muted);margin-bottom:1.2rem;line-height:1.5">
+      Enter your account email. We'll generate a single-use link to set a new password.
+    </p>
+
+    <form id="reset-form" onsubmit="submitForgot(event)" novalidate>
+      <div>
+        <label for="reset-email" style="display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:.3rem;font-weight:600">Email</label>
+        <input type="email" id="reset-email" required autocomplete="email"
+               placeholder="you@example.com"
+               style="width:100%;padding:.55rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none;font-family:inherit" />
+      </div>
+      <div id="reset-flash" style="margin-top:.7rem;font-size:.75rem;min-height:1.1rem"></div>
+      <button type="submit" id="reset-submit-btn"
+              style="width:100%;margin-top:.4rem;padding:.7rem;background:linear-gradient(135deg,#1a73e8,#14b8a6);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer">
+        Send reset link
+      </button>
+    </form>
+
+    <div id="reset-link-box" style="display:none">
+      <div style="padding:.8rem;background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:8px;margin-bottom:.7rem">
+        <div style="font-size:.75rem;color:var(--success);font-weight:600;margin-bottom:.4rem">✓ Reset link generated</div>
+        <div style="font-size:.7rem;color:var(--text-muted);margin-bottom:.5rem;line-height:1.45">
+          In production this link would be emailed to you. For this build, click the link below:
+        </div>
+        <a id="reset-link-anchor" href="#" target="_blank"
+           style="display:block;font-size:.72rem;color:#60c8f8;font-family:'JetBrains Mono',ui-monospace,monospace;word-break:break-all;text-decoration:underline"></a>
+        <div id="reset-link-expires" style="font-size:.68rem;color:var(--text-muted);margin-top:.5rem"></div>
+      </div>
+      <button type="button" onclick="closeResetModal()"
+              style="width:100%;padding:.6rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:.8rem;cursor:pointer">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Terms of Service modal -->
+<div id="terms-modal" style="display:none;position:fixed;inset:0;background:rgba(6,13,24,.82);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--card);border:1px solid var(--border-focus);border-radius:14px;max-width:760px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.55);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.1rem 1.4rem;border-bottom:1px solid var(--border)">
+      <h2 style="font-size:1rem;font-weight:700;color:var(--text);margin:0">Terms of Service &amp; Privacy Policy</h2>
+      <button type="button" onclick="closeTermsModal()" aria-label="Close"
+              style="background:transparent;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;line-height:1;padding:0 .3rem">×</button>
+    </div>
+    <div style="padding:.4rem 0;font-size:.7rem;color:var(--text-muted);text-align:center;border-bottom:1px solid var(--border)">
+      Scroll to read · Tap "I Agree" to accept and continue with registration
+    </div>
+    <div id="terms-body" style="flex:1;overflow-y:auto;padding:1.2rem 1.6rem;font-size:.8rem;line-height:1.65;color:var(--text-dim);font-family:'Inter',sans-serif;background:rgba(0,0,0,.18)"></div>
+    <div style="display:flex;gap:.6rem;padding:.9rem 1.4rem;border-top:1px solid var(--border);background:rgba(0,0,0,.25)">
+      <button type="button" onclick="closeTermsModal()"
+              style="flex:1;padding:.65rem;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-dim);font-size:.83rem;cursor:pointer;font-family:inherit">Close</button>
+      <button type="button" onclick="acceptTermsAndClose()"
+              style="flex:1.2;padding:.65rem;background:linear-gradient(135deg,#1a73e8,#14b8a6);border:none;border-radius:8px;color:#fff;font-size:.83rem;font-weight:700;cursor:pointer;font-family:inherit">I Agree</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
